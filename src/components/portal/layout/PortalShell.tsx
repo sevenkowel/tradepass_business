@@ -15,15 +15,15 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
       <PortalTopbar />
       <motion.main
         animate={{
-          marginLeft: sidebarCollapsed ? 72 : 256,
+          marginLeft: sidebarCollapsed ? 64 : 260,
         }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
-          "min-h-screen pt-16",
+          "min-h-screen pt-14",
           "max-lg:!ml-0" // Mobile: no margin
         )}
       >
-        <div className="p-6 max-w-[1440px] mx-auto">
+        <div className="p-6 max-w-[1600px] mx-auto">
           {children}
         </div>
       </motion.main>

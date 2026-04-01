@@ -2,33 +2,36 @@
 
 /* ============================================
    TradePass Design System - Tailwind v4
+   Inspired by Tailwind UI Blocks
    ============================================ */
 
-/* 
+/*
  * Tailwind v4 @theme: 所有静态颜色（品牌色）在此定义
  * 可生成 bg-*, text-*, border-* 及 /opacity 修饰符
  */
 @theme {
   /* Brand Colors */
-  --color-primary: #0A2540;
-  --color-primary-light: #1A3A5C;
-  --color-primary-dark: #061829;
+  --color-primary: #0F172A;
+  --color-primary-light: #1E293B;
+  --color-primary-dark: #020617;
 
-  --color-accent: #00D4AA;
-  --color-accent-hover: #00E5BB;
+  --color-accent: #3B82F6;
+  --color-accent-hover: #2563EB;
 
-  --color-secondary: #635BFF;
-  --color-secondary-hover: #7B73FF;
+  --color-secondary: #8B5CF6;
+  --color-secondary-hover: #7C3AED;
 
-  --color-warning: #FFB020;
-  --color-error: #FF4D4F;
-  --color-success: #52C41A;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-success: #10B981;
 
-  --color-gray-50: #F7F8FA;
-  --color-gray-100: #EEF0F2;
-  --color-gray-200: #D9DCE0;
-  --color-gray-300: #B8BCC4;
-  --color-gray-400: #949AA6;
+  /* Neutral Palette - UI Blocks inspired */
+  --color-gray-25: #F9FAFB;
+  --color-gray-50: #F3F4F6;
+  --color-gray-100: #E5E7EB;
+  --color-gray-200: #D1D5DB;
+  --color-gray-300: #9CA3AF;
+  --color-gray-400: #9CA3AF;
   --color-gray-500: #6B7280;
   --color-gray-600: #4B5563;
   --color-gray-700: #374151;
@@ -37,26 +40,28 @@
 
   /* Typography */
   --font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-heading: 'Sora', 'Noto Sans SC', sans-serif;
+  --font-heading: 'Inter', 'Noto Sans SC', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
 /* ============================================
    CSS Custom Properties - Runtime Theming
+   Inspired by Tailwind UI Blocks
    ============================================ */
 :root {
   /* Light mode semantic colors */
-  --tp-bg: #FAFBFC;
-  --tp-fg: #0A2540;
+  --tp-bg: #F9FAFB;
+  --tp-fg: #111827;
   --tp-surface: #FFFFFF;
   --tp-surface-elevated: #FFFFFF;
   --tp-border: #E5E7EB;
   --tp-border-light: #F3F4F6;
+  --tp-subtle: #F3F4F6;
 
   /* For opacity variants: use RGB channels */
-  --tp-fg-rgb: 10, 37, 64;
-  --tp-accent-rgb: 0, 212, 170;
-  --tp-secondary-rgb: 99, 91, 255;
+  --tp-fg-rgb: 17, 24, 39;
+  --tp-accent-rgb: 59, 130, 246;
+  --tp-secondary-rgb: 139, 92, 246;
   --tp-white-rgb: 255, 255, 255;
 
   /* Spacing */
@@ -70,18 +75,18 @@
   --space-4xl: 96px;
   --space-5xl: 128px;
 
-  /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  /* Radius - UI Blocks inspired */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-  --shadow-lg: 0 12px 32px rgba(0,0,0,0.12);
-  --shadow-xl: 0 24px 48px rgba(0,0,0,0.16);
-  --shadow-glow: 0 0 40px rgba(0,212,170,0.25);
+  /* Shadows - UI Blocks style */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
 
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);

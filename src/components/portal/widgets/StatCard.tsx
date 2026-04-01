@@ -22,8 +22,8 @@ export function StatCard({
   change,
   changeLabel,
   icon: Icon,
-  iconColor = "text-[var(--color-accent)]",
-  iconBg = "bg-[var(--color-accent)]/10",
+  iconColor = "text-[var(--color-primary)]",
+  iconBg = "bg-[var(--color-primary)]/5",
   delay = 0,
   size = "md",
 }: StatCardProps) {
@@ -31,42 +31,39 @@ export function StatCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -2, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.35, delay, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -1, transition: { duration: 0.15 } }}
       className={cn(
-        "relative rounded-2xl p-5 cursor-default overflow-hidden",
+        "relative rounded-xl p-4 cursor-default overflow-hidden",
         "bg-[var(--surface)] border border-[var(--border)]",
-        "hover:border-[var(--color-accent)]/30 hover:shadow-lg transition-all duration-300",
-        size === "sm" && "p-4",
-        size === "lg" && "p-6"
+        "hover:border-[var(--color-primary)]/20 hover:shadow-sm transition-all duration-200",
+        size === "sm" && "p-3",
+        size === "lg" && "p-5"
       )}
     >
-      {/* Subtle accent glow */}
-      <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-[var(--color-accent)]/5 blur-xl" />
-
       <div className="relative flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-[var(--foreground)]/50 font-medium mb-2">{title}</p>
+          <p className="text-xs font-medium text-[var(--foreground)]/60 mb-1">{title}</p>
           <p
             className={cn(
-              "font-heading font-bold text-[var(--foreground)] truncate",
-              size === "sm" ? "text-xl" : size === "lg" ? "text-3xl" : "text-2xl"
+              "font-semibold text-[var(--foreground)] tracking-tight",
+              size === "sm" ? "text-lg" : size === "lg" ? "text-2xl" : "text-xl"
             )}
           >
             {value}
           </p>
           {change !== undefined && (
-            <div className="flex items-center gap-1.5 mt-2">
+            <div className="flex items-center gap-1.5 mt-1.5">
               {isPositive ? (
-                <TrendingUp size={13} className="text-[var(--color-success)]" />
+                <TrendingUp size={12} className="text-[var(--color-success)]" />
               ) : (
-                <TrendingDown size={13} className="text-[var(--color-error)]" />
+                <TrendingDown size={12} className="text-[var(--color-error)]" />
               )}
               <span
                 className={cn(
-                  "text-xs font-semibold",
+                  "text-xs font-medium",
                   isPositive ? "text-[var(--color-success)]" : "text-[var(--color-error)]"
                 )}
               >
@@ -74,13 +71,13 @@ export function StatCard({
                 {change.toFixed(2)}%
               </span>
               {changeLabel && (
-                <span className="text-xs text-[var(--foreground)]/40">{changeLabel}</span>
+                <span className="text-[11px] text-[var(--foreground)]/40">{changeLabel}</span>
               )}
             </div>
           )}
         </div>
 
-        <div className={cn("p-3 rounded-xl shrink-0", iconBg)}>
+        <div className={cn("p-2 rounded-lg shrink-0", iconBg)}>
           <Icon size={size === "sm" ? 16 : size === "lg" ? 22 : 18} className={iconColor} />
         </div>
       </div>

@@ -59,7 +59,7 @@ function QuickAction({
   icon: Icon,
   label,
   href,
-  color = "var(--color-accent)",
+  color = "var(--color-primary)",
 }: {
   icon: React.ElementType;
   label: string;
@@ -69,17 +69,17 @@ function QuickAction({
   return (
     <Link href={href}>
       <motion.div
-        whileHover={{ scale: 1.04, y: -2 }}
-        whileTap={{ scale: 0.97 }}
-        className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--color-accent)]/30 cursor-pointer transition-colors group"
+        whileHover={{ scale: 1.02, y: -1 }}
+        whileTap={{ scale: 0.98 }}
+        className="flex flex-col items-center gap-2 p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--color-primary)]/20 cursor-pointer transition-colors group"
       >
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors"
-          style={{ background: `${color}18` }}
+          className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+          style={{ background: `${color}15` }}
         >
-          <Icon size={18} style={{ color }} />
+          <Icon size={17} style={{ color }} />
         </div>
-        <span className="text-xs font-medium text-[var(--foreground)]/70 group-hover:text-[var(--foreground)] transition-colors">
+        <span className="text-[12px] font-medium text-[var(--foreground)]/70 group-hover:text-[var(--foreground)] transition-colors">
           {label}
         </span>
       </motion.div>
@@ -91,39 +91,39 @@ function AccountCard({ account }: { account: (typeof mockAccounts)[0] }) {
   const isProfit = account.profit >= 0;
   return (
     <motion.div
-      whileHover={{ y: -2 }}
-      className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--color-accent)]/20 transition-all"
+      whileHover={{ y: -1 }}
+      className="p-4 rounded-xl bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--color-primary)]/20 transition-all"
     >
       <div className="flex items-start justify-between mb-3">
         <div>
           <div className="flex items-center gap-2">
             <span
               className={cn(
-                "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                "text-[10px] font-semibold px-1.5 py-0.5 rounded-md",
                 account.type === "Real"
-                  ? "bg-[var(--color-accent)]/15 text-[var(--color-accent)]"
-                  : "bg-[var(--color-secondary)]/15 text-[var(--color-secondary)]"
+                  ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+                  : "bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]"
               )}
             >
               {account.type}
             </span>
-            <span className="text-xs text-[var(--foreground)]/40">{account.leverage}</span>
+            <span className="text-[11px] text-[var(--foreground)]/40">{account.leverage}</span>
           </div>
-          <p className="text-sm font-mono font-medium text-[var(--foreground)] mt-1.5">
+          <p className="text-sm font-mono font-medium text-[var(--foreground)] mt-1">
             {account.id}
           </p>
         </div>
-        <div className={cn("text-sm font-bold", isProfit ? "text-[var(--color-success)]" : "text-[var(--color-error)]")}>
+        <div className={cn("text-sm font-semibold", isProfit ? "text-[var(--color-success)]" : "text-[var(--color-error)]")}>
           {formatPercent(account.profit)}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-2 mb-3">
+      <div className="grid grid-cols-2 gap-2 mb-2">
         <div>
-          <p className="text-xs text-[var(--foreground)]/40">Balance</p>
+          <p className="text-[11px] text-[var(--foreground)]/40">Balance</p>
           <p className="text-sm font-semibold">{formatCurrency(account.balance)}</p>
         </div>
         <div>
-          <p className="text-xs text-[var(--foreground)]/40">Equity</p>
+          <p className="text-[11px] text-[var(--foreground)]/40">Equity</p>
           <p className="text-sm font-semibold">{formatCurrency(account.equity)}</p>
         </div>
       </div>
@@ -135,22 +135,22 @@ function AccountCard({ account }: { account: (typeof mockAccounts)[0] }) {
 function SignalCard({ signal }: { signal: (typeof mockSignals)[0] }) {
   const isBuy = signal.direction === "BUY";
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--surface-elevated)] transition-colors cursor-pointer">
+    <div className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-[var(--surface-elevated)] transition-colors cursor-pointer">
       <div className={cn(
-        "text-[11px] font-bold px-2 py-1 rounded-lg shrink-0",
-        isBuy ? "bg-[var(--color-success)]/15 text-[var(--color-success)]" : "bg-[var(--color-error)]/15 text-[var(--color-error)]"
+        "text-[11px] font-semibold px-1.5 py-0.5 rounded-md shrink-0",
+        isBuy ? "bg-[var(--color-success)]/10 text-[var(--color-success)]" : "bg-[var(--color-error)]/10 text-[var(--color-error)]"
       )}>
         {signal.direction}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">{signal.symbol}</span>
-          <span className="text-[11px] text-[var(--foreground)]/40 bg-[var(--surface-elevated)] px-1.5 py-0.5 rounded">{signal.timeframe}</span>
+          <span className="text-[11px] text-[var(--foreground)]/40 bg-[var(--surface-elevated)] px-1.5 py-0.5 rounded-md">{signal.timeframe}</span>
         </div>
         <p className="text-xs text-[var(--foreground)]/50 mt-0.5">Entry: {signal.entry}</p>
       </div>
       <div className="text-right shrink-0">
-        <div className="text-sm font-bold text-[var(--color-accent)]">{signal.confidence}%</div>
+        <div className="text-sm font-bold text-[var(--color-primary)]">{signal.confidence}%</div>
         <div className="text-[11px] text-[var(--foreground)]/40">{signal.time}</div>
       </div>
     </div>
@@ -159,8 +159,8 @@ function SignalCard({ signal }: { signal: (typeof mockSignals)[0] }) {
 
 function TraderCard({ trader }: { trader: (typeof mockTraders)[0] }) {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--surface-elevated)] transition-colors cursor-pointer group">
-      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-secondary)] flex items-center justify-center text-white text-xs font-bold shrink-0">
+    <div className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-[var(--surface-elevated)] transition-colors cursor-pointer group">
+      <div className="w-9 h-9 rounded-lg bg-[var(--color-primary)] flex items-center justify-center text-white text-xs font-semibold shrink-0">
         {trader.avatar}
       </div>
       <div className="flex-1 min-w-0">
@@ -183,7 +183,7 @@ export default function DashboardPage() {
     hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-6">
       {/* Header */}
       <PageHeader
         title={`${greeting}, ${user?.name?.split(" ")[0]} 👋`}
@@ -233,10 +233,10 @@ export default function DashboardPage() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.4 }}
-        className="rounded-2xl bg-[var(--surface)] border border-[var(--border)] p-5"
+        transition={{ delay: 0.2, duration: 0.35 }}
+        className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-4"
       >
-        <h2 className="text-sm font-semibold text-[var(--foreground)]/60 mb-4 uppercase tracking-wider">
+        <h2 className="text-xs font-semibold text-[var(--foreground)]/50 mb-3 uppercase tracking-wide">
           Quick Actions
         </h2>
         <div className="grid grid-cols-4 gap-3">
@@ -248,19 +248,19 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Main grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
         {/* Left: Accounts + Tasks */}
-        <div className="xl:col-span-2 space-y-6">
+        <div className="xl:col-span-2 space-y-5">
           {/* Trading Accounts */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="rounded-2xl bg-[var(--surface)] border border-[var(--border)] p-5"
+            className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-4"
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading font-semibold text-[var(--foreground)]">My Accounts</h2>
-              <Link href="/portal/trading/accounts" className="text-xs text-[var(--color-accent)] hover:text-[var(--color-accent-hover)] flex items-center gap-0.5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-[var(--foreground)]">My Accounts</h2>
+              <Link href="/portal/trading/accounts" className="text-xs text-[var(--color-primary)] hover:underline flex items-center gap-0.5">
                 View all <ChevronRight size={12} />
               </Link>
             </div>
@@ -276,25 +276,25 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="rounded-2xl bg-[var(--surface)] border border-[var(--border)] p-5"
+            className="rounded-xl bg-[var(--surface)] border border-[var(--border)] p-4"
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading font-semibold text-[var(--foreground)] flex items-center gap-2">
-                <CheckSquare size={16} className="text-[var(--color-accent)]" />
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
+                <CheckSquare size={15} className="text-[var(--color-primary)]" />
                 Tasks & Rewards
               </h2>
-              <Link href="/portal/activity/tasks" className="text-xs text-[var(--color-accent)] hover:text-[var(--color-accent-hover)] flex items-center gap-0.5">
+              <Link href="/portal/activity/tasks" className="text-xs text-[var(--color-primary)] hover:underline flex items-center gap-0.5">
                 View all <ChevronRight size={12} />
               </Link>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {mockTasks.map((task) => {
                 const TaskIcon = task.icon;
                 return (
                   <Link key={task.id} href={task.href}>
-                    <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-[var(--surface-elevated)] transition-colors group cursor-pointer">
-                      <div className="w-9 h-9 rounded-xl bg-[var(--color-accent)]/10 flex items-center justify-center shrink-0">
-                        <TaskIcon size={16} className="text-[var(--color-accent)]" />
+                    <div className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-[var(--surface-elevated)] transition-colors group cursor-pointer">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)]/5 flex items-center justify-center shrink-0">
+                        <TaskIcon size={15} className="text-[var(--color-primary)]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1.5">

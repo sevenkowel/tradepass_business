@@ -35,7 +35,7 @@ function Breadcrumb() {
   return (
     <nav className="flex items-center gap-1.5 text-sm">
       {crumbs.map((crumb, i) => (
-        <span key={crumb.href} className="flex items-center gap-1.5">
+        <span key={`${crumb.href}-${i}`} className="flex items-center gap-1.5">
           {i > 0 && <span className="text-[var(--foreground)]/30">/</span>}
           <span
             className={cn(
@@ -56,7 +56,7 @@ function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="flex items-center gap-0.5 p-1 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border)]">
+    <div className="flex items-center gap-0.5 p-0.5 rounded-md bg-[var(--surface-elevated)] border border-[var(--border)]">
       {(["light", "system", "dark"] as const).map((t) => {
         const Icon = t === "light" ? Sun : t === "dark" ? Moon : Monitor;
         return (
@@ -66,8 +66,8 @@ function ThemeSwitcher() {
             className={cn(
               "p-1.5 rounded-md transition-all duration-150",
               theme === t
-                ? "bg-[var(--color-accent)] text-white"
-                : "text-[var(--foreground)]/50 hover:text-[var(--foreground)]"
+                ? "bg-[var(--surface)] shadow-sm text-[var(--foreground)]"
+                : "text-[var(--foreground)]/40 hover:text-[var(--foreground)]"
             )}
             title={t}
           >
@@ -85,18 +85,18 @@ export function PortalTopbar() {
   return (
     <header
       className={cn(
-        "fixed top-0 right-0 h-16 z-30",
-        "bg-[var(--surface)]/80 backdrop-blur-xl border-b border-[var(--border)]",
-        "flex items-center px-4 gap-4",
+        "fixed top-0 right-0 h-14 z-30",
+        "bg-[var(--surface)]/80 backdrop-blur-md border-b border-[var(--border)]",
+        "flex items-center px-4 gap-3",
         "transition-all duration-250",
-        sidebarCollapsed ? "left-[72px]" : "left-[256px]",
+        sidebarCollapsed ? "left-[64px]" : "left-[260px]",
         "max-lg:left-0"
       )}
     >
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileSidebarOpen(true)}
-        className="lg:hidden p-2 rounded-lg text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)] transition-all"
+        className="lg:hidden p-2 rounded-md text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)] transition-all"
       >
         <Menu size={18} />
       </button>
@@ -109,26 +109,26 @@ export function PortalTopbar() {
       <div className="flex-1 sm:flex-none" />
 
       {/* Search */}
-      <button className="p-2 rounded-lg text-[var(--foreground)]/50 hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)] transition-all">
-        <Search size={17} />
+      <button className="p-2 rounded-md text-[var(--foreground)]/50 hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)] transition-all">
+        <Search size={16} />
       </button>
 
       {/* Theme switcher */}
       <ThemeSwitcher />
 
       {/* Notifications */}
-      <button className="relative p-2 rounded-lg text-[var(--foreground)]/50 hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)] transition-all">
-        <Bell size={17} />
-        <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
+      <button className="relative p-2 rounded-md text-[var(--foreground)]/50 hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)] transition-all">
+        <Bell size={16} />
+        <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[var(--color-accent)]" />
       </button>
 
       {/* User avatar */}
-      <button className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl hover:bg-[var(--surface-elevated)] transition-all group">
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-secondary)] flex items-center justify-center text-white text-xs font-bold">
+      <button className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-[var(--surface-elevated)] transition-all group">
+        <div className="w-7 h-7 rounded-md bg-[var(--color-primary)] flex items-center justify-center text-white text-xs font-semibold">
           {user?.name?.charAt(0) ?? "U"}
         </div>
         <div className="hidden sm:block text-left">
-          <div className="text-sm font-medium leading-none text-[var(--foreground)]">
+          <div className="text-sm font-medium leading-tight text-[var(--foreground)]">
             {user?.name ?? "User"}
           </div>
           <div className="text-[11px] text-[var(--foreground)]/50 mt-0.5 capitalize">

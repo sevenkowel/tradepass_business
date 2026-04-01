@@ -29,37 +29,31 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
         <motion.div
           whileHover={{ x: collapsed ? 0 : 2 }}
           className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer group relative",
+            "flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer group relative",
             "transition-all duration-150",
             isActive
-              ? "bg-[var(--color-accent)]/15 text-[var(--color-accent)]"
-              : "text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)]"
+              ? "bg-[var(--color-primary)] text-white"
+              : "text-[var(--foreground)]/70 hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)]"
           )}
         >
           <Icon
-            size={18}
+            size={16}
             className={cn(
               "shrink-0",
-              isActive ? "text-[var(--color-accent)]" : "group-hover:text-[var(--foreground)]"
+              isActive ? "text-white" : "text-[var(--foreground)]/50"
             )}
           />
           {!collapsed && (
-            <span className="text-sm font-medium truncate">{item.label}</span>
+            <span className="text-[13px] font-medium truncate">{item.label}</span>
           )}
           {!collapsed && item.badge && (
-            <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[var(--color-accent)] text-white">
+            <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-[var(--color-accent)] text-white">
               {item.badge}
             </span>
           )}
-          {isActive && (
-            <motion.div
-              layoutId="activeIndicator"
-              className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-[var(--color-accent)] rounded-full"
-            />
-          )}
           {/* Tooltip when collapsed */}
           {collapsed && (
-            <div className="absolute left-full ml-3 px-2.5 py-1.5 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border)] text-sm font-medium shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+            <div className="absolute left-full ml-3 px-2.5 py-1.5 rounded-lg bg-[var(--surface)] border border-[var(--border)] text-[13px] font-medium shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
               {item.label}
             </div>
           )}
@@ -74,35 +68,35 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
         whileHover={{ x: collapsed ? 0 : 2 }}
         onClick={() => !collapsed && setOpen(!open)}
         className={cn(
-          "flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer group relative",
+          "flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer group relative",
           "transition-all duration-150",
           isActive
-            ? "text-[var(--color-accent)]"
-            : "text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)]"
+            ? "text-[var(--color-primary)] font-semibold"
+            : "text-[var(--foreground)]/70 hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)]"
         )}
       >
         <Icon
-          size={18}
+          size={16}
           className={cn(
             "shrink-0",
-            isActive ? "text-[var(--color-accent)]" : "group-hover:text-[var(--foreground)]"
+            isActive ? "text-[var(--color-primary)]" : "text-[var(--foreground)]/50"
           )}
         />
         {!collapsed && (
           <>
-            <span className="text-sm font-medium truncate flex-1">{item.label}</span>
+            <span className="text-[13px] font-medium truncate flex-1">{item.label}</span>
             {item.badge && (
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[var(--color-accent)] text-white">
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-[var(--color-accent)] text-white">
                 {item.badge}
               </span>
             )}
             <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-              <ChevronDown size={14} className="opacity-60" />
+              <ChevronDown size={14} className="opacity-40" />
             </motion.div>
           </>
         )}
         {collapsed && (
-          <div className="absolute left-full ml-3 px-2.5 py-1.5 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border)] text-sm font-medium shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+          <div className="absolute left-full ml-3 px-2.5 py-1.5 rounded-lg bg-[var(--surface)] border border-[var(--border)] text-[13px] font-medium shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
             {item.label}
           </div>
         )}
@@ -125,13 +119,13 @@ function NavItemRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) 
                   <Link key={child.href} href={child.href}>
                     <div
                       className={cn(
-                        "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150",
+                        "flex items-center gap-2.5 px-3 py-1.5 rounded-md text-[13px] transition-all duration-150",
                         childActive
-                          ? "bg-[var(--color-accent)]/10 text-[var(--color-accent)] font-medium"
-                          : "text-[var(--foreground)]/50 hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)]"
+                          ? "bg-[var(--color-primary)]/5 text-[var(--color-primary)] font-medium"
+                          : "text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)]"
                       )}
                     >
-                      {ChildIcon && <ChildIcon size={14} className="shrink-0" />}
+                      {ChildIcon && <ChildIcon size={13} className="shrink-0" />}
                       <span>{child.label}</span>
                     </div>
                   </Link>
@@ -158,7 +152,7 @@ export function PortalSidebar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
             onClick={() => setMobileSidebarOpen(false)}
           />
         )}
@@ -166,7 +160,7 @@ export function PortalSidebar() {
 
       {/* Sidebar */}
       <motion.aside
-        animate={{ width: sidebarCollapsed ? 72 : 256 }}
+        animate={{ width: sidebarCollapsed ? 64 : 260 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
           "fixed left-0 top-0 h-full z-50 flex flex-col",
@@ -180,13 +174,13 @@ export function PortalSidebar() {
         {/* Logo */}
         <div
           className={cn(
-            "h-16 flex items-center shrink-0 border-b border-[var(--border)]",
-            sidebarCollapsed ? "justify-center px-3" : "px-5"
+            "h-14 flex items-center shrink-0 border-b border-[var(--border)]",
+            sidebarCollapsed ? "justify-center px-3" : "px-4"
           )}
         >
-          <Link href="/portal/dashboard" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[var(--color-accent)] flex items-center justify-center shrink-0">
-              <TrendingUp size={16} className="text-white" />
+          <Link href="/portal/dashboard" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-md bg-[var(--color-primary)] flex items-center justify-center shrink-0 shadow-sm">
+              <TrendingUp size={15} className="text-white" />
             </div>
             <AnimatePresence mode="wait">
               {!sidebarCollapsed && (
@@ -195,7 +189,7 @@ export function PortalSidebar() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -8 }}
                   transition={{ duration: 0.15 }}
-                  className="font-heading font-bold text-lg text-[var(--foreground)]"
+                  className="font-heading font-semibold text-base text-[var(--foreground)]"
                 >
                   TradePass
                 </motion.span>
@@ -206,7 +200,7 @@ export function PortalSidebar() {
           {/* Mobile close */}
           <button
             onClick={() => setMobileSidebarOpen(false)}
-            className="ml-auto lg:hidden text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
+            className="ml-auto lg:hidden text-[var(--foreground)]/50 hover:text-[var(--foreground)]"
           >
             <X size={18} />
           </button>
