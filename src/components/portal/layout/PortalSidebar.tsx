@@ -45,11 +45,6 @@ const navSections: NavSection[] = [
         href: "/portal/dashboard",
         icon: LayoutDashboard,
         label: "Dashboard",
-        children: [
-          { href: "/portal/dashboard/tasks", icon: Briefcase, label: "Tasks" },
-          { href: "/portal/dashboard/promotions", icon: TrendingUp, label: "Promotions" },
-          { href: "/portal/dashboard/announcements", icon: Briefcase, label: "Announcements" },
-        ],
       },
       {
         href: "/portal/wallet",
@@ -144,6 +139,7 @@ const navSections: NavSection[] = [
           { href: "/portal/support/help", icon: Briefcase, label: "Help Center" },
           { href: "/portal/support/tickets", icon: Briefcase, label: "My Tickets" },
           { href: "/portal/support/tickets/new", icon: Briefcase, label: "Submit Ticket" },
+          { href: "/portal/support/announcements", icon: Briefcase, label: "Announcements" },
           { href: "/portal/support/status", icon: Briefcase, label: "System Status" },
         ],
       },

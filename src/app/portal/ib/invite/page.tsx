@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Copy, CheckCircle2, Share2, Mail, MessageCircle,
-  Link2, Users, Gift, TrendingUp, Facebook, Twitter
+  Link2, Users, Gift, TrendingUp
 } from "lucide-react";
 import { PageHeader } from "@/components/portal/widgets/PageHeader";
 import { cn } from "@/lib/utils";
@@ -23,8 +23,6 @@ export default function InvitePage() {
   const shareOptions = [
     { icon: Mail, label: "Email", color: "blue" },
     { icon: MessageCircle, label: "WhatsApp", color: "emerald" },
-    { icon: Twitter, label: "Twitter", color: "sky" },
-    { icon: Facebook, label: "Facebook", color: "indigo" },
   ];
 
   return (
