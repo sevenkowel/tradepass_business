@@ -5,8 +5,6 @@ import { PortalSidebar } from "./PortalSidebar";
 import { PortalTopbar } from "./PortalTopbar";
 import { usePortalStore } from "@/store/portalStore";
 import { cn } from "@/lib/utils";
-import { FloatingDevToolbox } from "@/components/dev-tools";
-import { isDevEnvironment } from "@/lib/dev-config";
 
 interface PortalShellProps {
   children: ReactNode;
@@ -31,9 +29,6 @@ export function PortalShell({ children, breadcrumbs }: PortalShellProps) {
           {children}
         </div>
       </main>
-
-      {/* 开发工具箱 - 仅开发环境显示 */}
-      {isDevEnvironment() && <FloatingDevToolbox />}
     </div>
   );
 }

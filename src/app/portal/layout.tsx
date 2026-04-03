@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { PortalShell } from "@/components/portal/layout/PortalShell";
-import { DevConfigProvider } from "@/lib/dev-config";
 
 export const metadata: Metadata = {
   title: {
@@ -15,9 +14,5 @@ export default function PortalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <DevConfigProvider>
-      <PortalShell>{children}</PortalShell>
-    </DevConfigProvider>
-  );
+  return <PortalShell>{children}</PortalShell>;
 }

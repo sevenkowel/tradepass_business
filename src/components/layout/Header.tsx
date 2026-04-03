@@ -207,7 +207,7 @@ export function Header() {
               </Link>
 
               <div className="pt-4 border-t border-white/10 space-y-3">
-                <Button className="w-full">Start Demo</Button>
+                <Button fullWidth>Start Demo</Button>
               </div>
             </div>
           </motion.div>

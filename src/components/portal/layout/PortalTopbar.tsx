@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search, Moon, Sun, Monitor, ChevronDown, X } from "lucide-react";
+import { Bell, Search, Moon, Sun, Monitor, Menu, ChevronDown, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "@/components/ui/ThemeProvider";
 import { useState } from "react";
@@ -17,7 +17,7 @@ interface PortalTopbarProps {
 
 export function PortalTopbar({ breadcrumbs }: PortalTopbarProps) {
   const { theme, setTheme } = useTheme();
-  const { sidebarCollapsed } = usePortalStore();
+  const { sidebarCollapsed, toggleSidebar } = usePortalStore();
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -28,10 +28,18 @@ export function PortalTopbar({ breadcrumbs }: PortalTopbarProps) {
         sidebarCollapsed ? "left-[72px]" : "left-[260px]"
       )}
     >
-      {/* Left: Search */}
+      {/* Left: Hamburger + Search */}
       <div className="flex items-center gap-3">
+        {/* Hamburger Menu */}
+        <button
+          onClick={toggleSidebar}
+          className="w-9 h-9 rounded-md hover:bg-gray-100 flex items-center justify-center transition-colors"
+        >
+          <Menu size={18} className="text-gray-600" />
+        </button>
+
         {/* Search */}
-        <div className="hidden sm:flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 w-72 border border-gray-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
+        <div className="hidden sm:flex items-center gap-2 bg-gray-50 rounded-md px-3 py-2 w-64 border border-gray-200 focus-within:border-[#1E40AF] focus-within:ring-2 focus-within:ring-[#1E40AF]/10 transition-all">
           <Search size={16} className="text-gray-400" />
           <input
             type="text"
