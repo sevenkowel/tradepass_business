@@ -224,7 +224,7 @@ export function getOnboardingSteps(perspective: UserPerspective) {
       label: "身份认证",
       completed: perspective.kycStatus === "verified",
       current: currentStepId === "kyc",
-      action: perspective.kycStatus !== "verified" ? "/portal/settings/verification" : null,
+      action: perspective.kycStatus !== "verified" ? "/portal/kyc" : null,
       cta: perspective.kycStatus === "pending" ? "View Status" : "Verify Now",
     },
     {
@@ -260,7 +260,7 @@ export function getPrimaryCTA(perspective: UserPerspective) {
   if (stage === "registered") {
     return {
       text: "Verify Now",
-      href: "/portal/settings/verification",
+      href: "/portal/kyc",
       variant: "primary" as const,
     };
   }
@@ -269,7 +269,7 @@ export function getPrimaryCTA(perspective: UserPerspective) {
   if (stage === "kyc_pending") {
     return {
       text: "View Status",
-      href: "/portal/settings/verification",
+      href: "/portal/kyc",
       variant: "secondary" as const,
     };
   }

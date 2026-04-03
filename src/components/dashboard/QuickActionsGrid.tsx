@@ -26,7 +26,7 @@ const quickActions: QuickAction[] = [
     id: "deposit",
     icon: ArrowDownToLine,
     label: "入金",
-    href: "/portal/wallet/deposit",
+    href: "/portal/fund/deposit",
     color: "text-blue-600",
     bgColor: "bg-blue-50",
   },

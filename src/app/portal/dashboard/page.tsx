@@ -23,24 +23,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
-            <div>
-              <h1 className="text-base font-medium text-gray-900">
-                欢迎, 用户{currentPerspective.id.toUpperCase()}
-              </h1>
-              {currentPerspective.vipLevel > 0 && (
-                <span className="text-xs text-gray-500">
-                  VIP {currentPerspective.vipLevel}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* 1. Onboarding Funnel - 用户引导（核心转化） */}

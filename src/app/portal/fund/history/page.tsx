@@ -242,7 +242,7 @@ export default function HistoryPage() {
                       size="sm"
                       onClick={() => setCurrentPage(page)}
                       className={cn(
-                        currentPage === page && "bg-[rgb(var(--tp-accent-rgb))] text-white"
+                        currentPage === page && "bg-tp-accent text-white"
                       )}
                     >
                       {page}

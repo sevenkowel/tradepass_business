@@ -3,36 +3,35 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ChevronLeft, Shield } from "lucide-react";
+import { ChevronLeft, Shield, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DocumentUpload } from "@/components/kyc/DocumentUpload";
-import { OCRResultEditor } from "@/components/kyc/OCRResultEditor";
 import { useKYCStore } from "@/lib/kyc/store";
 import { devFetch } from "@/lib/kyc/dev-fetch";
-import type { OCRResult, DocumentType } from "@/lib/kyc/types";
+import type { DocumentType } from "@/lib/kyc/types";
 
 export default function DocumentPage() {
   const router = useRouter();
-  const [showOCRResult, setShowOCRResult] = useState(false);
-  const [ocrResult, setOCRResult] = useState<OCRResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const { 
     setDocumentType, 
     setDocumentImages, 
     setOCRResult: saveOCRResult,
-    setCurrentStep,
     regionCode,
   } = useKYCStore();
 
   const handleUpload = (frontImage: string, backImage: string | null, type: DocumentType) => {
     setDocumentType(type);
     setDocumentImages(frontImage, backImage || undefined);
+    setError(null);
   };
 
   const handleOCR = async (frontImage: string, type: DocumentType) => {
     setIsProcessing(true);
+    setError(null);
     try {
       const response = await devFetch("/api/kyc/ocr", {
         method: "POST",
@@ -44,33 +43,34 @@ export default function DocumentPage() {
       });
 
       if (!response.ok) {
-        throw new Error("OCR failed");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "OCR processing failed");
       }
 
       const data = await response.json();
-      setOCRResult(data.data);
-      setShowOCRResult(true);
+      
+      if (!data.success) {
+        throw new Error(data.error || "OCR recognition failed");
+      }
+      
+      if (!data.data) {
+        throw new Error("Invalid OCR response data");
+      }
+      
+      // 保存 OCR 结果到 store
+      saveOCRResult(data.data);
+      
+      // 跳转到 OCR 确认页面
+      router.push("/portal/kyc/ocr-confirm");
     } catch (error) {
       console.error("OCR error:", error);
-      // Show error toast
+      setError(error instanceof Error ? error.message : "An unexpected error occurred");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleConfirmOCR = (data: Partial<OCRResult>) => {
-    if (ocrResult) {
-      const confirmedResult = { ...ocrResult, ...data };
-      saveOCRResult(confirmedResult);
-      setCurrentStep(2);
-      router.push("/portal/kyc/liveness");
-    }
-  };
 
-  const handleRetry = () => {
-    setShowOCRResult(false);
-    setOCRResult(null);
-  };
 
   return (
     <div className="min-h-screen bg-[rgb(var(--tp-bg-rgb))] py-8 px-4">
@@ -122,6 +122,27 @@ export default function DocumentPage() {
           </div>
         </motion.div>
 
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <div className="flex items-start gap-2 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm">{error}</p>
+                {error.includes("OCR engine error") && (
+                  <p className="text-xs mt-2 text-red-600">
+                    💡 提示：这是开发环境的模拟错误。请打开 DevTools 悬浮工具箱，关闭 "Simulate OCR Error" 开关。
+                  </p>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Main Content */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -136,20 +157,11 @@ export default function DocumentPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {showOCRResult && ocrResult ? (
-                <OCRResultEditor
-                  result={ocrResult}
-                  onConfirm={handleConfirmOCR}
-                  onRetry={handleRetry}
-                  isProcessing={isProcessing}
-                />
-              ) : (
-                <DocumentUpload
-                  onUpload={handleUpload}
-                  onOCR={handleOCR}
-                  isProcessing={isProcessing}
-                />
-              )}
+              <DocumentUpload
+                onUpload={handleUpload}
+                onOCR={handleOCR}
+                isProcessing={isProcessing}
+              />
             </CardContent>
           </Card>
         </motion.div>

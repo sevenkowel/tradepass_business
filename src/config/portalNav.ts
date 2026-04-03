@@ -44,6 +44,7 @@ export interface NavChild {
   label: string;
   href: string;
   icon?: LucideIcon;
+  hidden?: boolean;
 }
 
 export interface NavItem {
@@ -82,7 +83,7 @@ export const navItems: NavItem[] = [
     icon: BarChart2,
     children: [
       { label: "Accounts", href: "/portal/trading/accounts", icon: BarChart2 },
-      { label: "Open Account", href: "/portal/trading/open-account", icon: UserPlus },
+      { label: "Open Account", href: "/portal/trading/open-account", icon: UserPlus, hidden: true },
       { label: "Positions", href: "/portal/trading/positions", icon: TrendingUp },
       { label: "Orders", href: "/portal/trading/orders", icon: BookOpen },
       { label: "History", href: "/portal/trading/history", icon: History },
@@ -157,7 +158,7 @@ export const navItems: NavItem[] = [
     children: [
       { label: "Profile", href: "/portal/settings/profile", icon: User },
       { label: "Security", href: "/portal/settings/security", icon: Shield },
-      { label: "Verification", href: "/portal/settings/verification", icon: UserCheck },
+      { label: "Verification", href: "/portal/kyc", icon: UserCheck },
       { label: "Payment Methods", href: "/portal/settings/payment", icon: CreditCard },
       { label: "Notifications", href: "/portal/settings/notifications", icon: Bell },
       { label: "Language", href: "/portal/settings/language", icon: Globe },

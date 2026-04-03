@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar, TopBar } from "@/components/backoffice/layout";
 import { useAuthStore } from "@/store/backoffice";
 import { useBackofficeSidebarStore } from "@/store/backofficeSidebarStore";
+import { ToastContextProvider } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 export default function BackofficeLayout({
@@ -24,21 +25,23 @@ export default function BackofficeLayout({
   }, [isAuthenticated, router]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TopBar />
-      <Sidebar />
-      
-      {/* Main Content - 随侧边栏同步移动 */}
-      <main
-        className={cn(
-          "min-h-[calc(100vh-64px)] transition-all duration-300",
-          sidebarCollapsed ? "lg:ml-[80px]" : "lg:ml-[260px]"
-        )}
-      >
-        <div className="p-4 lg:p-6">
-          {children}
-        </div>
-      </main>
-    </div>
+    <ToastContextProvider>
+      <div className="min-h-screen bg-gray-50">
+        <TopBar />
+        <Sidebar />
+        
+        {/* Main Content - 随侧边栏同步移动 */}
+        <main
+          className={cn(
+            "min-h-[calc(100vh-64px)] transition-all duration-300",
+            sidebarCollapsed ? "lg:ml-[80px]" : "lg:ml-[260px]"
+          )}
+        >
+          <div className="p-4 lg:p-6">
+            {children}
+          </div>
+        </main>
+      </div>
+    </ToastContextProvider>
   );
 }

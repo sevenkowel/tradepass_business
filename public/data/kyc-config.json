@@ -1,0 +1,745 @@
+{
+  "version": "1.0.12",
+  "enabled": true,
+  "maintenanceMode": false,
+  "maintenanceMessage": {
+    "en": "Account opening is temporarily unavailable. Please try again later.",
+    "zh": "开户功能暂时维护中，请稍后再试。",
+    "vi": "Chức năng mở tài khoản đang bảo trì, vui lòng thử lại sau.",
+    "th": "ระบบเปิดบัญชีอยู่ระหว่างการบำรุงรักษา กรุณาลองอีกครั้งในภายหลัง",
+    "ja": "口座開設は一時的にご利用いただけません。後ほど再度お試しください。",
+    "ko": "계좌 개설이 일시적으로 중단되었습니다. 나중에 다시 시도해 주세요.",
+    "fr": "L'ouverture de compte est temporairement indisponible. Veuillez réessayer plus tard.",
+    "es": "La apertura de cuenta no está disponible temporalmente. Por favor, inténtelo más tarde.",
+    "pt": "Abertura de conta temporariamente indisponível. Tente novamente mais tarde."
+  },
+  "updatedAt": "2026-04-03T09:48:29.994Z",
+  "updatedBy": "admin",
+  "regions": {
+    "VN": {
+      "enabled": true,
+      "kycLevel": "standard",
+      "allowedDocuments": [
+        "id_card",
+        "driving_license",
+        "passport"
+      ],
+      "features": {
+        "ocrEnabled": true,
+        "livenessRequired": true,
+        "addressProofRequired": false,
+        "videoKYCRequired": false
+      },
+      "contactVerification": {
+        "phoneOtpRequired": true,
+        "emailOtpRequired": true,
+        "skipIfPreVerified": false,
+        "lockIfPreVerified": true
+      },
+      "formFields": {
+        "personalInfo": [
+          {
+            "name": "fullName",
+            "label": "Full Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "idNumber",
+            "label": "ID Number",
+            "type": "text",
+            "required": true,
+            "placeholder": "012345678901"
+          },
+          {
+            "name": "dateOfBirth",
+            "label": "Date of Birth",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "nationality",
+            "label": "Nationality",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "placeOfBirth",
+            "label": "Place of Birth",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "address",
+            "label": "Residential Address",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "phone",
+            "label": "Phone Number",
+            "type": "tel",
+            "required": true
+          },
+          {
+            "name": "email",
+            "label": "Email",
+            "type": "email",
+            "required": true
+          }
+        ],
+        "education": true,
+        "investmentExperience": true,
+        "financialStatus": true,
+        "pepDeclaration": true,
+        "usPersonDeclaration": true,
+        "professionalDeclaration": true,
+        "militaryDeclaration": true
+      },
+      "idNumberPattern": "^\\d{9}$|^\\d{12}$",
+      "idNumberExample": "012345678901"
+    },
+    "TH": {
+      "enabled": true,
+      "kycLevel": "standard",
+      "allowedDocuments": [
+        "id_card",
+        "passport"
+      ],
+      "features": {
+        "ocrEnabled": true,
+        "livenessRequired": true,
+        "addressProofRequired": false,
+        "videoKYCRequired": false
+      },
+      "contactVerification": {
+        "phoneOtpRequired": true,
+        "emailOtpRequired": true,
+        "skipIfPreVerified": false,
+        "lockIfPreVerified": true
+      },
+      "formFields": {
+        "personalInfo": [
+          {
+            "name": "fullName",
+            "label": "Full Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "idNumber",
+            "label": "ID Number",
+            "type": "text",
+            "required": true,
+            "placeholder": "1234567890123"
+          },
+          {
+            "name": "dateOfBirth",
+            "label": "Date of Birth",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "nationality",
+            "label": "Nationality",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "address",
+            "label": "Residential Address",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "phone",
+            "label": "Phone Number",
+            "type": "tel",
+            "required": true
+          },
+          {
+            "name": "email",
+            "label": "Email",
+            "type": "email",
+            "required": true
+          }
+        ],
+        "education": true,
+        "investmentExperience": true,
+        "financialStatus": true,
+        "pepDeclaration": true,
+        "usPersonDeclaration": true,
+        "professionalDeclaration": true,
+        "militaryDeclaration": false
+      },
+      "idNumberPattern": "^\\d{13}$",
+      "idNumberExample": "1234567890123"
+    },
+    "IN": {
+      "enabled": true,
+      "kycLevel": "enhanced",
+      "allowedDocuments": [
+        "id_card",
+        "passport",
+        "driving_license"
+      ],
+      "features": {
+        "ocrEnabled": true,
+        "livenessRequired": true,
+        "addressProofRequired": true,
+        "videoKYCRequired": false
+      },
+      "formFields": {
+        "personalInfo": [
+          {
+            "name": "fullName",
+            "label": "Full Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "idNumber",
+            "label": "PAN Number",
+            "type": "text",
+            "required": true,
+            "placeholder": "ABCDE1234F"
+          },
+          {
+            "name": "aadhaarNumber",
+            "label": "Aadhaar Number (Optional)",
+            "type": "text",
+            "required": false,
+            "placeholder": "1234 5678 9012"
+          },
+          {
+            "name": "dateOfBirth",
+            "label": "Date of Birth",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "nationality",
+            "label": "Nationality",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "address",
+            "label": "Residential Address",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "phone",
+            "label": "Phone Number",
+            "type": "tel",
+            "required": true
+          },
+          {
+            "name": "email",
+            "label": "Email",
+            "type": "email",
+            "required": true
+          }
+        ],
+        "education": true,
+        "investmentExperience": true,
+        "financialStatus": true,
+        "pepDeclaration": true,
+        "usPersonDeclaration": true,
+        "professionalDeclaration": true,
+        "militaryDeclaration": false
+      },
+      "idNumberPattern": "^[A-Z]{5}[0-9]{4}[A-Z]{1}$",
+      "idNumberExample": "ABCDE1234F"
+    },
+    "AE": {
+      "enabled": true,
+      "kycLevel": "enhanced",
+      "allowedDocuments": [
+        "id_card",
+        "passport"
+      ],
+      "features": {
+        "ocrEnabled": true,
+        "livenessRequired": true,
+        "addressProofRequired": true,
+        "videoKYCRequired": false
+      },
+      "formFields": {
+        "personalInfo": [
+          {
+            "name": "fullName",
+            "label": "Full Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "idNumber",
+            "label": "Emirates ID",
+            "type": "text",
+            "required": true,
+            "placeholder": "784-1234-1234567-1"
+          },
+          {
+            "name": "dateOfBirth",
+            "label": "Date of Birth",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "nationality",
+            "label": "Nationality",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "address",
+            "label": "Residential Address",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "phone",
+            "label": "Phone Number",
+            "type": "tel",
+            "required": true
+          },
+          {
+            "name": "email",
+            "label": "Email",
+            "type": "email",
+            "required": true
+          }
+        ],
+        "education": true,
+        "investmentExperience": true,
+        "financialStatus": true,
+        "pepDeclaration": true,
+        "usPersonDeclaration": true,
+        "professionalDeclaration": true,
+        "militaryDeclaration": false
+      },
+      "idNumberPattern": "^784-\\d{4}-\\d{7}-\\d{1}$",
+      "idNumberExample": "784-1234-1234567-1"
+    },
+    "KR": {
+      "enabled": true,
+      "kycLevel": "standard",
+      "allowedDocuments": [
+        "id_card",
+        "passport",
+        "driving_license"
+      ],
+      "features": {
+        "ocrEnabled": true,
+        "livenessRequired": true,
+        "addressProofRequired": false,
+        "videoKYCRequired": false
+      },
+      "formFields": {
+        "personalInfo": [
+          {
+            "name": "fullName",
+            "label": "Full Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "idNumber",
+            "label": "Resident Registration Number",
+            "type": "text",
+            "required": true,
+            "placeholder": "901010-1234567"
+          },
+          {
+            "name": "dateOfBirth",
+            "label": "Date of Birth",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "nationality",
+            "label": "Nationality",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "address",
+            "label": "Residential Address",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "phone",
+            "label": "Phone Number",
+            "type": "tel",
+            "required": true
+          },
+          {
+            "name": "email",
+            "label": "Email",
+            "type": "email",
+            "required": true
+          }
+        ],
+        "education": true,
+        "investmentExperience": true,
+        "financialStatus": true,
+        "pepDeclaration": true,
+        "usPersonDeclaration": true,
+        "professionalDeclaration": true,
+        "militaryDeclaration": true
+      },
+      "idNumberPattern": "^\\d{6}-\\d{7}$",
+      "idNumberExample": "901010-1234567"
+    },
+    "JP": {
+      "enabled": false,
+      "kycLevel": "standard",
+      "allowedDocuments": [
+        "id_card",
+        "passport",
+        "driving_license"
+      ],
+      "features": {
+        "ocrEnabled": true,
+        "livenessRequired": true,
+        "addressProofRequired": false,
+        "videoKYCRequired": false
+      },
+      "formFields": {
+        "personalInfo": [
+          {
+            "name": "fullName",
+            "label": "Full Name (Romaji)",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "fullNameJp",
+            "label": "Full Name (Japanese)",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "idNumber",
+            "label": "Residence Card Number",
+            "type": "text",
+            "required": true,
+            "placeholder": "AB12345678"
+          },
+          {
+            "name": "dateOfBirth",
+            "label": "Date of Birth",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "nationality",
+            "label": "Nationality",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "address",
+            "label": "Residential Address",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "phone",
+            "label": "Phone Number",
+            "type": "tel",
+            "required": true
+          },
+          {
+            "name": "email",
+            "label": "Email",
+            "type": "email",
+            "required": true
+          }
+        ],
+        "education": true,
+        "investmentExperience": true,
+        "financialStatus": true,
+        "pepDeclaration": true,
+        "usPersonDeclaration": true,
+        "professionalDeclaration": true,
+        "militaryDeclaration": false
+      },
+      "idNumberPattern": "^[A-Z]{2}\\d{8}$",
+      "idNumberExample": "AB12345678"
+    },
+    "FR": {
+      "enabled": true,
+      "kycLevel": "standard",
+      "allowedDocuments": [
+        "id_card",
+        "passport",
+        "driving_license"
+      ],
+      "features": {
+        "ocrEnabled": true,
+        "livenessRequired": true,
+        "addressProofRequired": true,
+        "videoKYCRequired": false
+      },
+      "contactVerification": {
+        "phoneOtpRequired": true,
+        "emailOtpRequired": true,
+        "skipIfPreVerified": false,
+        "lockIfPreVerified": true
+      },
+      "formFields": {
+        "personalInfo": [
+          {
+            "name": "fullName",
+            "label": "Full Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "idNumber",
+            "label": "ID Number",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "dateOfBirth",
+            "label": "Date of Birth",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "nationality",
+            "label": "Nationality",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "birthPlace",
+            "label": "Place of Birth",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "address",
+            "label": "Residential Address",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "phone",
+            "label": "Phone Number",
+            "type": "tel",
+            "required": true
+          },
+          {
+            "name": "email",
+            "label": "Email",
+            "type": "email",
+            "required": true
+          }
+        ],
+        "education": true,
+        "investmentExperience": true,
+        "financialStatus": true,
+        "pepDeclaration": true,
+        "usPersonDeclaration": true,
+        "professionalDeclaration": true,
+        "militaryDeclaration": false
+      }
+    },
+    "ES": {
+      "enabled": true,
+      "kycLevel": "standard",
+      "allowedDocuments": [
+        "id_card",
+        "passport",
+        "driving_license"
+      ],
+      "features": {
+        "ocrEnabled": true,
+        "livenessRequired": true,
+        "addressProofRequired": true,
+        "videoKYCRequired": false
+      },
+      "formFields": {
+        "personalInfo": [
+          {
+            "name": "fullName",
+            "label": "Full Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "idNumber",
+            "label": "DNI/NIE",
+            "type": "text",
+            "required": true,
+            "placeholder": "12345678A"
+          },
+          {
+            "name": "dateOfBirth",
+            "label": "Date of Birth",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "nationality",
+            "label": "Nationality",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "address",
+            "label": "Residential Address",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "phone",
+            "label": "Phone Number",
+            "type": "tel",
+            "required": true
+          },
+          {
+            "name": "email",
+            "label": "Email",
+            "type": "email",
+            "required": true
+          }
+        ],
+        "education": true,
+        "investmentExperience": true,
+        "financialStatus": true,
+        "pepDeclaration": true,
+        "usPersonDeclaration": true,
+        "professionalDeclaration": true,
+        "militaryDeclaration": false
+      },
+      "idNumberPattern": "^\\d{8}[A-Z]$|^[XYZ]\\d{7}[A-Z]$",
+      "idNumberExample": "12345678A"
+    },
+    "BR": {
+      "enabled": true,
+      "kycLevel": "standard",
+      "allowedDocuments": [
+        "id_card",
+        "passport",
+        "driving_license"
+      ],
+      "features": {
+        "ocrEnabled": true,
+        "livenessRequired": true,
+        "addressProofRequired": false,
+        "videoKYCRequired": false
+      },
+      "formFields": {
+        "personalInfo": [
+          {
+            "name": "fullName",
+            "label": "Full Name",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "idNumber",
+            "label": "CPF",
+            "type": "text",
+            "required": true,
+            "placeholder": "123.456.789-09"
+          },
+          {
+            "name": "rgNumber",
+            "label": "RG Number",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "dateOfBirth",
+            "label": "Date of Birth",
+            "type": "date",
+            "required": true
+          },
+          {
+            "name": "nationality",
+            "label": "Nationality",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "address",
+            "label": "Residential Address",
+            "type": "textarea",
+            "required": true
+          },
+          {
+            "name": "phone",
+            "label": "Phone Number",
+            "type": "tel",
+            "required": true
+          },
+          {
+            "name": "email",
+            "label": "Email",
+            "type": "email",
+            "required": true
+          }
+        ],
+        "education": true,
+        "investmentExperience": true,
+        "financialStatus": true,
+        "pepDeclaration": true,
+        "usPersonDeclaration": true,
+        "professionalDeclaration": true,
+        "militaryDeclaration": false
+      },
+      "idNumberPattern": "^\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}$",
+      "idNumberExample": "123.456.789-09"
+    }
+  },
+  "steps": {
+    "document": {
+      "enabled": true,
+      "requiredDocuments": 1,
+      "maxFileSize": 10,
+      "allowedFormats": [
+        "jpg",
+        "jpeg",
+        "png",
+        "pdf"
+      ]
+    },
+    "liveness": {
+      "enabled": true,
+      "maxAttempts": 3,
+      "videoDuration": 15
+    },
+    "personalInfo": {
+      "enabled": true,
+      "sections": [
+        "basic",
+        "education",
+        "investment",
+        "financial",
+        "declarations"
+      ]
+    },
+    "agreements": {
+      "enabled": false,
+      "requiredAgreements": [
+        "terms_of_service",
+        "risk_disclosure",
+        "privacy_policy"
+      ]
+    }
+  },
+  "defaults": {
+    "defaultRegion": "VN",
+    "reviewMode": "auto",
+    "autoApproveThreshold": 30,
+    "reviewTimeout": 24
+  }
+}

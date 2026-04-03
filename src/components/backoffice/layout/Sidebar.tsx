@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -24,21 +24,26 @@ import {
   ChevronRight,
   ChevronLeft,
   Sparkles,
+  Shield,
+  UserCog,
   type LucideIcon,
 } from "lucide-react";
 import { useBackofficeSidebarStore } from "@/store/backofficeSidebarStore";
+import { useAuthStore } from "@/store/backoffice";
+import type { PermissionModule } from "@/types/backoffice/role";
 
 // 菜单项类型 - 支持两级菜单
 interface MenuItem {
   label: string;
   href?: string;
   icon: LucideIcon;
-  children?: MenuItem[];
+  permission?: PermissionModule;
 }
 
 interface MenuGroup {
   group: string;
   icon: LucideIcon;
+  permission: PermissionModule;
   items: MenuItem[];
 }
 
@@ -47,135 +52,151 @@ const menuGroups: MenuGroup[] = [
   {
     group: "Dashboard",
     icon: LayoutDashboard,
+    permission: "dashboard",
     items: [
-      { label: "Overview", href: "/backoffice", icon: LayoutDashboard },
-      { label: "Real-time Monitor", href: "/backoffice/monitor", icon: TrendingUp },
-      { label: "Conversion Funnel", href: "/backoffice/funnel", icon: BarChart3 },
+      { label: "Overview", href: "/backoffice", icon: LayoutDashboard, permission: "dashboard" },
+      { label: "Real-time Monitor", href: "/backoffice/monitor", icon: TrendingUp, permission: "dashboard" },
+      { label: "Conversion Funnel", href: "/backoffice/funnel", icon: BarChart3, permission: "dashboard" },
     ],
   },
   {
     group: "Users",
     icon: Users,
+    permission: "accounts",
     items: [
-      { label: "User List", href: "/backoffice/users", icon: Users },
-      { label: "User Tags", href: "/backoffice/users/tags", icon: Users },
-      { label: "User Levels", href: "/backoffice/users/levels", icon: Users },
+      { label: "User List", href: "/backoffice/users", icon: Users, permission: "accounts" },
+      { label: "User Tags", href: "/backoffice/users/tags", icon: Users, permission: "accounts" },
+      { label: "User Levels", href: "/backoffice/users/levels", icon: Users, permission: "accounts" },
     ],
   },
   {
     group: "Compliance",
     icon: ShieldCheck,
+    permission: "compliance",
     items: [
-      { label: "KYC Review", href: "/backoffice/compliance/kyc-review", icon: ShieldCheck },
-      { label: "Risk Control", href: "/backoffice/compliance/risk", icon: AlertTriangle },
-      { label: "Blacklist", href: "/backoffice/compliance/blacklist", icon: ShieldCheck },
-      { label: "Audit Logs", href: "/backoffice/compliance/audit", icon: ShieldCheck },
+      { label: "KYC Review", href: "/backoffice/compliance/kyc-review", icon: ShieldCheck, permission: "compliance" },
+      { label: "Risk Control", href: "/backoffice/compliance/risk", icon: AlertTriangle, permission: "compliance" },
+      { label: "Blacklist", href: "/backoffice/compliance/blacklist", icon: ShieldCheck, permission: "compliance" },
+      { label: "Audit Logs", href: "/backoffice/compliance/audit", icon: ShieldCheck, permission: "compliance" },
     ],
   },
   {
     group: "Accounts",
     icon: Briefcase,
+    permission: "accounts",
     items: [
-      { label: "MT Accounts", href: "/backoffice/accounts", icon: Briefcase },
-      { label: "Account Groups", href: "/backoffice/accounts/groups", icon: Briefcase },
-      { label: "Leverage Settings", href: "/backoffice/accounts/leverage", icon: Briefcase },
+      { label: "MT Accounts", href: "/backoffice/accounts", icon: Briefcase, permission: "accounts" },
+      { label: "Account Groups", href: "/backoffice/accounts/groups", icon: Briefcase, permission: "accounts" },
+      { label: "Leverage Settings", href: "/backoffice/accounts/leverage", icon: Briefcase, permission: "accounts" },
     ],
   },
   {
     group: "Funds",
     icon: Wallet,
+    permission: "funds",
     items: [
-      { label: "Deposit Orders", href: "/backoffice/funds/deposits", icon: Wallet },
-      { label: "Withdrawal Requests", href: "/backoffice/funds/withdrawal-review", icon: Wallet },
-      { label: "Transactions", href: "/backoffice/funds/transactions", icon: Wallet },
-      { label: "Payment Channels", href: "/backoffice/funds/channels", icon: Wallet },
+      { label: "Deposit Orders", href: "/backoffice/funds/deposits", icon: Wallet, permission: "funds" },
+      { label: "Withdrawal Requests", href: "/backoffice/funds/withdrawal-review", icon: Wallet, permission: "funds" },
+      { label: "Transactions", href: "/backoffice/funds/transactions", icon: Wallet, permission: "funds" },
+      { label: "Payment Channels", href: "/backoffice/funds/channels", icon: Wallet, permission: "funds" },
     ],
   },
   {
     group: "Trading",
     icon: TrendingUp,
+    permission: "trading",
     items: [
-      { label: "Orders", href: "/backoffice/trading/orders", icon: TrendingUp },
-      { label: "Positions", href: "/backoffice/trading/positions", icon: TrendingUp },
-      { label: "Instruments", href: "/backoffice/trading/instruments", icon: TrendingUp },
-      { label: "Trading Settings", href: "/backoffice/trading/settings", icon: TrendingUp },
+      { label: "Orders", href: "/backoffice/trading/orders", icon: TrendingUp, permission: "trading" },
+      { label: "Positions", href: "/backoffice/trading/positions", icon: TrendingUp, permission: "trading" },
+      { label: "Instruments", href: "/backoffice/trading/instruments", icon: TrendingUp, permission: "trading" },
+      { label: "Trading Settings", href: "/backoffice/trading/settings", icon: TrendingUp, permission: "trading" },
     ],
   },
   {
     group: "IB / Referral",
     icon: Network,
+    permission: "ib",
     items: [
-      { label: "IB List", href: "/backoffice/ib", icon: Network },
-      { label: "Referral Tree", href: "/backoffice/ib/tree", icon: Network },
-      { label: "Commission Records", href: "/backoffice/ib/commissions", icon: Network },
-      { label: "Commission Settings", href: "/backoffice/ib/settings", icon: Network },
+      { label: "IB List", href: "/backoffice/ib", icon: Network, permission: "ib" },
+      { label: "Referral Tree", href: "/backoffice/ib/tree", icon: Network, permission: "ib" },
+      { label: "Commission Records", href: "/backoffice/ib/commissions", icon: Network, permission: "ib" },
+      { label: "Commission Settings", href: "/backoffice/ib/settings", icon: Network, permission: "ib" },
     ],
   },
   {
     group: "Copy Trading",
     icon: Copy,
+    permission: "copy_trading",
     items: [
-      { label: "Traders", href: "/backoffice/copy-trading/traders", icon: Copy },
-      { label: "Followers", href: "/backoffice/copy-trading/followers", icon: Copy },
-      { label: "Copy Settings", href: "/backoffice/copy-trading/settings", icon: Copy },
-      { label: "Profit Sharing", href: "/backoffice/copy-trading/profits", icon: Copy },
+      { label: "Traders", href: "/backoffice/copy-trading/traders", icon: Copy, permission: "copy_trading" },
+      { label: "Followers", href: "/backoffice/copy-trading/followers", icon: Copy, permission: "copy_trading" },
+      { label: "Copy Settings", href: "/backoffice/copy-trading/settings", icon: Copy, permission: "copy_trading" },
+      { label: "Profit Sharing", href: "/backoffice/copy-trading/profits", icon: Copy, permission: "copy_trading" },
     ],
   },
   {
     group: "AI Signals",
     icon: Brain,
+    permission: "ai_signals",
     items: [
-      { label: "Signal List", href: "/backoffice/ai-signals", icon: Brain },
-      { label: "Usage Control", href: "/backoffice/ai-signals/usage", icon: Brain },
-      { label: "Signal Pool", href: "/backoffice/ai-signals/pool", icon: Brain },
+      { label: "Signal List", href: "/backoffice/ai-signals", icon: Brain, permission: "ai_signals" },
+      { label: "Usage Control", href: "/backoffice/ai-signals/usage", icon: Brain, permission: "ai_signals" },
+      { label: "Signal Pool", href: "/backoffice/ai-signals/pool", icon: Brain, permission: "ai_signals" },
     ],
   },
   {
     group: "Risk",
     icon: AlertTriangle,
+    permission: "risk",
     items: [
-      { label: "Risk Dashboard", href: "/backoffice/risk", icon: AlertTriangle },
-      { label: "Risk Rules", href: "/backoffice/risk/rules", icon: AlertTriangle },
-      { label: "Margin Alerts", href: "/backoffice/risk/margin", icon: AlertTriangle },
-      { label: "NBP Protection", href: "/backoffice/risk/nbp", icon: AlertTriangle },
+      { label: "Risk Dashboard", href: "/backoffice/risk", icon: AlertTriangle, permission: "risk" },
+      { label: "Risk Rules", href: "/backoffice/risk/rules", icon: AlertTriangle, permission: "risk" },
+      { label: "Margin Alerts", href: "/backoffice/risk/margin", icon: AlertTriangle, permission: "risk" },
+      { label: "NBP Protection", href: "/backoffice/risk/nbp", icon: AlertTriangle, permission: "risk" },
     ],
   },
   {
     group: "CRM / Support",
     icon: Headphones,
+    permission: "accounts",
     items: [
-      { label: "Tickets", href: "/backoffice/crm/tickets", icon: Headphones },
-      { label: "Interaction Logs", href: "/backoffice/crm/logs", icon: Headphones },
-      { label: "Feedback", href: "/backoffice/crm/feedback", icon: Headphones },
+      { label: "Tickets", href: "/backoffice/crm/tickets", icon: Headphones, permission: "accounts" },
+      { label: "Interaction Logs", href: "/backoffice/crm/logs", icon: Headphones, permission: "accounts" },
+      { label: "Feedback", href: "/backoffice/crm/feedback", icon: Headphones, permission: "accounts" },
     ],
   },
   {
     group: "Marketing",
     icon: Megaphone,
+    permission: "marketing",
     items: [
-      { label: "Campaigns", href: "/backoffice/marketing/campaigns", icon: Megaphone },
-      { label: "Messages", href: "/backoffice/marketing/messages", icon: Megaphone },
-      { label: "Banner Management", href: "/backoffice/marketing/banners", icon: Megaphone },
-      { label: "News / Insights", href: "/backoffice/marketing/news", icon: Megaphone },
+      { label: "Campaigns", href: "/backoffice/marketing/campaigns", icon: Megaphone, permission: "marketing" },
+      { label: "Messages", href: "/backoffice/marketing/messages", icon: Megaphone, permission: "marketing" },
+      { label: "Banner Management", href: "/backoffice/marketing/banners", icon: Megaphone, permission: "marketing" },
+      { label: "News / Insights", href: "/backoffice/marketing/news", icon: Megaphone, permission: "marketing" },
     ],
   },
   {
     group: "Reports",
     icon: BarChart3,
+    permission: "reports",
     items: [
-      { label: "Financial Reports", href: "/backoffice/reports/financial", icon: BarChart3 },
-      { label: "Trading Reports", href: "/backoffice/reports/trading", icon: BarChart3 },
-      { label: "User Reports", href: "/backoffice/reports/users", icon: BarChart3 },
+      { label: "Financial Reports", href: "/backoffice/reports/financial", icon: BarChart3, permission: "reports" },
+      { label: "Trading Reports", href: "/backoffice/reports/trading", icon: BarChart3, permission: "reports" },
+      { label: "User Reports", href: "/backoffice/reports/users", icon: BarChart3, permission: "reports" },
     ],
   },
   {
     group: "System",
     icon: Settings,
+    permission: "system",
     items: [
-      { label: "Roles & Permissions", href: "/backoffice/system/roles", icon: Settings },
-      { label: "Config Center", href: "/backoffice/system/config", icon: Settings },
-      { label: "API Management", href: "/backoffice/system/api", icon: Settings },
-      { label: "Operation Logs", href: "/backoffice/system/logs", icon: Settings },
+      { label: "Roles & Permissions", href: "/backoffice/system/roles", icon: Settings, permission: "system" },
+      { label: "Staff Management", href: "/backoffice/system/staff", icon: UserCog, permission: "system" },
+      { label: "Security Settings", href: "/backoffice/system/security", icon: Shield, permission: "system" },
+      { label: "Config Center", href: "/backoffice/system/config", icon: Settings, permission: "system" },
+      { label: "API Management", href: "/backoffice/system/api", icon: Settings, permission: "system" },
+      { label: "Operation Logs", href: "/backoffice/system/logs", icon: Settings, permission: "system" },
     ],
   },
 ];
@@ -335,8 +356,30 @@ function MenuItem({ group, isExpanded, onToggle, isActive, collapsed }: MenuItem
 export function Sidebar() {
   const pathname = usePathname();
   const { sidebarCollapsed, toggleSidebar } = useBackofficeSidebarStore();
+  const { hasPermission } = useAuthStore();
   const [expandedGroup, setExpandedGroup] = useState<string | null>("Dashboard");
   const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false);
+
+  // Filter menu groups based on permissions
+  const filteredMenuGroups = useMemo(() => {
+    return menuGroups
+      .map((group) => {
+        // Filter items based on permissions
+        const filteredItems = group.items.filter((item) => {
+          if (!item.permission) return true;
+          return hasPermission(item.permission, "view");
+        });
+
+        // Only return group if it has visible items
+        if (filteredItems.length === 0) return null;
+
+        return {
+          ...group,
+          items: filteredItems,
+        };
+      })
+      .filter(Boolean) as MenuGroup[];
+  }, [hasPermission]);
 
   const toggleGroup = (group: string) => {
     setExpandedGroup((prev) => (prev === group ? null : group));
@@ -356,10 +399,8 @@ export function Sidebar() {
   };
 
   // 根据当前路径自动展开对应的分组
-  const currentGroup = menuGroups.find(g => 
-    g.items.some(item => isActive(item.href))
-  );
-  
+  const currentGroup = filteredMenuGroups.find((g) => g.items.some((item) => isActive(item.href)));
+
   // 初始化展开状态
   if (currentGroup && expandedGroup !== currentGroup.group) {
     // 静默更新，不要触发重新渲染
@@ -414,7 +455,7 @@ export function Sidebar() {
 
         {/* Menu */}
         <nav className="flex-1 overflow-y-auto py-4 no-scrollbar">
-          {menuGroups.map((group) => (
+          {filteredMenuGroups.map((group) => (
             <div key={group.group} className="mb-1">
               <MenuItem
                 group={group}

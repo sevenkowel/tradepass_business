@@ -93,6 +93,8 @@
   --tp-bg-rgb: 245, 247, 250;
   --tp-surface-rgb: 255, 255, 255;
   --tp-accent-rgb: 30, 64, 175;
+  --tp-accent: rgb(30, 64, 175);
+  --tp-accent-dark: rgb(20, 50, 150);
 
   /* Spacing - Clean and spacious */
   --space-xs: 4px;
@@ -149,8 +151,9 @@
   --tp-bg-rgb: 17, 24, 39;
   --tp-surface-rgb: 31, 41, 55;
   --tp-accent-rgb: 59, 130, 246;
+  --tp-accent: rgb(59, 130, 246);
+  --tp-accent-dark: rgb(37, 99, 235);
   --card-border: #374151;
-  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
   --card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
 }
 
@@ -167,6 +170,8 @@
     --tp-bg-rgb: 17, 24, 39;
     --tp-surface-rgb: 31, 41, 55;
     --tp-accent-rgb: 59, 130, 246;
+    --tp-accent: rgb(59, 130, 246);
+    --tp-accent-dark: rgb(37, 99, 235);
 
     --card-bg: #1F2937;
     --card-border: #374151;
@@ -223,6 +228,14 @@
   .bg-background      { background: var(--tp-bg); }
   .bg-surface         { background: var(--tp-surface); }
   .bg-surface-elevated { background: var(--tp-surface-elevated); }
+
+  /* Theme-aware accent utilities (replaces broken bg-[rgb(var(--tp-accent-rgb))]) */
+  .bg-tp-accent        { background-color: rgb(var(--tp-accent-rgb)); }
+  .bg-tp-accent-hover  { background-color: rgba(var(--tp-accent-rgb), 0.9); }
+  .bg-tp-accent-subtle { background-color: rgba(var(--tp-accent-rgb), 0.1); }
+  .text-tp-accent      { color: rgb(var(--tp-accent-rgb)); }
+  .border-tp-accent    { border-color: rgb(var(--tp-accent-rgb)); }
+  .border-tp-accent-subtle { border-color: rgba(var(--tp-accent-rgb), 0.2); }
 
   /* shadcn/ui compatible utilities */
   .bg-card            { background: var(--card); }

@@ -193,7 +193,7 @@ export function AgreementSign({ agreements, onSubmit, isSubmitting }: AgreementS
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || !allRequiredAccepted || !signature.trim()}
-            className="w-full h-12 bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white"
+            className="w-full h-12 bg-tp-accent hover:bg-tp-accent-hover text-white"
           >
             {isSubmitting ? (
               <>

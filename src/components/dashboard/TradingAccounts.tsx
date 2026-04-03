@@ -82,7 +82,7 @@ export function TradingAccounts({ user }: TradingAccountsProps) {
 
             <div className="flex items-center gap-2">
               <Link
-                href="/portal/wallet/deposit"
+                href="/portal/fund/deposit"
                 className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-200 rounded hover:bg-gray-50"
               >
                 <ArrowUpRight size={12} />

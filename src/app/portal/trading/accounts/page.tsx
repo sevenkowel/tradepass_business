@@ -77,7 +77,7 @@ function AccountCard({ account }: { account: (typeof mockAccounts)[0] }) {
 
       {/* Actions */}
       <div className="px-5 pb-5 flex gap-2">
-        <Link href={`/portal/wallet/deposit?account=${account.id}`} className="flex-1">
+        <Link href={`/portal/fund/deposit?account=${account.id}`} className="flex-1">
           <button className="w-full text-xs font-bold py-2 px-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm">
             Deposit
           </button>

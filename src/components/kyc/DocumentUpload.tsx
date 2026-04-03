@@ -102,8 +102,8 @@ export function DocumentUpload({ onUpload, onOCR, isProcessing }: DocumentUpload
   return (
     <div className="space-y-6">
       {/* Document Type Selection */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium text-[rgb(var(--tp-fg-rgb))]">
+      <div>
+        <label className="text-sm font-medium text-[rgb(var(--tp-fg-rgb))] block mb-4">
           Select Document Type
         </label>
         <div className="grid grid-cols-3 gap-3">
@@ -141,7 +141,7 @@ export function DocumentUpload({ onUpload, onOCR, isProcessing }: DocumentUpload
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="space-y-4"
+            className="space-y-4 pt-2"
           >
             {/* Front Side */}
             <Card className={cn(
@@ -250,7 +250,7 @@ export function DocumentUpload({ onUpload, onOCR, isProcessing }: DocumentUpload
       <Button
         onClick={handleContinue}
         disabled={!isComplete || isProcessing}
-        className="w-full h-12 bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white font-medium"
+        className="w-full h-12 bg-tp-accent text-white font-medium"
       >
         {isProcessing ? (
           <>

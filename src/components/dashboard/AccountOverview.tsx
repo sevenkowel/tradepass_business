@@ -47,7 +47,7 @@ export function AccountOverview({ user }: AccountOverviewProps) {
 
         {/* Deposit CTA */}
         <Link
-          href="/portal/wallet/deposit"
+          href="/portal/fund/deposit"
           className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
         >
           <Plus size={16} />
@@ -61,7 +61,7 @@ export function AccountOverview({ user }: AccountOverviewProps) {
 // 快捷操作按钮
 export function QuickActions() {
   const actions = [
-    { label: "入金", href: "/portal/wallet/deposit", icon: Plus },
+    { label: "入金", href: "/portal/fund/deposit", icon: Plus },
     { label: "出金", href: "/portal/wallet/withdraw", icon: ArrowDownRight },
     { label: "划转", href: "/portal/wallet/transfer", icon: Repeat },
     { label: "交易", href: "/portal/trading", icon: ArrowUpRight },

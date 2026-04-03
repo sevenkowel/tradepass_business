@@ -27,6 +27,7 @@ const mockOCRResults: Record<DocumentType, Partial<OCRResult>> = {
     idNumber: "P1234567",
     dateOfBirth: "1990-01-01",
     nationality: "Vietnamese",
+    issuingCountry: "Vietnam",
     expiryDate: "2030-01-01",
     confidence: 0.98,
   },
@@ -55,7 +56,8 @@ export async function mockOCR(
   const mockResult = mockOCRResults[documentType];
   
   // 随机添加一些变化
-  const confidence = Math.min(0.99, Math.max(0.85, mockResult.confidence! + (Math.random() - 0.5) * 0.1));
+  const baseConfidence = mockResult.confidence ?? 0.9;
+  const confidence = Math.min(0.99, Math.max(0.85, baseConfidence + (Math.random() - 0.5) * 0.1));
   
   return {
     ...mockResult,

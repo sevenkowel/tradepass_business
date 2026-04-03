@@ -138,7 +138,7 @@ export default function KYCStatusPage() {
 
               <Button
                 onClick={statusConfig.action.onClick}
-                className="h-12 px-8 bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white"
+                className="h-12 px-8 bg-tp-accent hover:bg-tp-accent-hover text-white"
               >
                 {statusConfig.action.label}
                 <ArrowRight className="w-4 h-4 ml-2" />

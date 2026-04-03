@@ -29,7 +29,11 @@ import {
   ChevronDown,
   Globe,
   Zap,
+  Smartphone,
+  Mail,
+  Shield,
 } from "lucide-react";
+import { useDevConfig } from "@/lib/dev-config";
 import { cn } from "@/lib/utils";
 import { useCallback } from "react";
 
@@ -63,6 +67,7 @@ export function KYCDevPanel() {
   const router = useRouter();
   const kycStore = useKYCStore();
   const mockConfig = useKYCMockConfig();
+  const devConfig = useDevConfig();
 
   const currentRegionConfig = regionKYCConfigs[mockConfig.regionCode];
 
@@ -471,7 +476,68 @@ export function KYCDevPanel() {
         </div>
       </div>
 
-      {/* ── Section 4: 快捷操作 ── */}
+      {/* ── Section 4: OTP 验证控制 ── */}
+      <div>
+        <SectionTitle icon={<Shield size={14} />} label="OTP 验证" />
+        <div className="mt-2 space-y-3">
+          {/* 跳过 OTP 验证 */}
+          <ToggleRow
+            label="跳过 OTP 验证"
+            checked={devConfig.skipOtpVerification}
+            onChange={devConfig.setSkipOtpVerification}
+          />
+
+          {/* 预验证手机号 */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <Smartphone size={12} className="text-gray-400" />
+              <span className="text-xs text-gray-500">预验证手机号</span>
+            </div>
+            <input
+              type="tel"
+              value={devConfig.preVerifiedPhone}
+              onChange={(e) => devConfig.setPreVerifiedPhone(e.target.value)}
+              placeholder="+84 901 234 567"
+              className={cn(
+                "w-full px-2.5 py-1.5 rounded-lg text-xs",
+                "bg-white border border-gray-200 text-gray-800",
+                "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400",
+                "placeholder:text-gray-400"
+              )}
+            />
+          </div>
+
+          {/* 预验证邮箱 */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <Mail size={12} className="text-gray-400" />
+              <span className="text-xs text-gray-500">预验证邮箱</span>
+            </div>
+            <input
+              type="email"
+              value={devConfig.preVerifiedEmail}
+              onChange={(e) => devConfig.setPreVerifiedEmail(e.target.value)}
+              placeholder="user@example.com"
+              className={cn(
+                "w-full px-2.5 py-1.5 rounded-lg text-xs",
+                "bg-white border border-gray-200 text-gray-800",
+                "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400",
+                "placeholder:text-gray-400"
+              )}
+            />
+          </div>
+
+          {devConfig.skipOtpVerification && (
+            <div className="p-2 rounded-lg bg-yellow-50 border border-yellow-200">
+              <p className="text-[10px] text-yellow-700">
+                <strong>Dev Mode:</strong> OTP verification is bypassed. Any code will be accepted.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Section 5: 快捷操作 ── */}
       <div className="flex gap-2 pt-2 border-t border-gray-100">
         <button
           onClick={handleClearAll}

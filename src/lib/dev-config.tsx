@@ -18,6 +18,9 @@ interface DevConfigState {
   currentPerspective: UserPerspective;
   toolboxOpen: boolean;
   toolboxPosition: { x: number; y: number };
+  skipOtpVerification: boolean;
+  preVerifiedPhone: string;
+  preVerifiedEmail: string;
 }
 
 // Context 类型
@@ -25,16 +28,21 @@ interface DevConfigContextType extends DevConfigState {
   // 视角切换
   setPerspective: (id: string) => void;
   perspectives: UserPerspective[];
-  
+
   // 工具箱控制
   setToolboxOpen: (open: boolean) => void;
   toggleToolbox: () => void;
   setToolboxPosition: (position: { x: number; y: number }) => void;
   resetToolboxPosition: () => void;
+
+  // OTP 验证控制
+  setSkipOtpVerification: (skip: boolean) => void;
+  setPreVerifiedPhone: (phone: string) => void;
+  setPreVerifiedEmail: (email: string) => void;
 }
 
-// 默认位置（右下角）
-const DEFAULT_POSITION = { x: -20, y: -100 };
+// 默认位置（右下角：right/bottom 偏移，正值表示距边缘的距离）
+const DEFAULT_POSITION = { x: 20, y: 100 };
 
 // 创建 Context
 const DevConfigContext = createContext<DevConfigContextType | null>(null);
@@ -48,28 +56,37 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
         currentPerspective: getCurrentPerspective(),
         toolboxOpen: false,
         toolboxPosition: DEFAULT_POSITION,
+        skipOtpVerification: false,
+        preVerifiedPhone: "",
+        preVerifiedEmail: "",
       };
     }
 
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       const savedPosition = localStorage.getItem(POSITION_KEY);
-      
+
       const parsed = saved ? JSON.parse(saved) : {};
       const parsedPosition = savedPosition ? JSON.parse(savedPosition) : DEFAULT_POSITION;
-      
+
       return {
-        currentPerspective: parsed.currentPerspectiveId 
+        currentPerspective: parsed.currentPerspectiveId
           ? getUserPerspective(parsed.currentPerspectiveId)
           : getCurrentPerspective(),
         toolboxOpen: parsed.toolboxOpen ?? false,
         toolboxPosition: parsedPosition,
+        skipOtpVerification: parsed.skipOtpVerification ?? false,
+        preVerifiedPhone: parsed.preVerifiedPhone ?? "",
+        preVerifiedEmail: parsed.preVerifiedEmail ?? "",
       };
     } catch {
       return {
         currentPerspective: getCurrentPerspective(),
         toolboxOpen: false,
         toolboxPosition: DEFAULT_POSITION,
+        skipOtpVerification: false,
+        preVerifiedPhone: "",
+        preVerifiedEmail: "",
       };
     }
   });
@@ -77,14 +94,29 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
   // 保存状态到 localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
-    
+
     const toSave = {
       currentPerspectiveId: state.currentPerspective.id,
       toolboxOpen: state.toolboxOpen,
+      skipOtpVerification: state.skipOtpVerification,
+      preVerifiedPhone: state.preVerifiedPhone,
+      preVerifiedEmail: state.preVerifiedEmail,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
     localStorage.setItem(POSITION_KEY, JSON.stringify(state.toolboxPosition));
-  }, [state.currentPerspective.id, state.toolboxOpen, state.toolboxPosition]);
+
+    // 同步 pre-verified 值到 kyc localStorage keys（供 ContactVerificationForm 读取）
+    if (state.preVerifiedPhone) {
+      localStorage.setItem("kyc_preverified_phone", state.preVerifiedPhone);
+    } else {
+      localStorage.removeItem("kyc_preverified_phone");
+    }
+    if (state.preVerifiedEmail) {
+      localStorage.setItem("kyc_preverified_email", state.preVerifiedEmail);
+    } else {
+      localStorage.removeItem("kyc_preverified_email");
+    }
+  }, [state.currentPerspective.id, state.toolboxOpen, state.toolboxPosition, state.skipOtpVerification, state.preVerifiedPhone, state.preVerifiedEmail]);
 
   // 设置视角
   const setPerspective = useCallback((id: string) => {
@@ -112,6 +144,19 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
     setState(prev => ({ ...prev, toolboxPosition: DEFAULT_POSITION }));
   }, []);
 
+  // OTP 验证控制
+  const setSkipOtpVerification = useCallback((skip: boolean) => {
+    setState(prev => ({ ...prev, skipOtpVerification: skip }));
+  }, []);
+
+  const setPreVerifiedPhone = useCallback((phone: string) => {
+    setState(prev => ({ ...prev, preVerifiedPhone: phone }));
+  }, []);
+
+  const setPreVerifiedEmail = useCallback((email: string) => {
+    setState(prev => ({ ...prev, preVerifiedEmail: email }));
+  }, []);
+
   const value: DevConfigContextType = {
     ...state,
     setPerspective,
@@ -120,6 +165,9 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
     toggleToolbox,
     setToolboxPosition,
     resetToolboxPosition,
+    setSkipOtpVerification,
+    setPreVerifiedPhone,
+    setPreVerifiedEmail,
   };
 
   return (

@@ -82,7 +82,7 @@ const navSections: NavSection[] = [
         label: "Trading",
         children: [
           { href: "/portal/trading/accounts", icon: Briefcase, label: "Accounts" },
-          { href: "/portal/trading/open-account", icon: Briefcase, label: "Open Account" },
+          // { href: "/portal/trading/open-account", icon: Briefcase, label: "Open Account" },
           { href: "/portal/trading/positions", icon: TrendingUp, label: "Positions" },
           { href: "/portal/trading/orders", icon: TrendingUp, label: "Orders" },
           { href: "/portal/trading/history", icon: TrendingUp, label: "History" },
@@ -217,7 +217,7 @@ const navSections: NavSection[] = [
         children: [
           { href: "/portal/settings/profile", icon: Briefcase, label: "Profile" },
           { href: "/portal/settings/security", icon: Briefcase, label: "Security" },
-          { href: "/portal/settings/verification", icon: Briefcase, label: "Verification" },
+          { href: "/portal/kyc", icon: Briefcase, label: "Verification" },
           { href: "/portal/settings/payment", icon: Briefcase, label: "Payment Methods" },
           { href: "/portal/settings/notifications", icon: Briefcase, label: "Notifications" },
           { href: "/portal/settings/language", icon: Briefcase, label: "Language" },
@@ -360,14 +360,24 @@ function NavItemRenderer({
             <Link key={child.href} href={child.href}>
               <div
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group",
+                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group relative",
                   isActive(child.href)
                     ? "bg-blue-50 text-blue-700 font-medium"
                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                 )}
+                onMouseEnter={() => setHoveredItem(child.href)}
+                onMouseLeave={() => setHoveredItem(null)}
               >
                 <child.icon size={16} />
                 <span className="text-sm">{child.label}</span>
+                
+                {/* 子菜单 Tooltip */}
+                {hoveredItem === child.href && (
+                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 bg-slate-800 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap z-50 shadow-lg">
+                    <div className="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-slate-800" />
+                    {child.label}
+                  </div>
+                )}
               </div>
             </Link>
           ))}
@@ -444,7 +454,7 @@ export function PortalSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+      <nav className="flex-1 overflow-y-auto py-4 no-scrollbar">
         {navSections.map((section) => (
           <div key={section.title} className="mb-5">
             {/* 分类标题 */}

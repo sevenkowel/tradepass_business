@@ -29,7 +29,7 @@ const mockTransactions = [
 ];
 
 const quickActions = [
-  { label: "Deposit",  icon: ArrowDownToLine, href: "/portal/wallet/deposit",      iconBg: "bg-blue-50",    iconColor: "text-blue-600",    border: "border-blue-200",    hover: "hover:border-blue-500" },
+  { label: "Deposit",  icon: ArrowDownToLine, href: "/portal/fund/deposit",         iconBg: "bg-blue-50",    iconColor: "text-blue-600",    border: "border-blue-200",    hover: "hover:border-blue-500" },
   { label: "Withdraw", icon: ArrowUpFromLine, href: "/portal/wallet/withdraw",     iconBg: "bg-purple-50",  iconColor: "text-purple-600",  border: "border-purple-200",  hover: "hover:border-purple-500" },
   { label: "Transfer", icon: ArrowLeftRight,  href: "/portal/wallet/transfer",     iconBg: "bg-emerald-50", iconColor: "text-emerald-600", border: "border-emerald-200", hover: "hover:border-emerald-500" },
   { label: "History",  icon: FileText,        href: "/portal/wallet/transactions", iconBg: "bg-amber-50",   iconColor: "text-amber-600",   border: "border-amber-200",   hover: "hover:border-amber-500" },
@@ -61,7 +61,7 @@ export default function WalletPage() {
         title="Wallet"
         description="Manage your funds, deposits, and withdrawals."
         actions={
-          <Link href="/portal/wallet/deposit">
+          <Link href="/portal/fund/deposit">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}

@@ -80,8 +80,14 @@ export interface OCRResult {
   nationality?: string;
   expiryDate?: string;
   address?: string;
+  gender?: string;
+  issuingCountry?: string;
   confidence: number;
   rawData: Record<string, unknown>;
+  // 用户确认相关
+  userConfirmed?: boolean;
+  userEditedFields?: string[];
+  nameSimilarity?: number;
 }
 
 // 个人信息

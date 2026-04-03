@@ -42,6 +42,8 @@ interface KYCState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   reset: () => void;
+  updateKYCData: (data: Partial<UserKYC>) => void;
+  resetKYC: () => void;
   
   // 流程控制
   canProceedToStep: (step: number) => boolean;
@@ -85,9 +87,16 @@ export const useKYCStore = create<KYCState>()(
         kycData: { 
           ...state.kycData, 
           ocrData: result,
-          ocrConfidence: result.confidence,
+          ocrConfidence: result.confidence ?? 0.85,
+          status: "ocr_completed" as const,
         },
       })),
+      
+      updateKYCData: (data) => set((state) => ({
+        kycData: state.kycData ? { ...state.kycData, ...data } : data as UserKYC,
+      })),
+      
+      resetKYC: () => set(initialState),
       
       setLivenessResult: (passed, videoUrl) => set((state) => ({
         kycData: { 

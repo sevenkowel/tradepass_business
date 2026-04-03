@@ -291,7 +291,7 @@ export function getCurrentCTA(user: TestUser): {
   if (!onboardingStatus.isKycVerified) {
     return { 
       text: "完成认证", 
-      href: "/portal/settings/verification",
+      href: "/portal/kyc",
       priority: "kyc"
     };
   }
@@ -338,7 +338,7 @@ export function getOnboardingSteps(user: TestUser) {
         ? (onboardingStatus.isKycVerified ? 'completed' : 'current')
         : 'pending',
       actionText: '去认证', 
-      href: '/portal/settings/verification' 
+      href: '/portal/kyc' 
     },
     { 
       id: 'deposit', 

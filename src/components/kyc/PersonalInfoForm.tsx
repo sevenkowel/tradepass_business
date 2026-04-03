@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +17,8 @@ import { EducationForm } from "./forms/EducationForm";
 import { InvestmentExperienceForm } from "./forms/InvestmentExperienceForm";
 import { FinancialStatusForm } from "./forms/FinancialStatusForm";
 import { DeclarationsForm } from "./forms/DeclarationsForm";
+import { useContactVerificationConfig } from "@/lib/config/hooks";
+import { useKYCStore } from "@/lib/kyc/store";
 
 interface PersonalInfoFormProps {
   regionConfig: RegionKYCConfig;
@@ -37,6 +39,20 @@ const tabs: { value: TabValue; label: string; icon: typeof User; requires: keyof
 export function PersonalInfoForm({ regionConfig, onSubmit, initialData }: PersonalInfoFormProps) {
   const [activeTab, setActiveTab] = useState<TabValue>("basic");
   const [completedTabs, setCompletedTabs] = useState<Set<TabValue>>(new Set());
+  
+  // Get contact verification config from Backoffice
+  const { regionCode } = useKYCStore();
+  const { contactConfig } = useContactVerificationConfig(regionCode);
+  
+  // Mock pre-verified values from localStorage (dev mode)
+  const [preVerifiedValues, setPreVerifiedValues] = useState<{ phone?: string; email?: string }>({});
+  
+  useEffect(() => {
+    // Read pre-verified values from localStorage (set by dev tools or previous sessions)
+    const storedPhone = localStorage.getItem("kyc_preverified_phone") || undefined;
+    const storedEmail = localStorage.getItem("kyc_preverified_email") || undefined;
+    setPreVerifiedValues({ phone: storedPhone, email: storedEmail });
+  }, []);
 
   const methods = useForm<PersonalInfo>({
     defaultValues: {
@@ -127,7 +143,7 @@ export function PersonalInfoForm({ regionConfig, onSubmit, initialData }: Person
                   className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
                     isActive 
-                      ? "bg-[rgb(var(--tp-accent-rgb))] text-white" 
+                      ? "bg-tp-accent text-white" 
                       : isCompleted
                         ? "bg-[rgba(var(--tp-accent-rgb),0.1)] text-[rgb(var(--tp-accent-rgb))]"
                         : "bg-[rgba(var(--tp-fg-rgb),0.05)] text-[rgba(var(--tp-fg-rgb),0.6)]"
@@ -156,7 +172,12 @@ export function PersonalInfoForm({ regionConfig, onSubmit, initialData }: Person
                 transition={{ duration: 0.2 }}
               >
                 {activeTab === "basic" && (
-                  <BasicInfoForm fields={regionConfig.formFields.personalInfo} />
+                  <BasicInfoForm 
+                    fields={regionConfig.formFields.personalInfo}
+                    contactVerification={contactConfig}
+                    preVerifiedPhone={preVerifiedValues.phone}
+                    preVerifiedEmail={preVerifiedValues.email}
+                  />
                 )}
                 {activeTab === "education" && regionConfig.formFields.education && (
                   <EducationForm />
@@ -196,7 +217,7 @@ export function PersonalInfoForm({ regionConfig, onSubmit, initialData }: Person
           {isLastTab ? (
             <Button
               type="submit"
-              className="flex-1 h-12 bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white"
+              className="flex-1 h-12 bg-tp-accent hover:bg-tp-accent-hover text-white"
             >
               Continue
               <ChevronRight className="w-4 h-4 ml-2" />
@@ -205,7 +226,7 @@ export function PersonalInfoForm({ regionConfig, onSubmit, initialData }: Person
             <Button
               type="button"
               onClick={handleNext}
-              className="flex-1 h-12 bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white"
+              className="flex-1 h-12 bg-tp-accent hover:bg-tp-accent-hover text-white"
             >
               Next
               <ChevronRight className="w-4 h-4 ml-2" />

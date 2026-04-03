@@ -1,0 +1,74 @@
+[
+  {
+    "version": "1.0.12",
+    "updatedAt": "2026-04-03T09:48:29.994Z",
+    "updatedBy": "admin",
+    "changes": "Manual config update"
+  },
+  {
+    "version": "1.0.11",
+    "updatedAt": "2026-04-03T07:23:03.712Z",
+    "updatedBy": "admin",
+    "changes": "Manual config update"
+  },
+  {
+    "version": "1.0.10",
+    "updatedAt": "2026-04-03T06:16:25.413Z",
+    "updatedBy": "admin",
+    "changes": "Manual config update"
+  },
+  {
+    "version": "1.0.9",
+    "updatedAt": "2026-04-03T06:15:38.214Z",
+    "updatedBy": "admin",
+    "changes": "Manual config update"
+  },
+  {
+    "version": "1.0.8",
+    "updatedAt": "2026-04-03T04:53:48.195Z",
+    "updatedBy": "admin",
+    "changes": "Region VN enabled"
+  },
+  {
+    "version": "1.0.7",
+    "updatedAt": "2026-04-03T04:53:47.470Z",
+    "updatedBy": "admin",
+    "changes": "Region VN disabled"
+  },
+  {
+    "version": "1.0.6",
+    "updatedAt": "2026-04-03T04:53:45.951Z",
+    "updatedBy": "admin",
+    "changes": "Region VN enabled"
+  },
+  {
+    "version": "1.0.5",
+    "updatedAt": "2026-04-03T04:53:43.504Z",
+    "updatedBy": "admin",
+    "changes": "Region VN disabled"
+  },
+  {
+    "version": "1.0.4",
+    "updatedAt": "2026-04-03T04:53:01.077Z",
+    "updatedBy": "admin",
+    "changes": "Region IN enabled"
+  },
+  {
+    "version": "1.0.3",
+    "updatedAt": "2026-04-03T04:46:29.521Z",
+    "updatedBy": "admin",
+    "changes": "Region IN disabled"
+  },
+  {
+    "version": "1.0.2",
+    "updatedAt": "2026-04-03T04:46:26.705Z",
+    "updatedBy": "admin",
+    "changes": "Maintenance mode disabled"
+  },
+  {
+    "version": "1.0.1",
+    "updatedAt": "2026-04-03T04:46:23.315Z",
+    "updatedBy": "admin",
+    "changes": "Maintenance mode enabled"
+  }
+]

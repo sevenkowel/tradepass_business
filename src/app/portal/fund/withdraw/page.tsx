@@ -116,7 +116,7 @@ export default function WithdrawPage() {
               (step === "method" && i === 0) || 
               (step === "details" && i <= 1) || 
               (step === "confirm" && i <= 2)
-                ? "bg-[rgb(var(--tp-accent-rgb))] text-white"
+                ? "bg-tp-accent text-white"
                 : "bg-[rgba(var(--tp-fg-rgb),0.1)] text-[rgba(var(--tp-fg-rgb),0.5)]"
             )}>
               {i + 1}. {s}
@@ -166,7 +166,7 @@ export default function WithdrawPage() {
                 <Button
                   onClick={handleContinue}
                   disabled={!selectedMethod}
-                  className="w-full mt-6 h-12 bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white"
+                  className="w-full mt-6 h-12 bg-tp-accent hover:bg-tp-accent-hover text-white"
                 >
                   Continue
                   <ChevronRight className="w-4 h-4 ml-2" />
@@ -295,7 +295,7 @@ export default function WithdrawPage() {
                   <Button 
                     onClick={handleContinue}
                     disabled={!amount || !selectedAccount}
-                    className="flex-1 h-12 bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white"
+                    className="flex-1 h-12 bg-tp-accent hover:bg-tp-accent-hover text-white"
                   >
                     Continue
                     <ChevronRight className="w-4 h-4 ml-2" />
@@ -353,7 +353,7 @@ export default function WithdrawPage() {
                   </Button>
                   <Button 
                     onClick={handleWithdraw}
-                    className="flex-1 h-12 bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white"
+                    className="flex-1 h-12 bg-tp-accent hover:bg-tp-accent-hover text-white"
                   >
                     <Shield className="w-4 h-4 mr-2" />
                     Confirm Withdrawal
@@ -398,7 +398,7 @@ export default function WithdrawPage() {
                 <Button 
                   onClick={handleVerify2FA}
                   disabled={otpCode.length !== 6}
-                  className="flex-1 bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white"
+                  className="flex-1 bg-tp-accent hover:bg-tp-accent-hover text-white"
                 >
                   Verify
                 </Button>

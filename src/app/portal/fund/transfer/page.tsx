@@ -65,7 +65,7 @@ export default function TransferPage() {
           <p className="text-[rgba(var(--tp-fg-rgb),0.6)] mb-6">
             ${amount} has been transferred from {fromAcc?.name} to {toAcc?.name}
           </p>
-          <Button onClick={handleReset} className="bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white">
+          <Button onClick={handleReset} className="bg-tp-accent hover:bg-tp-accent-hover text-white">
             Make Another Transfer
           </Button>
         </motion.div>
@@ -214,7 +214,7 @@ export default function TransferPage() {
               <Button
                 onClick={handleTransfer}
                 disabled={!fromAccount || !toAccount || !amount || isSubmitting}
-                className="w-full h-12 bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white"
+                className="w-full h-12 bg-tp-accent hover:bg-tp-accent-hover text-white"
               >
                 {isSubmitting ? (
                   <>

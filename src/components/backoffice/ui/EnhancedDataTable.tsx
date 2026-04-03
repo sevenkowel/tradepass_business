@@ -161,42 +161,47 @@ export function EnhancedDataTable<T>({
     );
   }
 
+  // Check if toolbar should be shown
+  const showToolbar = searchable || exportable || (selectable && selectedKeys.size > 0);
+
   return (
     <div className="w-full space-y-4">
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4">
-        {searchable && (
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder={searchPlaceholder}
-              className="w-full h-9 pl-10 pr-4 bg-gray-50 border border-gray-200 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:border-blue-300"
-            />
-          </div>
-        )}
+      {showToolbar && (
+        <div className="flex items-center justify-between gap-4">
+          {searchable && (
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder={searchPlaceholder}
+                className="w-full h-9 pl-10 pr-4 bg-gray-50 border border-gray-200 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:border-blue-300"
+              />
+            </div>
+          )}
 
-        <div className="flex items-center gap-2">
-          {selectable && selectedKeys.size > 0 && (
-            <span className="text-sm text-gray-500">
-              {selectedKeys.size} selected
-            </span>
-          )}
-          {exportable && (
-            <button
-              onClick={onExport}
-              className="h-9 px-3 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              Export
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {selectable && selectedKeys.size > 0 && (
+              <span className="text-sm text-gray-500">
+                {selectedKeys.size} selected
+              </span>
+            )}
+            {exportable && (
+              <button
+                onClick={onExport}
+                className="h-9 px-3 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Export
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Table */}
       <div className="overflow-x-auto border border-gray-200 rounded-xl bg-white">
@@ -331,7 +336,15 @@ export function EnhancedDataTable<T>({
                                 className="fixed inset-0 z-10"
                                 onClick={() => setActionsOpen(null)}
                               />
-                              <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg border border-gray-200 shadow-lg z-20 py-1">
+                              <div 
+                                className={cn(
+                                  "absolute right-0 w-40 bg-white rounded-lg border border-gray-200 shadow-lg z-20 py-1",
+                                  // 最后一行向上展开，其他向下展开
+                                  index >= paginatedData.length - 2 && paginatedData.length > 2
+                                    ? "bottom-full mb-1"
+                                    : "top-full mt-1"
+                                )}
+                              >
                                 {rowActions.map((action, i) => (
                                   <button
                                     key={i}
@@ -368,7 +381,7 @@ export function EnhancedDataTable<T>({
 
       {/* Pagination */}
       {pagination && totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between px-4 py-3">
           <p className="text-sm text-gray-500">
             Showing {(currentPage - 1) * pageSize + 1} to{" "}
             {Math.min(currentPage * pageSize, sortedData.length)} of{" "}

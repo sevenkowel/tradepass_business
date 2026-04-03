@@ -283,7 +283,7 @@ export function LivenessCheck({ onComplete, onSkip, maxAttempts = 3 }: LivenessC
             <div className="flex gap-3">
               <Button
                 onClick={handleStart}
-                className="flex-1 h-12 bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white"
+                className="flex-1 h-12 bg-tp-accent hover:bg-tp-accent-hover text-white"
               >
                 <Camera className="w-4 h-4 mr-2" />
                 Start Verification

@@ -4,15 +4,23 @@ import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ContactVerificationForm } from "./ContactVerificationForm";
 import type { FieldConfig } from "@/lib/kyc/region-config";
 import type { PersonalInfo } from "@/lib/kyc/types";
+import type { ContactVerificationConfig } from "@/lib/config/types";
 
 interface BasicInfoFormProps {
   fields: FieldConfig[];
+  contactVerification?: ContactVerificationConfig;
+  preVerifiedPhone?: string;
+  preVerifiedEmail?: string;
 }
 
-export function BasicInfoForm({ fields }: BasicInfoFormProps) {
+export function BasicInfoForm({ fields, contactVerification, preVerifiedPhone, preVerifiedEmail }: BasicInfoFormProps) {
   const { register, formState: { errors }, setValue, watch } = useFormContext<PersonalInfo>();
+
+  // Filter out phone and email fields (handled by ContactVerificationForm)
+  const regularFields = fields.filter(f => f.name !== "phone" && f.name !== "email");
 
   const renderField = (field: FieldConfig) => {
     const error = errors[field.name as keyof PersonalInfo];
@@ -103,8 +111,17 @@ export function BasicInfoForm({ fields }: BasicInfoFormProps) {
     <div className="space-y-6">
       <h3 className="text-lg font-semibold text-[rgb(var(--tp-fg-rgb))]">Personal Information</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {fields.map(renderField)}
+        {regularFields.map(renderField)}
       </div>
+
+      {/* Contact Verification Section */}
+      {contactVerification && (contactVerification.phoneOtpRequired || contactVerification.emailOtpRequired) && (
+        <ContactVerificationForm
+          config={contactVerification}
+          preVerifiedPhone={preVerifiedPhone}
+          preVerifiedEmail={preVerifiedEmail}
+        />
+      )}
     </div>
   );
 }

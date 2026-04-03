@@ -209,7 +209,7 @@ export default function AccountsPage() {
           </div>
           <Button 
             onClick={() => setShowAddModal(true)}
-            className="bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white"
+            className="bg-tp-accent hover:bg-tp-accent-hover text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Account
@@ -427,7 +427,7 @@ export default function AccountsPage() {
                     <Button 
                       onClick={handleAddBank}
                       disabled={!bankForm.bankName || !bankForm.accountHolder || !bankForm.accountNumber || isSubmitting}
-                      className="w-full h-12 bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white"
+                      className="w-full h-12 bg-tp-accent hover:bg-tp-accent-hover text-white"
                     >
                       {isSubmitting ? (
                         <>
@@ -484,7 +484,7 @@ export default function AccountsPage() {
                     <Button 
                       onClick={handleAddCrypto}
                       disabled={!cryptoForm.address || isSubmitting}
-                      className="w-full h-12 bg-[rgb(var(--tp-accent-rgb))] hover:bg-[rgba(var(--tp-accent-rgb),0.9)] text-white"
+                      className="w-full h-12 bg-tp-accent hover:bg-tp-accent-hover text-white"
                     >
                       {isSubmitting ? (
                         <>
@@ -580,7 +580,7 @@ function AccountCard({
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-[rgb(var(--tp-fg-rgb))]">{account.name}</h3>
               {account.isDefault && (
-                <span className="px-2 py-0.5 rounded-full bg-[rgb(var(--tp-accent-rgb))] text-white text-xs">
+                <span className="px-2 py-0.5 rounded-full bg-tp-accent text-white text-xs">
                   Default
                 </span>
               )}
