@@ -6,6 +6,7 @@
  * 1. 一键切换 KYC 状态快照
  * 2. 地区/配置热切换
  * 3. Mock 行为控制
+ * 4. KYC 等级快捷演示
  */
 
 import { useRouter } from "next/navigation";
@@ -14,6 +15,7 @@ import { useKYCMockConfig } from "@/lib/kyc/dev-mock-config";
 import { regionKYCConfigs } from "@/lib/kyc/region-config";
 import type { RegionCode } from "@/lib/kyc/region-config";
 import type { ReviewResult } from "@/lib/kyc/mock-service";
+import type { KYCTierLevel, VerificationStage } from "@/lib/kyc/config-types";
 import {
   RotateCcw,
   FileCheck,
@@ -32,10 +34,18 @@ import {
   Smartphone,
   Mail,
   Shield,
+  Layers,
+  Crown,
+  BadgeCheck,
+  CircleDashed,
+  ShieldCheck,
+  ArrowRight,
+  Home,
+  ClipboardList,
 } from "lucide-react";
 import { useDevConfig } from "@/lib/dev-config";
 import { cn } from "@/lib/utils";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 // ─── 状态快照定义 ────────────────────────────────────────────
 
@@ -47,6 +57,68 @@ interface KYCSnapshot {
   apply: () => void;
   navigateTo: string;
 }
+
+// ─── KYC 等级定义 ────────────────────────────────────────────
+
+interface KYCTierDemo {
+  level: KYCTierLevel;
+  name: string;
+  stages: VerificationStage[];
+  icon: React.ElementType;
+  iconBg: string;
+}
+
+const KYC_TIERS: KYCTierDemo[] = [
+  {
+    level: 0,
+    name: "未认证",
+    stages: [],
+    icon: CircleDashed,
+    iconBg: "bg-gray-100 text-gray-600",
+  },
+  {
+    level: 1,
+    name: "基础认证",
+    stages: ["identity"],
+    icon: Shield,
+    iconBg: "bg-blue-100 text-blue-600",
+  },
+  {
+    level: 2,
+    name: "标准认证",
+    stages: ["identity", "liveness"],
+    icon: ShieldCheck,
+    iconBg: "bg-green-100 text-green-600",
+  },
+  {
+    level: 3,
+    name: "高级认证",
+    stages: ["identity", "liveness", "address"],
+    icon: BadgeCheck,
+    iconBg: "bg-purple-100 text-purple-600",
+  },
+  {
+    level: 4,
+    name: "完整认证",
+    stages: ["identity", "liveness", "address", "questionnaire"],
+    icon: Crown,
+    iconBg: "bg-amber-100 text-amber-600",
+  },
+];
+
+const STAGE_ICONS: Record<VerificationStage, React.ElementType> = {
+  identity: FileCheck,
+  liveness: ScanFace,
+  address: Home,
+  questionnaire: ClipboardList,
+};
+
+const STAGE_COLORS: Record<VerificationStage, string> = {
+  identity: "blue",
+  liveness: "purple",
+  address: "green",
+  questionnaire: "orange",
+};
 
 // ─── 地区选项 ────────────────────────────────────────────────
 
@@ -68,6 +140,7 @@ export function KYCDevPanel() {
   const kycStore = useKYCStore();
   const mockConfig = useKYCMockConfig();
   const devConfig = useDevConfig();
+  const [activeTab, setActiveTab] = useState<"snapshots" | "tiers" | "config">("snapshots");
 
   const currentRegionConfig = regionKYCConfigs[mockConfig.regionCode];
 
@@ -292,6 +365,114 @@ export function KYCDevPanel() {
     },
   ];
 
+  // ── 等级演示应用函数 ──
+
+  const applyTierDemo = useCallback((tier: KYCTierDemo) => {
+    // 重置 KYC 状态
+    kycStore.reset();
+    kycStore.setRegion(mockConfig.regionCode);
+
+    // 根据等级应用对应阶段
+    if (tier.stages.includes("identity")) {
+      kycStore.setDocumentType("id_card");
+      kycStore.setDocumentImages("/mock/id-front.jpg", "/mock/id-back.jpg");
+      kycStore.setOCRResult({
+        documentType: "id_card",
+        fullName: "NGUYEN VAN A",
+        idNumber: "012345678901",
+        dateOfBirth: "1990-01-01",
+        nationality: "Vietnamese",
+        expiryDate: "2030-01-01",
+        address: "123 Le Loi Street, District 1, Ho Chi Minh City",
+        confidence: mockConfig.ocrConfidence,
+        rawData: { processingTime: 1200, engineVersion: "mock-v1.0", imageQuality: "good" },
+      });
+    }
+
+    if (tier.stages.includes("liveness")) {
+      kycStore.setLivenessResult(true, "/mock/liveness-video.mp4");
+    }
+
+    if (tier.stages.includes("address")) {
+      // 地址阶段需要个人信息作为基础
+      kycStore.setPersonalInfo({
+        fullName: "NGUYEN VAN A",
+        dateOfBirth: "1990-01-01",
+        nationality: "Vietnamese",
+        phone: "+84901234567",
+        email: "nguyenvana@example.com",
+        address: "123 Le Loi Street, District 1, Ho Chi Minh City",
+        city: "Ho Chi Minh City",
+        country: "Vietnam",
+      });
+    }
+
+    if (tier.stages.includes("questionnaire")) {
+      kycStore.setPersonalInfo({
+        fullName: "NGUYEN VAN A",
+        dateOfBirth: "1990-01-01",
+        nationality: "Vietnamese",
+        phone: "+84901234567",
+        email: "nguyenvana@example.com",
+        address: "123 Le Loi Street, District 1, Ho Chi Minh City",
+        city: "Ho Chi Minh City",
+        country: "Vietnam",
+        education: { highestLevel: "bachelor", fieldOfStudy: "Business", institution: "HCMUT" },
+        investmentExperience: {
+          yearsOfExperience: "1_to_3",
+          tradingFrequency: "weekly",
+          productsTraded: ["forex", "stocks"],
+          riskTolerance: "medium",
+        },
+        financialStatus: {
+          annualIncome: "50k_to_100k",
+          netWorth: "100k_to_500k",
+          sourceOfFunds: "employment",
+          investmentObjectives: ["capital_growth"],
+        },
+        declarations: {
+          isUSPerson: false,
+          isPEP: false,
+          isMilitary: false,
+          isFinancialProfessional: false,
+          hasCriminalRecord: false,
+        },
+      });
+      kycStore.setAgreementSignatures([
+        {
+          agreementId: "tpa-001",
+          agreementName: "Trading Platform Agreement",
+          version: "1.0",
+          signedAt: new Date().toISOString(),
+          signature: "NGUYEN VAN A",
+          ipAddress: "127.0.0.1",
+          userAgent: "DevTool",
+        },
+        {
+          agreementId: "rp-001",
+          agreementName: "Risk Disclosure",
+          version: "1.0",
+          signedAt: new Date().toISOString(),
+          signature: "NGUYEN VAN A",
+          ipAddress: "127.0.0.1",
+          userAgent: "DevTool",
+        },
+      ]);
+    }
+
+    // 设置最终状态
+    if (tier.level === 0) {
+      kycStore.setStatus("not_started");
+    } else if (tier.level >= 1 && tier.level <= 3) {
+      kycStore.setStatus("approved");
+    } else {
+      kycStore.setStatus("approved");
+    }
+
+    // 跳转到状态页面
+    router.push("/portal/kyc/status");
+  }, [kycStore, mockConfig.regionCode, mockConfig.ocrConfidence, router]);
+
   // ── 快照切换处理 ──
 
   const handleSnapshotClick = useCallback(
@@ -312,230 +493,326 @@ export function KYCDevPanel() {
 
   return (
     <div className="space-y-4">
-      {/* ── Section 1: 状态快照 ── */}
-      <div>
-        <SectionTitle icon={<Zap size={14} />} label="状态快照" />
-        <div className="grid grid-cols-2 gap-1.5 mt-2">
-          {snapshots.map((snap) => {
-            const Icon = snap.icon;
-            return (
-              <button
-                key={snap.id}
-                onClick={() => handleSnapshotClick(snap)}
-                className={cn(
-                  "flex items-center gap-2 px-2.5 py-2 rounded-lg text-left",
-                  "text-xs font-medium transition-all duration-150",
-                  "hover:shadow-sm border border-gray-100 hover:border-gray-200",
-                  "bg-white hover:bg-gray-50 active:scale-[0.97]"
-                )}
-              >
-                <div className={cn("p-1 rounded-md shrink-0", snap.iconBg)}>
-                  <Icon size={12} />
+      {/* ── Tab 切换 ── */}
+      <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+        {[
+          { id: "snapshots", label: "状态快照", icon: Zap },
+          { id: "tiers", label: "等级演示", icon: Layers },
+          { id: "config", label: "配置控制", icon: Database },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as typeof activeTab)}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs font-medium transition-all",
+              activeTab === tab.id
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            )}
+          >
+            <tab.icon size={14} />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Tab: 状态快照 ── */}
+      {activeTab === "snapshots" && (
+        <div>
+          <SectionTitle icon={<Zap size={14} />} label="状态快照" />
+          <div className="grid grid-cols-2 gap-1.5 mt-2">
+            {snapshots.map((snap) => {
+              const Icon = snap.icon;
+              return (
+                <button
+                  key={snap.id}
+                  onClick={() => handleSnapshotClick(snap)}
+                  className={cn(
+                    "flex items-center gap-2 px-2.5 py-2 rounded-lg text-left",
+                    "text-xs font-medium transition-all duration-150",
+                    "hover:shadow-sm border border-gray-100 hover:border-gray-200",
+                    "bg-white hover:bg-gray-50 active:scale-[0.97]"
+                  )}
+                >
+                  <div className={cn("p-1 rounded-md shrink-0", snap.iconBg)}>
+                    <Icon size={12} />
+                  </div>
+                  <span className="text-gray-700 truncate">{snap.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Tab: 等级演示 ── */}
+      {activeTab === "tiers" && (
+        <div>
+          <SectionTitle icon={<Layers size={14} />} label="KYC 等级快捷演示" />
+          <p className="text-[10px] text-gray-400 mt-1 mb-2">点击等级快速设置对应认证状态</p>
+          
+          <div className="space-y-1.5">
+            {KYC_TIERS.map((tier) => {
+              const Icon = tier.icon;
+              return (
+                <button
+                  key={tier.level}
+                  onClick={() => applyTierDemo(tier)}
+                  className={cn(
+                    "w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left",
+                    "text-xs font-medium transition-all duration-150",
+                    "hover:shadow-sm border border-gray-100 hover:border-gray-200",
+                    "bg-white hover:bg-gray-50 active:scale-[0.98]"
+                  )}
+                >
+                  <div className={cn("p-1.5 rounded-md shrink-0", tier.iconBg)}>
+                    <Icon size={14} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-900">Level {tier.level}</span>
+                      <span className="text-gray-500">{tier.name}</span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      {tier.stages.length === 0 ? (
+                        <span className="text-[10px] text-gray-400">未认证</span>
+                      ) : (
+                        tier.stages.map((stage) => {
+                          const StageIcon = STAGE_ICONS[stage];
+                          return (
+                            <span
+                              key={stage}
+                              className={cn(
+                                "inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[10px]",
+                                `bg-${STAGE_COLORS[stage]}-50 text-${STAGE_COLORS[stage]}-600`
+                              )}
+                            >
+                              <StageIcon size={8} />
+                              <span className="capitalize">{stage.slice(0, 3)}</span>
+                            </span>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                  <ArrowRight size={14} className="text-gray-300" />
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 当前等级状态 */}
+          <div className="mt-3 p-2.5 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-500">当前状态</span>
+              <span className="font-mono text-gray-700">{kycStore.kycData?.status || "not_started"}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Tab: 配置控制 ── */}
+      {activeTab === "config" && (
+        <>
+          {/* ── Section 2: 地区配置 ── */}
+          <div>
+            <SectionTitle icon={<Globe size={14} />} label="地区配置" />
+            <div className="mt-2 space-y-2">
+              {/* 地区选择器 */}
+              <div className="relative">
+                <select
+                  value={mockConfig.regionCode}
+                  onChange={(e) => mockConfig.setRegionCode(e.target.value as RegionCode)}
+                  className={cn(
+                    "w-full px-3 py-2 pr-8 rounded-lg text-sm appearance-none",
+                    "bg-white border border-gray-200 text-gray-800",
+                    "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400",
+                    "cursor-pointer transition-colors"
+                  )}
+                >
+                  {REGIONS.map((r) => (
+                    <option key={r.regionCode} value={r.regionCode}>
+                      {r.regionName} ({r.regionCode})
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={14}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                />
+              </div>
+
+              {/* 当前地区特性展示 */}
+              {currentRegionConfig && (
+                <div className="p-2.5 bg-gray-50 rounded-lg space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">KYC 级别</span>
+                    <span className={cn(
+                      "text-xs font-medium px-2 py-0.5 rounded-full",
+                      currentRegionConfig.kycLevel === "enhanced"
+                        ? "bg-purple-100 text-purple-700"
+                        : currentRegionConfig.kycLevel === "standard"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-gray-100 text-gray-700"
+                    )}>
+                      {currentRegionConfig.kycLevel}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                    <FeatureTag label="OCR" enabled={currentRegionConfig.features.ocrEnabled} />
+                    <FeatureTag label="活体" enabled={currentRegionConfig.features.livenessRequired} />
+                    <FeatureTag label="地址证明" enabled={currentRegionConfig.features.addressProofRequired} />
+                    <FeatureTag label="视频KYC" enabled={currentRegionConfig.features.videoKYCRequired} />
+                  </div>
+                  <div className="text-xs text-gray-400 pt-1 border-t border-gray-100">
+                    证件类型: {currentRegionConfig.allowedDocuments.join(", ")}
+                  </div>
                 </div>
-                <span className="text-gray-700 truncate">{snap.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── Section 2: 地区配置 ── */}
-      <div>
-        <SectionTitle icon={<Globe size={14} />} label="地区配置" />
-        <div className="mt-2 space-y-2">
-          {/* 地区选择器 */}
-          <div className="relative">
-            <select
-              value={mockConfig.regionCode}
-              onChange={(e) => mockConfig.setRegionCode(e.target.value as RegionCode)}
-              className={cn(
-                "w-full px-3 py-2 pr-8 rounded-lg text-sm appearance-none",
-                "bg-white border border-gray-200 text-gray-800",
-                "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400",
-                "cursor-pointer transition-colors"
               )}
-            >
-              {REGIONS.map((r) => (
-                <option key={r.regionCode} value={r.regionCode}>
-                  {r.regionName} ({r.regionCode})
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={14}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-            />
+            </div>
           </div>
 
-          {/* 当前地区特性展示 */}
-          {currentRegionConfig && (
-            <div className="p-2.5 bg-gray-50 rounded-lg space-y-1.5">
+          {/* ── Section 3: Mock 控制 ── */}
+          <div>
+            <SectionTitle icon={<Database size={14} />} label="Mock 控制" />
+            <div className="mt-2 space-y-3">
+              {/* OCR 置信度 */}
+              <SliderControl
+                label="OCR 置信度"
+                value={mockConfig.ocrConfidence}
+                min={0.7}
+                max={0.99}
+                step={0.01}
+                displayValue={`${Math.round(mockConfig.ocrConfidence * 100)}%`}
+                onChange={mockConfig.setOcrConfidence}
+                color={mockConfig.ocrConfidence >= 0.9 ? "green" : mockConfig.ocrConfidence >= 0.8 ? "yellow" : "red"}
+              />
+
+              {/* OCR 模拟失败 */}
+              <ToggleRow
+                label="OCR 失败"
+                checked={mockConfig.ocrSimulateError}
+                onChange={mockConfig.setOcrSimulateError}
+              />
+
+              {/* 活体通过率 */}
+              <SliderControl
+                label="活体通过率"
+                value={mockConfig.livenessPassRate}
+                min={0}
+                max={1}
+                step={0.1}
+                displayValue={`${Math.round(mockConfig.livenessPassRate * 100)}%`}
+                onChange={mockConfig.setLivenessPassRate}
+                color={mockConfig.livenessPassRate >= 0.8 ? "green" : mockConfig.livenessPassRate >= 0.5 ? "yellow" : "red"}
+              />
+
+              {/* 活体强制结果 */}
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">KYC 级别</span>
-                <span className={cn(
-                  "text-xs font-medium px-2 py-0.5 rounded-full",
-                  currentRegionConfig.kycLevel === "enhanced"
-                    ? "bg-purple-100 text-purple-700"
-                    : currentRegionConfig.kycLevel === "standard"
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-gray-100 text-gray-700"
-                )}>
-                  {currentRegionConfig.kycLevel}
-                </span>
+                <span className="text-xs text-gray-500">活体强制</span>
+                <div className="flex gap-1">
+                  {(["auto", "pass", "fail"] as const).map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => mockConfig.setLivenessForceResult(opt)}
+                      className={cn(
+                        "text-xs px-2 py-1 rounded-md transition-colors",
+                        mockConfig.livenessForceResult === opt
+                          ? "bg-gray-800 text-white"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      )}
+                    >
+                      {opt === "auto" ? "自动" : opt === "pass" ? "通过" : "失败"}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-                <FeatureTag label="OCR" enabled={currentRegionConfig.features.ocrEnabled} />
-                <FeatureTag label="活体" enabled={currentRegionConfig.features.livenessRequired} />
-                <FeatureTag label="地址证明" enabled={currentRegionConfig.features.addressProofRequired} />
-                <FeatureTag label="视频KYC" enabled={currentRegionConfig.features.videoKYCRequired} />
-              </div>
-              <div className="text-xs text-gray-400 pt-1 border-t border-gray-100">
-                证件类型: {currentRegionConfig.allowedDocuments.join(", ")}
+
+              {/* 审核结果锁定 */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">审核结果</span>
+                <div className="flex gap-1">
+                  {REVIEW_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => mockConfig.setReviewForceResult(opt.value)}
+                      className={cn(
+                        "text-xs px-2 py-1 rounded-md transition-colors",
+                        mockConfig.reviewForceResult === opt.value
+                          ? "bg-gray-800 text-white"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* ── Section 3: Mock 控制 ── */}
-      <div>
-        <SectionTitle icon={<Database size={14} />} label="Mock 控制" />
-        <div className="mt-2 space-y-3">
-          {/* OCR 置信度 */}
-          <SliderControl
-            label="OCR 置信度"
-            value={mockConfig.ocrConfidence}
-            min={0.7}
-            max={0.99}
-            step={0.01}
-            displayValue={`${Math.round(mockConfig.ocrConfidence * 100)}%`}
-            onChange={mockConfig.setOcrConfidence}
-            color={mockConfig.ocrConfidence >= 0.9 ? "green" : mockConfig.ocrConfidence >= 0.8 ? "yellow" : "red"}
-          />
+          {/* ── Section 4: OTP 验证控制 ── */}
+          <div>
+            <SectionTitle icon={<Shield size={14} />} label="OTP 验证" />
+            <div className="mt-2 space-y-3">
+              {/* 跳过 OTP 验证 */}
+              <ToggleRow
+                label="跳过 OTP 验证"
+                checked={devConfig.skipOtpVerification}
+                onChange={devConfig.setSkipOtpVerification}
+              />
 
-          {/* OCR 模拟失败 */}
-          <ToggleRow
-            label="OCR 失败"
-            checked={mockConfig.ocrSimulateError}
-            onChange={mockConfig.setOcrSimulateError}
-          />
-
-          {/* 活体通过率 */}
-          <SliderControl
-            label="活体通过率"
-            value={mockConfig.livenessPassRate}
-            min={0}
-            max={1}
-            step={0.1}
-            displayValue={`${Math.round(mockConfig.livenessPassRate * 100)}%`}
-            onChange={mockConfig.setLivenessPassRate}
-            color={mockConfig.livenessPassRate >= 0.8 ? "green" : mockConfig.livenessPassRate >= 0.5 ? "yellow" : "red"}
-          />
-
-          {/* 活体强制结果 */}
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">活体强制</span>
-            <div className="flex gap-1">
-              {(["auto", "pass", "fail"] as const).map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => mockConfig.setLivenessForceResult(opt)}
+              {/* 预验证手机号 */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <Smartphone size={12} className="text-gray-400" />
+                  <span className="text-xs text-gray-500">预验证手机号</span>
+                </div>
+                <input
+                  type="tel"
+                  value={devConfig.preVerifiedPhone}
+                  onChange={(e) => devConfig.setPreVerifiedPhone(e.target.value)}
+                  placeholder="+84 901 234 567"
                   className={cn(
-                    "text-xs px-2 py-1 rounded-md transition-colors",
-                    mockConfig.livenessForceResult === opt
-                      ? "bg-gray-800 text-white"
-                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    "w-full px-2.5 py-1.5 rounded-lg text-xs",
+                    "bg-white border border-gray-200 text-gray-800",
+                    "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400",
+                    "placeholder:text-gray-400"
                   )}
-                >
-                  {opt === "auto" ? "自动" : opt === "pass" ? "通过" : "失败"}
-                </button>
-              ))}
-            </div>
-          </div>
+                />
+              </div>
 
-          {/* 审核结果锁定 */}
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">审核结果</span>
-            <div className="flex gap-1">
-              {REVIEW_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => mockConfig.setReviewForceResult(opt.value)}
+              {/* 预验证邮箱 */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <Mail size={12} className="text-gray-400" />
+                  <span className="text-xs text-gray-500">预验证邮箱</span>
+                </div>
+                <input
+                  type="email"
+                  value={devConfig.preVerifiedEmail}
+                  onChange={(e) => devConfig.setPreVerifiedEmail(e.target.value)}
+                  placeholder="user@example.com"
                   className={cn(
-                    "text-xs px-2 py-1 rounded-md transition-colors",
-                    mockConfig.reviewForceResult === opt.value
-                      ? "bg-gray-800 text-white"
-                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    "w-full px-2.5 py-1.5 rounded-lg text-xs",
+                    "bg-white border border-gray-200 text-gray-800",
+                    "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400",
+                    "placeholder:text-gray-400"
                   )}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+                />
+              </div>
 
-      {/* ── Section 4: OTP 验证控制 ── */}
-      <div>
-        <SectionTitle icon={<Shield size={14} />} label="OTP 验证" />
-        <div className="mt-2 space-y-3">
-          {/* 跳过 OTP 验证 */}
-          <ToggleRow
-            label="跳过 OTP 验证"
-            checked={devConfig.skipOtpVerification}
-            onChange={devConfig.setSkipOtpVerification}
-          />
-
-          {/* 预验证手机号 */}
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <Smartphone size={12} className="text-gray-400" />
-              <span className="text-xs text-gray-500">预验证手机号</span>
-            </div>
-            <input
-              type="tel"
-              value={devConfig.preVerifiedPhone}
-              onChange={(e) => devConfig.setPreVerifiedPhone(e.target.value)}
-              placeholder="+84 901 234 567"
-              className={cn(
-                "w-full px-2.5 py-1.5 rounded-lg text-xs",
-                "bg-white border border-gray-200 text-gray-800",
-                "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400",
-                "placeholder:text-gray-400"
+              {devConfig.skipOtpVerification && (
+                <div className="p-2 rounded-lg bg-yellow-50 border border-yellow-200">
+                  <p className="text-[10px] text-yellow-700">
+                    <strong>Dev Mode:</strong> OTP verification is bypassed. Any code will be accepted.
+                  </p>
+                </div>
               )}
-            />
-          </div>
-
-          {/* 预验证邮箱 */}
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <Mail size={12} className="text-gray-400" />
-              <span className="text-xs text-gray-500">预验证邮箱</span>
             </div>
-            <input
-              type="email"
-              value={devConfig.preVerifiedEmail}
-              onChange={(e) => devConfig.setPreVerifiedEmail(e.target.value)}
-              placeholder="user@example.com"
-              className={cn(
-                "w-full px-2.5 py-1.5 rounded-lg text-xs",
-                "bg-white border border-gray-200 text-gray-800",
-                "focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400",
-                "placeholder:text-gray-400"
-              )}
-            />
           </div>
-
-          {devConfig.skipOtpVerification && (
-            <div className="p-2 rounded-lg bg-yellow-50 border border-yellow-200">
-              <p className="text-[10px] text-yellow-700">
-                <strong>Dev Mode:</strong> OTP verification is bypassed. Any code will be accepted.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
+        </>
+      )}
 
       {/* ── Section 5: 快捷操作 ── */}
       <div className="flex gap-2 pt-2 border-t border-gray-100">

@@ -84,7 +84,7 @@ export function UserDetailDrawer({ user, isOpen, onClose }: UserDetailDrawerProp
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]"
           />
 
           {/* Drawer */}
@@ -93,7 +93,7 @@ export function UserDetailDrawer({ user, isOpen, onClose }: UserDetailDrawerProp
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 h-full w-full max-w-4xl bg-white dark:bg-slate-800 shadow-2xl z-50 flex flex-col"
+            className="fixed right-0 top-0 h-full w-full max-w-4xl bg-white dark:bg-slate-800 shadow-2xl z-[70] flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
