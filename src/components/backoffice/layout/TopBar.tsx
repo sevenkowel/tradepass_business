@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/backoffice";
+import { useBackofficeSidebarStore } from "@/store/backofficeSidebarStore";
 import {
   Search,
   Bell,
@@ -22,11 +23,13 @@ import {
 export function TopBar() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
+  const { sidebarCollapsed } = useBackofficeSidebarStore();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Mock notifications
   const notifications = [
@@ -49,10 +52,34 @@ export function TopBar() {
     router.push("/backoffice/login");
   };
 
+  // Ctrl+K 快捷键聚焦搜索框
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+K 或 Cmd+K
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      // ESC 关闭搜索
+      if (e.key === "Escape") {
+        setSearchOpen(false);
+        searchInputRef.current?.blur();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
+    <header
+      className={cn(
+        "h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30 transition-all duration-300",
+        sidebarCollapsed ? "lg:left-[80px]" : "lg:left-[260px]"
+      )}
+    >
       {/* Left Section */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-1">
         {/* Mobile Menu Toggle */}
         <button
           onClick={() => setSidebarMobileOpen(!sidebarMobileOpen)}
@@ -67,14 +94,23 @@ export function TopBar() {
             LIVE
           </span>
         </div>
+
+        {/* Mobile Search Toggle */}
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="md:hidden p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+        >
+          <Search className="w-5 h-5" />
+        </button>
       </div>
 
-      {/* Center - Search */}
-      <div className="flex-1 max-w-xl mx-4 hidden md:block">
+      {/* Search - Desktop - 固定在中间偏右位置 */}
+      <div className="hidden md:block flex-1 max-w-md mx-4">
         <form onSubmit={handleSearch}>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
+              ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -84,14 +120,6 @@ export function TopBar() {
           </div>
         </form>
       </div>
-
-      {/* Mobile Search Toggle */}
-      <button
-        onClick={() => setSearchOpen(true)}
-        className="md:hidden p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-      >
-        <Search className="w-5 h-5" />
-      </button>
 
       {/* Right Section */}
       <div className="flex items-center gap-2">

@@ -59,6 +59,28 @@
   --tp-border-light: #F3F4F6;
   --tp-subtle: #F9FAFB;
 
+  /* shadcn/ui compatible CSS vars */
+  --background: #F5F7FA;
+  --foreground: #1F2937;
+  --card: #FFFFFF;
+  --card-foreground: #1F2937;
+  --popover: #FFFFFF;
+  --popover-foreground: #1F2937;
+  --primary: #1E40AF;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F3F4F6;
+  --secondary-foreground: #1F2937;
+  --muted: #F3F4F6;
+  --muted-foreground: #6B7280;
+  --accent: #EFF6FF;
+  --accent-foreground: #1E40AF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #1E40AF;
+  --radius: 0.5rem;
+
   /* Card styles - Professional clean */
   --card-bg: #FFFFFF;
   --card-border: #E5E7EB;
@@ -68,6 +90,9 @@
   /* For opacity variants: use RGB channels */
   --tp-fg-rgb: 31, 41, 55;
   --tp-white-rgb: 255, 255, 255;
+  --tp-bg-rgb: 245, 247, 250;
+  --tp-surface-rgb: 255, 255, 255;
+  --tp-accent-rgb: 30, 64, 175;
 
   /* Spacing - Clean and spacious */
   --space-xs: 4px;
@@ -98,10 +123,32 @@
   --tp-surface-elevated: #1F2937;
   --tp-border: #374151;
   --tp-border-light: #374151;
+
+  /* shadcn/ui dark mode */
+  --background: #111827;
+  --foreground: #F9FAFB;
+  --card: #1F2937;
+  --card-foreground: #F9FAFB;
+  --popover: #1F2937;
+  --popover-foreground: #F9FAFB;
+  --primary: #3B82F6;
+  --primary-foreground: #FFFFFF;
+  --secondary: #374151;
+  --secondary-foreground: #F9FAFB;
+  --muted: #374151;
+  --muted-foreground: #9CA3AF;
+  --accent: #1E3A8A;
+  --accent-foreground: #60A5FA;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #374151;
+  --input: #374151;
+  --ring: #3B82F6;
   --tp-subtle: #1F2937;
   --tp-fg-rgb: 249, 250, 251;
-
-  --card-bg: #1F2937;
+  --tp-bg-rgb: 17, 24, 39;
+  --tp-surface-rgb: 31, 41, 55;
+  --tp-accent-rgb: 59, 130, 246;
   --card-border: #374151;
   --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
   --card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
@@ -117,6 +164,9 @@
     --tp-border-light: #374151;
     --tp-subtle: #1F2937;
     --tp-fg-rgb: 249, 250, 251;
+    --tp-bg-rgb: 17, 24, 39;
+    --tp-surface-rgb: 31, 41, 55;
+    --tp-accent-rgb: 59, 130, 246;
 
     --card-bg: #1F2937;
     --card-border: #374151;
@@ -173,6 +223,26 @@
   .bg-background      { background: var(--tp-bg); }
   .bg-surface         { background: var(--tp-surface); }
   .bg-surface-elevated { background: var(--tp-surface-elevated); }
+
+  /* shadcn/ui compatible utilities */
+  .bg-card            { background: var(--card); }
+  .bg-popover         { background: var(--popover); }
+  .bg-muted           { background: var(--muted); }
+  .bg-accent          { background: var(--accent); }
+  .bg-secondary       { background: var(--secondary); }
+
+  .text-card-foreground     { color: var(--card-foreground); }
+  .text-popover-foreground  { color: var(--popover-foreground); }
+  .text-muted-foreground    { color: var(--muted-foreground); }
+  .text-accent-foreground   { color: var(--accent-foreground); }
+  .text-secondary-foreground { color: var(--secondary-foreground); }
+  .text-primary-foreground  { color: var(--primary-foreground); }
+  .text-destructive-foreground { color: var(--destructive-foreground); }
+
+  .border-input        { border-color: var(--input); }
+  .ring-ring           { --tw-ring-color: var(--ring); }
+
+  .bg-destructive      { background: var(--destructive); }
 
   /* Premium card style */
   .premium-card {

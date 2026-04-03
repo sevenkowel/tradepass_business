@@ -4,3 +4,5 @@ export * from './account';
 export * from './order';
 export * from './fund';
 export * from './common';
+export * from './ib';
+export * from './risk';

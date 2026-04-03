@@ -301,7 +301,7 @@ export default function UsersPage() {
 
       {/* Data Table */}
       <Card padding="none">
-        <EnhancedDataTable
+        <EnhancedDataTable<BackofficeUser>
           columns={columns}
           data={users}
           keyExtractor={(row) => row.id}

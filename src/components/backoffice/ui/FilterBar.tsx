@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Search, Filter, X, ChevronDown } from "lucide-react";
+import { Search, Filter, X, ChevronDown, RefreshCw } from "lucide-react";
 import { Button } from "./PageHeader";
 
 interface FilterOption {
@@ -10,11 +10,24 @@ interface FilterOption {
   value: string;
 }
 
+interface FilterOption {
+  label: string;
+  value: string;
+}
+
+interface SimpleFilter {
+  key: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: FilterOption[];
+}
+
 interface FilterBarProps {
-  filters: {
+  filters?: {
     key: string;
     label: string;
-    type: "text" | "select" | "date" | "daterange";
+    type?: "text" | "select" | "date" | "daterange";
     placeholder?: string;
     options?: FilterOption[];
     value?: string;
@@ -29,10 +42,11 @@ interface FilterBarProps {
   searchValue?: string;
   searchKeys?: string[];
   onSearchChange?: (value: string) => void;
+  onRefresh?: () => void;
 }
 
 export function FilterBar({
-  filters,
+  filters = [],
   onSearch,
   onClear,
   className,
@@ -42,6 +56,7 @@ export function FilterBar({
   searchValue,
   searchKeys,
   onSearchChange,
+  onRefresh,
 }: FilterBarProps) {
   const [localSearch, setLocalSearch] = useState(searchValue || "");
   const [showFilters, setShowFilters] = useState(true);
@@ -92,6 +107,11 @@ export function FilterBar({
         )}
 
         <div className="flex items-center gap-2">
+          {onRefresh && (
+            <Button variant="ghost" size="sm" onClick={onRefresh}>
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          )}
           <Button
             variant="secondary"
             size="sm"
