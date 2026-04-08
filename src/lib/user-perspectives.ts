@@ -31,22 +31,22 @@ const mockAccounts: Record<string, TradingAccount[]> = {
       currency: "USD",
     },
     {
-      id: "ACC-12346",
+      id: "ACC-67890",
       type: "live",
-      balance: 8500,
-      equity: 8320,
-      freeMargin: 4200,
+      balance: 12850,
+      equity: 13120,
+      freeMargin: 6200,
       leverage: 200,
-      currency: "USD",
+      currency: "EUR",
     },
     {
-      id: "DEMO-001",
-      type: "demo",
-      balance: 10000,
-      equity: 10000,
-      freeMargin: 10000,
+      id: "ACC-54321",
+      type: "live",
+      balance: 1850000,
+      equity: 1820000,
+      freeMargin: 1200000,
       leverage: 100,
-      currency: "USD",
+      currency: "JPY",
     },
   ],
 };
@@ -206,6 +206,7 @@ export function getOnboardingSteps(perspective: UserPerspective) {
     if (perspective.accountOpeningStatus === "rejected") return "account_rejected";
     if (perspective.accounts.length === 0) return "account";
     if (!perspective.hasDeposit) return "deposit";
+    if (!perspective.hasTraded) return "trade";
     return null; // 全部完成
   };
 
@@ -214,7 +215,7 @@ export function getOnboardingSteps(perspective: UserPerspective) {
   return [
     {
       id: "register",
-      label: "注册完成",
+      label: "注册",
       completed: true,
       current: false,
       action: null,
@@ -229,7 +230,7 @@ export function getOnboardingSteps(perspective: UserPerspective) {
     },
     {
       id: "account",
-      label: "创建交易账户",
+      label: "创建账户",
       completed: perspective.accounts.length > 0 && 
                 perspective.accountOpeningStatus !== "failed" && 
                 perspective.accountOpeningStatus !== "rejected",
@@ -242,11 +243,19 @@ export function getOnboardingSteps(perspective: UserPerspective) {
     },
     {
       id: "deposit",
-      label: "首次存款",
+      label: "入金",
       completed: perspective.hasDeposit,
       current: currentStepId === "deposit",
       action: !perspective.hasDeposit ? "/portal/wallet/deposit" : null,
       cta: "Deposit Now",
+    },
+    {
+      id: "trade",
+      label: "交易",
+      completed: perspective.hasTraded,
+      current: currentStepId === "trade",
+      action: perspective.hasDeposit && !perspective.hasTraded ? "/portal/trading" : null,
+      cta: "Trade Now",
     },
   ];
 }

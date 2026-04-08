@@ -5,13 +5,57 @@
  * 用于开发环境切换视角、主题、布局等
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { UserPerspective } from "@/types/user";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { UserPerspective, TradingAccount } from "@/types/user";
 import { USER_PERSPECTIVES, getUserPerspective, getCurrentPerspective } from "./user-perspectives";
 
 // 存储键
 const STORAGE_KEY = "tradepass_dev_config";
 const POSITION_KEY = "tradepass_dev_toolbox_position";
+
+// 预设账户数据
+const mockAccounts: Record<string, TradingAccount[]> = {
+  single: [
+    {
+      id: "ACC-12345",
+      type: "live",
+      balance: 5230,
+      equity: 5450,
+      freeMargin: 3200,
+      leverage: 500,
+      currency: "USD",
+    },
+  ],
+  multiple: [
+    {
+      id: "ACC-12345",
+      type: "live",
+      balance: 15230,
+      equity: 15450,
+      freeMargin: 8200,
+      leverage: 500,
+      currency: "USD",
+    },
+    {
+      id: "ACC-67890",
+      type: "live",
+      balance: 12850,
+      equity: 13120,
+      freeMargin: 6200,
+      leverage: 200,
+      currency: "EUR",
+    },
+    {
+      id: "ACC-54321",
+      type: "live",
+      balance: 1850000,
+      equity: 1820000,
+      freeMargin: 1200000,
+      leverage: 100,
+      currency: "JPY",
+    },
+  ],
+};
 
 // 开发者配置状态
 interface DevConfigState {
@@ -21,6 +65,7 @@ interface DevConfigState {
   skipOtpVerification: boolean;
   preVerifiedPhone: string;
   preVerifiedEmail: string;
+  accountCount: "single" | "multiple";
 }
 
 // Context 类型
@@ -39,6 +84,9 @@ interface DevConfigContextType extends DevConfigState {
   setSkipOtpVerification: (skip: boolean) => void;
   setPreVerifiedPhone: (phone: string) => void;
   setPreVerifiedEmail: (email: string) => void;
+
+  // 账户数量切换
+  setAccountCount: (count: "single" | "multiple") => void;
 }
 
 // 默认位置（右下角：right/bottom 偏移，正值表示距边缘的距离）
@@ -55,6 +103,7 @@ const DEFAULT_STATE: DevConfigState = {
   skipOtpVerification: false,
   preVerifiedPhone: "",
   preVerifiedEmail: "",
+  accountCount: "single",
 };
 
 // Provider 组件
@@ -71,15 +120,23 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
       const parsed = saved ? JSON.parse(saved) : {};
       const parsedPosition = savedPosition ? JSON.parse(savedPosition) : DEFAULT_POSITION;
 
+      const basePerspective = parsed.currentPerspectiveId
+        ? getUserPerspective(parsed.currentPerspectiveId)
+        : getCurrentPerspective();
+      
+      const accountCount = parsed.accountCount ?? "single";
+
       setState({
-        currentPerspective: parsed.currentPerspectiveId
-          ? getUserPerspective(parsed.currentPerspectiveId)
-          : getCurrentPerspective(),
+        currentPerspective: {
+          ...basePerspective,
+          accounts: mockAccounts[accountCount],
+        },
         toolboxOpen: parsed.toolboxOpen ?? false,
         toolboxPosition: parsedPosition,
         skipOtpVerification: parsed.skipOtpVerification ?? false,
         preVerifiedPhone: parsed.preVerifiedPhone ?? "",
         preVerifiedEmail: parsed.preVerifiedEmail ?? "",
+        accountCount,
       });
     } catch {
       // 读取失败时保持默认值
@@ -96,6 +153,7 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
       skipOtpVerification: state.skipOtpVerification,
       preVerifiedPhone: state.preVerifiedPhone,
       preVerifiedEmail: state.preVerifiedEmail,
+      accountCount: state.accountCount,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
     localStorage.setItem(POSITION_KEY, JSON.stringify(state.toolboxPosition));
@@ -111,12 +169,18 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
     } else {
       localStorage.removeItem("kyc_preverified_email");
     }
-  }, [state.currentPerspective.id, state.toolboxOpen, state.toolboxPosition, state.skipOtpVerification, state.preVerifiedPhone, state.preVerifiedEmail]);
+  }, [state.currentPerspective.id, state.toolboxOpen, state.toolboxPosition, state.skipOtpVerification, state.preVerifiedPhone, state.preVerifiedEmail, state.accountCount]);
 
   // 设置视角
   const setPerspective = useCallback((id: string) => {
     const perspective = getUserPerspective(id);
-    setState(prev => ({ ...prev, currentPerspective: perspective }));
+    setState(prev => ({ 
+      ...prev, 
+      currentPerspective: {
+        ...perspective,
+        accounts: mockAccounts[prev.accountCount],
+      }
+    }));
   }, []);
 
   // 设置工具箱展开状态
@@ -152,6 +216,18 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
     setState(prev => ({ ...prev, preVerifiedEmail: email }));
   }, []);
 
+  // 设置账户数量
+  const setAccountCount = useCallback((count: "single" | "multiple") => {
+    setState(prev => ({
+      ...prev,
+      accountCount: count,
+      currentPerspective: {
+        ...prev.currentPerspective,
+        accounts: mockAccounts[count],
+      }
+    }));
+  }, []);
+
   const value: DevConfigContextType = {
     ...state,
     setPerspective,
@@ -163,6 +239,7 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
     setSkipOtpVerification,
     setPreVerifiedPhone,
     setPreVerifiedEmail,
+    setAccountCount,
   };
 
   return (

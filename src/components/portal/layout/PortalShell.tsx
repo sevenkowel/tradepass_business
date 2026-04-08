@@ -22,11 +22,11 @@ export function PortalShell({ children, breadcrumbs }: PortalShellProps) {
 
       <main
         className={cn(
-          "pt-[60px] transition-all duration-200",
-          sidebarCollapsed ? "ml-[72px]" : "ml-[260px]"
+          "pt-[72px] transition-all duration-300 ease-out",
+          sidebarCollapsed ? "ml-[72px]" : "ml-[240px]"
         )}
       >
-        <div className="p-6">
+        <div className="p-6 max-w-[1600px] mx-auto">
           {children}
         </div>
       </main>

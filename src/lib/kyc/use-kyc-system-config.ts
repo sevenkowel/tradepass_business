@@ -31,6 +31,8 @@ export function useKYCSystemConfig(): UseKYCSystemConfigReturn {
   const [error, setError] = useState<Error | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const lastVersionRef = useRef<string>('');
+  // 使用 ref 追踪是否有初始缓存，避免在 fetchConfig 内部使用 config 造成循环
+  const hasLoadedFromCacheRef = useRef(false);
 
   const fetchConfig = useCallback(async (silent = false) => {
     try {
@@ -59,13 +61,14 @@ export function useKYCSystemConfig(): UseKYCSystemConfigReturn {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error);
 
-      // 如果请求失败，尝试使用缓存
-      if (typeof window !== "undefined") {
+      // 如果请求失败，尝试使用缓存（只使用一次，避免循环）
+      if (typeof window !== "undefined" && !hasLoadedFromCacheRef.current) {
         const cached = localStorage.getItem(CONFIG_CACHE_KEY);
-        if (cached && !config) {
+        if (cached) {
           try {
             const parsed = JSON.parse(cached);
             setConfig(parsed);
+            hasLoadedFromCacheRef.current = true;
           } catch {
             // 缓存解析失败，忽略
           }
@@ -74,7 +77,7 @@ export function useKYCSystemConfig(): UseKYCSystemConfigReturn {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [config]);
+  }, []); // 移除 config 依赖，避免无限循环
 
   // 初始加载
   useEffect(() => {
@@ -87,6 +90,7 @@ export function useKYCSystemConfig(): UseKYCSystemConfigReturn {
           const parsed = JSON.parse(cached);
           setConfig(parsed);
           lastVersionRef.current = cachedVersion || '';
+          hasLoadedFromCacheRef.current = true;
           setLoading(false);
         } catch {
           // 缓存解析失败，继续请求
@@ -106,7 +110,8 @@ export function useKYCSystemConfig(): UseKYCSystemConfigReturn {
         clearInterval(pollingRef.current);
       }
     };
-  }, [fetchConfig]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 移除 fetchConfig 依赖，避免无限循环
 
   // 获取指定地区配置
   const getRegionConfig = useCallback(

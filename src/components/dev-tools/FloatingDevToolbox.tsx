@@ -5,16 +5,18 @@
  */
 
 import { useState } from "react";
-import { Wrench, X, Eye, ShieldCheck } from "lucide-react";
+import { Wrench, X, Eye, ShieldCheck, Wallet } from "lucide-react";
 import { PerspectiveSwitcher } from "./PerspectiveSwitcher";
 import { KYCDevPanel } from "./KYCDevPanel";
+import { AccountCountSwitcher } from "./AccountCountSwitcher";
 
 export function FloatingDevToolbox() {
   const [open, setOpen] = useState(false);
   const [activeTool, setActiveTool] = useState<string | null>(null);
 
   const tools = [
-    { id: "perspective", name: "视角切换", icon: Eye, component: PerspectiveSwitcher },
+    { id: "perspective", name: "用户视角", icon: Eye, component: PerspectiveSwitcher },
+    { id: "accounts", name: "账户数量", icon: Wallet, component: AccountCountSwitcher },
     { id: "kyc", name: "KYC 控制", icon: ShieldCheck, component: KYCDevPanel },
   ];
 

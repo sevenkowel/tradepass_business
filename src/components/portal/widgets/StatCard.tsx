@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface StatCardProps {
   title: string;
@@ -29,12 +30,12 @@ export function StatCard({
   const isNegative = change === undefined ? undefined : change < 0;
 
   const colorMap = {
-    blue:    { icon: "text-blue-600",    bg: "bg-blue-50",    border: "border-blue-200",   bar: "bg-blue-500"   },
-    green:   { icon: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200", bar: "bg-emerald-500" },
-    red:     { icon: "text-red-600",     bg: "bg-red-50",     border: "border-red-200",    bar: "bg-red-500"    },
-    orange:  { icon: "text-amber-600",   bg: "bg-amber-50",   border: "border-amber-200",  bar: "bg-amber-500"  },
-    purple:  { icon: "text-purple-600",  bg: "bg-purple-50",  border: "border-purple-200", bar: "bg-purple-500" },
-    default: { icon: "text-gray-500",    bg: "bg-gray-50",    border: "border-gray-200",   bar: "bg-gray-300"   },
+    blue:    { icon: "text-blue-500",    bg: "bg-blue-500/10",    border: "border-blue-500/20",   bar: "bg-blue-500"   },
+    green:   { icon: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20", bar: "bg-emerald-500" },
+    red:     { icon: "text-rose-500",    bg: "bg-rose-500/10",    border: "border-rose-500/20",    bar: "bg-rose-500"    },
+    orange:  { icon: "text-amber-500",   bg: "bg-amber-500/10",   border: "border-amber-500/20",  bar: "bg-amber-500"  },
+    purple:  { icon: "text-violet-500",  bg: "bg-violet-500/10",  border: "border-violet-500/20", bar: "bg-violet-500" },
+    default: { icon: "text-[var(--tp-accent)]", bg: "bg-[var(--tp-accent)]/10", border: "border-[var(--tp-accent)]/20", bar: "bg-[var(--tp-accent)]" },
   };
 
   const c = colorMap[progressColor];
@@ -44,51 +45,55 @@ export function StatCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay }}
-      className="bg-white rounded-2xl border border-gray-200 p-5 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+      whileHover={{ y: -2 }}
     >
-      {/* Icon + badge row */}
-      <div className="flex items-start justify-between mb-4">
-        <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center border", c.bg, c.border)}>
-          <Icon size={20} className={c.icon} />
-        </div>
-        {change !== undefined && (
-          <div className={cn(
-            "flex items-center gap-0.5 text-xs font-semibold px-2 py-1 rounded-lg",
-            isPositive && "bg-emerald-50 text-emerald-600 border border-emerald-200",
-            isNegative && "bg-red-50 text-red-600 border border-red-200",
-            !isPositive && !isNegative && "bg-gray-50 text-gray-500 border border-gray-200"
-          )}>
-            {isPositive ? <TrendingUp size={11} /> : isNegative ? <TrendingDown size={11} /> : null}
-            {isPositive && "+"}
-            {change}%
+      <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+        <CardContent className="p-5">
+          {/* Icon + badge row */}
+          <div className="flex items-start justify-between mb-4">
+            <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center border", c.bg, c.border)}>
+              <Icon size={20} className={c.icon} />
+            </div>
+            {change !== undefined && (
+              <div className={cn(
+                "flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full",
+                isPositive && "bg-emerald-500/10 text-emerald-600",
+                isNegative && "bg-rose-500/10 text-rose-600",
+                !isPositive && !isNegative && "bg-[var(--tp-muted)]/10 text-[var(--tp-muted)]"
+              )}>
+                {isPositive ? <TrendingUp size={12} /> : isNegative ? <TrendingDown size={12} /> : null}
+                {isPositive && "+"}
+                {change}%
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* Value */}
-      <p className="text-2xl font-bold text-gray-900 tracking-tight">{value}</p>
+          {/* Value */}
+          <p className="text-2xl font-bold text-[var(--tp-fg)] tracking-tight">{value}</p>
 
-      {/* Title */}
-      <p className="text-sm text-gray-500 mt-1">{title}</p>
+          {/* Title */}
+          <p className="text-sm text-[var(--tp-muted)] mt-1">{title}</p>
 
-      {/* Change label */}
-      {changeLabel && (
-        <p className="text-xs text-gray-400 mt-0.5">{changeLabel}</p>
-      )}
+          {/* Change label */}
+          {changeLabel && (
+            <p className="text-xs text-[var(--tp-muted)]/70 mt-0.5">{changeLabel}</p>
+          )}
 
-      {/* Progress bar */}
-      {progressValue !== undefined && (
-        <div className="mt-4">
-          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.min(progressValue, 100)}%` }}
-              transition={{ duration: 0.8, delay: delay + 0.2 }}
-              className={cn("h-full rounded-full", c.bar)}
-            />
-          </div>
-        </div>
-      )}
+          {/* Progress bar */}
+          {progressValue !== undefined && (
+            <div className="mt-4">
+              <div className="w-full h-1.5 bg-[var(--tp-border)] rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(progressValue, 100)}%` }}
+                  transition={{ duration: 0.8, delay: delay + 0.2 }}
+                  className={cn("h-full rounded-full", c.bar)}
+                />
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </motion.div>
   );
 }

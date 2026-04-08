@@ -24,28 +24,27 @@ export function PortalTopbar({ breadcrumbs }: PortalTopbarProps) {
   return (
     <header
       className={cn(
-        "fixed top-0 right-0 h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-4 z-30 transition-all duration-200",
+        "fixed top-0 right-0 h-[72px] bg-[var(--tp-surface)] border-b border-[var(--tp-border)] flex items-center justify-between px-6 z-30 transition-all duration-300",
         sidebarCollapsed ? "left-[72px]" : "left-[260px]"
       )}
     >
       {/* Left: Search */}
       <div className="flex items-center gap-3">
-        {/* Search */}
-        <div className="hidden sm:flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 w-72 border border-gray-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
-          <Search size={16} className="text-gray-400" />
+        <div className="hidden sm:flex items-center gap-2 bg-[var(--tp-bg)] rounded-xl px-4 py-2.5 w-80 border border-[var(--tp-border)] focus-within:border-[var(--tp-accent)] focus-within:ring-2 focus-within:ring-[var(--tp-accent)]/10 transition-all">
+          <Search size={18} className="text-[var(--tp-muted)]" />
           <input
             type="text"
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400 flex-1 w-full"
+            className="bg-transparent border-none outline-none text-sm text-[var(--tp-fg)] placeholder:text-[var(--tp-muted)] flex-1 w-full"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="hover:bg-gray-200 rounded p-0.5 transition-colors"
+              className="hover:bg-[var(--tp-surface)] rounded p-0.5 transition-colors"
             >
-              <X size={14} className="text-gray-400" />
+              <X size={14} className="text-[var(--tp-muted)]" />
             </button>
           )}
         </div>
@@ -57,11 +56,11 @@ export function PortalTopbar({ breadcrumbs }: PortalTopbarProps) {
         <div className="relative">
           <button
             onClick={() => setShowThemeMenu(!showThemeMenu)}
-            className="w-9 h-9 rounded-md hover:bg-gray-100 flex items-center justify-center transition-colors"
+            className="w-10 h-10 rounded-xl hover:bg-[var(--tp-surface)] flex items-center justify-center transition-colors border border-transparent hover:border-[var(--tp-border)]"
           >
-            {theme === "light" && <Sun size={18} className="text-gray-600" />}
-            {theme === "dark" && <Moon size={18} className="text-gray-600" />}
-            {theme === "system" && <Monitor size={18} className="text-gray-600" />}
+            {theme === "light" && <Sun size={18} className="text-[var(--tp-fg)]" />}
+            {theme === "dark" && <Moon size={18} className="text-[var(--tp-fg)]" />}
+            {theme === "system" && <Monitor size={18} className="text-[var(--tp-fg)]" />}
           </button>
           <AnimatePresence>
             {showThemeMenu && (
@@ -69,27 +68,27 @@ export function PortalTopbar({ breadcrumbs }: PortalTopbarProps) {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="absolute right-0 top-11 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px] z-50"
+                className="absolute right-0 top-12 bg-[var(--tp-surface)] border border-[var(--tp-border)] rounded-xl shadow-lg py-1 min-w-[140px] z-50"
               >
                 <button
                   onClick={() => { setTheme("light"); setShowThemeMenu(false); }}
-                  className="w-full px-3 py-2 text-xs text-left hover:bg-gray-50 flex items-center gap-2"
+                  className="w-full px-4 py-2.5 text-sm text-left hover:bg-[var(--tp-bg)] flex items-center gap-3 text-[var(--tp-fg)]"
                 >
-                  <Sun size={14} className="text-gray-500" />
+                  <Sun size={16} className="text-[var(--tp-muted)]" />
                   Light
                 </button>
                 <button
                   onClick={() => { setTheme("dark"); setShowThemeMenu(false); }}
-                  className="w-full px-3 py-2 text-xs text-left hover:bg-gray-50 flex items-center gap-2"
+                  className="w-full px-4 py-2.5 text-sm text-left hover:bg-[var(--tp-bg)] flex items-center gap-3 text-[var(--tp-fg)]"
                 >
-                  <Moon size={14} className="text-gray-500" />
+                  <Moon size={16} className="text-[var(--tp-muted)]" />
                   Dark
                 </button>
                 <button
                   onClick={() => { setTheme("system"); setShowThemeMenu(false); }}
-                  className="w-full px-3 py-2 text-xs text-left hover:bg-gray-50 flex items-center gap-2"
+                  className="w-full px-4 py-2.5 text-sm text-left hover:bg-[var(--tp-bg)] flex items-center gap-3 text-[var(--tp-fg)]"
                 >
-                  <Monitor size={14} className="text-gray-500" />
+                  <Monitor size={16} className="text-[var(--tp-muted)]" />
                   System
                 </button>
               </motion.div>
@@ -98,19 +97,19 @@ export function PortalTopbar({ breadcrumbs }: PortalTopbarProps) {
         </div>
 
         {/* Notifications */}
-        <button className="w-9 h-9 rounded-md hover:bg-gray-100 flex items-center justify-center transition-colors relative">
-          <Bell size={18} className="text-gray-600" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+        <button className="w-10 h-10 rounded-xl hover:bg-[var(--tp-surface)] flex items-center justify-center transition-colors border border-transparent hover:border-[var(--tp-border)] relative">
+          <Bell size={18} className="text-[var(--tp-fg)]" />
+          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[var(--tp-surface)]" />
         </button>
 
         {/* User Profile */}
-        <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
-          <div className="w-9 h-9 rounded-full bg-[#1E40AF] flex items-center justify-center">
-            <span className="text-white text-xs font-medium">JD</span>
+        <div className="flex items-center gap-3 pl-4 border-l border-[var(--tp-border)]">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--tp-accent)] to-[var(--tp-accent)]/80 flex items-center justify-center shadow-lg shadow-[var(--tp-accent)]/20">
+            <span className="text-white text-sm font-medium">JD</span>
           </div>
           <div className="hidden md:flex items-center gap-1">
-            <span className="text-xs font-medium text-gray-900">John Doe</span>
-            <ChevronDown size={14} className="text-gray-400" />
+            <span className="text-sm font-medium text-[var(--tp-fg)]">John Doe</span>
+            <ChevronDown size={14} className="text-[var(--tp-muted)]" />
           </div>
         </div>
       </div>

@@ -320,30 +320,38 @@ export function getCurrentCTA(user: TestUser): {
 }
 
 // 获取 Onboarding 步骤状态
+// 流程：注册 → 身份认证 → 创建账户 → 入金 → 交易
 export function getOnboardingSteps(user: TestUser) {
   const { onboardingStatus } = user;
   
   return [
     { 
-      id: 'account', 
-      title: '开立账户', 
-      status: onboardingStatus.hasAccount ? 'completed' : 'current',
+      id: 'register', 
+      title: '注册', 
+      status: 'completed', // 用户已登录，注册默认完成
       actionText: '', 
       href: '' 
     },
     { 
       id: 'kyc', 
-      title: '完成认证', 
-      status: onboardingStatus.hasAccount 
-        ? (onboardingStatus.isKycVerified ? 'completed' : 'current')
-        : 'pending',
-      actionText: '去认证', 
+      title: '身份认证', 
+      status: onboardingStatus.isKycVerified ? 'completed' : 'current',
+      actionText: '立即认证', 
       href: '/portal/kyc' 
+    },
+    { 
+      id: 'account', 
+      title: '创建账户', 
+      status: onboardingStatus.isKycVerified 
+        ? (onboardingStatus.hasAccount ? 'completed' : 'current')
+        : 'pending',
+      actionText: '创建账户', 
+      href: '/portal/trading/open-account' 
     },
     { 
       id: 'deposit', 
       title: '首次入金', 
-      status: onboardingStatus.isKycVerified 
+      status: onboardingStatus.hasAccount 
         ? (onboardingStatus.hasDeposited ? 'completed' : 'current')
         : 'pending',
       actionText: '去入金', 

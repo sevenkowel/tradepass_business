@@ -1,6 +1,7 @@
 "use client";
 
-import { Shield, Award, Landmark } from "lucide-react";
+import { Shield, Award, Landmark, CheckCircle2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const regulators = [
   { name: "FCA", fullName: "英国金融行为监管局" },
@@ -13,23 +14,33 @@ const awards = [
   "Most Trusted Broker 2024",
 ];
 
+const securityFeatures = [
+  "客户资金隔离存放",
+  "银行级 SSL 加密",
+  "负余额保护",
+];
+
 export function TrustSection() {
   return (
-    <section className="py-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* 监管牌照 */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <Landmark size={16} className="text-gray-400" />
-            <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-              监管机构
-            </h4>
-          </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 h-full"
+    >
+      {/* 全球监管 */}
+      <div className="flex items-start gap-3 mb-5">
+        <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center shrink-0">
+          <Landmark size={18} className="text-blue-600" />
+        </div>
+        <div className="flex-1">
+          <h4 className="text-sm font-semibold text-slate-900 mb-2">
+            全球监管
+          </h4>
           <div className="flex flex-wrap gap-2">
             {regulators.map((reg) => (
               <span
                 key={reg.name}
-                className="text-xs px-2 py-1 border border-gray-200 rounded text-gray-600"
+                className="text-xs px-2 py-0.5 bg-slate-100 rounded text-slate-600"
                 title={reg.fullName}
               >
                 {reg.name}
@@ -37,36 +48,46 @@ export function TrustSection() {
             ))}
           </div>
         </div>
+      </div>
 
-        {/* 奖项 */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <Award size={16} className="text-gray-400" />
-            <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-              荣誉奖项
-            </h4>
-          </div>
-          <div className="space-y-1">
+      {/* 行业认可 */}
+      <div className="flex items-start gap-3 mb-5">
+        <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center shrink-0">
+          <Award size={18} className="text-amber-600" />
+        </div>
+        <div className="flex-1">
+          <h4 className="text-sm font-semibold text-slate-900 mb-2">
+            行业认可
+          </h4>
+          <div className="space-y-0.5">
             {awards.map((award) => (
-              <p key={award} className="text-xs text-gray-600">
+              <p key={award} className="text-xs text-slate-500">
                 {award}
               </p>
             ))}
           </div>
         </div>
+      </div>
 
-        {/* 资金安全 */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <Shield size={16} className="text-gray-400" />
-            <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-              资金安全
-            </h4>
+      {/* 资金安全 */}
+      <div className="flex items-start gap-3">
+        <div className="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center shrink-0">
+          <Shield size={18} className="text-emerald-600" />
+        </div>
+        <div className="flex-1">
+          <h4 className="text-sm font-semibold text-slate-900 mb-2">
+            资金安全
+          </h4>
+          <div className="space-y-0.5">
+            {securityFeatures.map((feature) => (
+              <div key={feature} className="flex items-center gap-1.5">
+                <CheckCircle2 size={10} className="text-emerald-500" />
+                <span className="text-xs text-slate-500">{feature}</span>
+              </div>
+            ))}
           </div>
-          <p className="text-xs text-gray-600">客户资金隔离存放</p>
-          <p className="text-xs text-gray-600">银行级 SSL 加密</p>
         </div>
       </div>
-    </section>
+    </motion.div>
   );
 }
