@@ -10,30 +10,65 @@ import {
   FileText, 
   RefreshCw,
   ArrowRight,
-  Loader2
+  Loader2,
+  AlertTriangle,
+  Shield,
+  Lock,
+  Unlock,
+  FileCheck,
+  ScanFace,
+  Home,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useKYCStore } from "@/lib/kyc/store";
 import type { KYCStatus } from "@/lib/kyc/types";
+import type { UserSupplementalKYCStatus, VerificationStage } from "@/lib/kyc/supplemental-types";
+
+const STAGE_ICONS: Record<VerificationStage, React.ReactNode> = {
+  identity: <FileCheck className="w-5 h-5" />,
+  liveness: <ScanFace className="w-5 h-5" />,
+  address: <Home className="w-5 h-5" />,
+  questionnaire: <ClipboardList className="w-5 h-5" />,
+};
+
+const STAGE_LABELS: Record<VerificationStage, string> = {
+  identity: "Identity Verification",
+  liveness: "Liveness Check",
+  address: "Address Verification",
+  questionnaire: "Questionnaire",
+};
 
 export default function KYCStatusPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [status, setStatus] = useState<KYCStatus>("not_started");
   const [progress, setProgress] = useState(0);
+  const [supplementalStatus, setSupplementalStatus] = useState<UserSupplementalKYCStatus | null>(null);
   
   const { kycData, reset } = useKYCStore();
 
   useEffect(() => {
-    // Fetch KYC status
+    // Fetch KYC status and supplemental requirements
     const fetchStatus = async () => {
       try {
-        const response = await fetch("/api/kyc/status");
-        if (response.ok) {
-          const data = await response.json();
-          setStatus(data.data.status);
-          setProgress(data.data.progress);
+        const [kycResponse, supplementalResponse] = await Promise.all([
+          fetch("/api/kyc/status"),
+          fetch("/api/portal/kyc/supplemental-requirements"),
+        ]);
+
+        if (kycResponse.ok) {
+          const kycData = await kycResponse.json();
+          setStatus(kycData.data.status);
+          setProgress(kycData.data.progress);
+        }
+
+        if (supplementalResponse.ok) {
+          const supplementalData = await supplementalResponse.json();
+          if (supplementalData.success) {
+            setSupplementalStatus(supplementalData.status);
+          }
         }
       } catch (error) {
         console.error("Error fetching status:", error);
@@ -235,6 +270,117 @@ export default function KYCStatusPage() {
                     <p className="font-medium text-[rgb(var(--tp-fg-rgb))]">Approval Notification</p>
                     <p className="text-sm text-[rgba(var(--tp-fg-rgb),0.6)]">You will receive an email once approved</p>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Supplemental KYC Requirements */}
+        {supplementalStatus?.hasPendingRequest && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-8"
+          >
+            <Card className="border-amber-500/30 bg-amber-500/5">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                    <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg text-amber-700">Additional Verification Required</CardTitle>
+                    <CardDescription className="text-amber-600/70">
+                      Please complete the following steps to unlock full account features
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Required Stages */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-amber-700">Required Steps</h3>
+                  {supplementalStatus.requiredStages.map((stage) => (
+                    <div
+                      key={stage}
+                      className="flex items-center justify-between p-4 bg-white/50 rounded-xl border border-amber-200/50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
+                          {STAGE_ICONS[stage]}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{STAGE_LABELS[stage]}</p>
+                          <p className="text-sm text-gray-500">Required for account upgrade</p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => router.push(`/portal/kyc/${stage}`)}
+                        className="bg-amber-500 hover:bg-amber-600 text-white"
+                      >
+                        Complete
+                        <ArrowRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Restrictions */}
+                {!supplementalStatus.effectiveRestrictions.withdrawEnabled && (
+                  <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+                    <div className="flex items-center gap-3">
+                      <Lock className="w-5 h-5 text-red-500" />
+                      <div>
+                        <p className="font-medium text-red-700">Withdrawal Temporarily Disabled</p>
+                        <p className="text-sm text-red-600/70">
+                          Withdrawals are currently disabled until you complete the required verification steps.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {!supplementalStatus.effectiveRestrictions.depositEnabled && (
+                  <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+                    <div className="flex items-center gap-3">
+                      <Lock className="w-5 h-5 text-red-500" />
+                      <div>
+                        <p className="font-medium text-red-700">Deposit Temporarily Disabled</p>
+                        <p className="text-sm text-red-600/70">
+                          Deposits are currently disabled until you complete the required verification steps.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Pending Requests Info */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-amber-700">Pending Requests</h3>
+                  {supplementalStatus.pendingRequests.map((request) => (
+                    <div
+                      key={request.id}
+                      className="p-4 bg-white/50 rounded-xl border border-amber-200/50"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-900 capitalize">
+                          {request.type.replace(/_/g, " ")}
+                        </span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700">
+                          {request.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600">{request.reason}</p>
+                      {request.deadline && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          Deadline: {new Date(request.deadline).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>

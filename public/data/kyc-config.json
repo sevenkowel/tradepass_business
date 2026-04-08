@@ -1,5 +1,5 @@
 {
-  "version": "1.0.12",
+  "version": "1.0.17",
   "enabled": true,
   "maintenanceMode": false,
   "maintenanceMessage": {
@@ -13,7 +13,7 @@
     "es": "La apertura de cuenta no está disponible temporalmente. Por favor, inténtelo más tarde.",
     "pt": "Abertura de conta temporariamente indisponível. Tente novamente mais tarde."
   },
-  "updatedAt": "2026-04-03T09:48:29.994Z",
+  "updatedAt": "2026-04-04T14:01:27.816Z",
   "updatedBy": "admin",
   "regions": {
     "VN": {
@@ -395,7 +395,7 @@
       "idNumberExample": "901010-1234567"
     },
     "JP": {
-      "enabled": false,
+      "enabled": true,
       "kycLevel": "standard",
       "allowedDocuments": [
         "id_card",

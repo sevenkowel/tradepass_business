@@ -135,7 +135,7 @@ export default function DocumentPage() {
                 <p className="text-sm">{error}</p>
                 {error.includes("OCR engine error") && (
                   <p className="text-xs mt-2 text-red-600">
-                    💡 提示：这是开发环境的模拟错误。请打开 DevTools 悬浮工具箱，关闭 "Simulate OCR Error" 开关。
+                    💡 提示：这是开发环境的模拟错误。请打开 DevTools 悬浮工具箱，关闭 &quot;Simulate OCR Error&quot; 开关。
                   </p>
                 )}
               </div>

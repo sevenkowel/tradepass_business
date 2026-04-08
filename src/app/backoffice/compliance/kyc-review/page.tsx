@@ -1,530 +1,834 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield,
-  CheckCircle,
+  CheckCircle2,
   XCircle,
   Clock,
   Eye,
-  Download,
   Search,
   Filter,
   AlertTriangle,
   User,
   FileText,
   MapPin,
-  Calendar,
-  ChevronRight,
+  RefreshCw,
+  Loader2,
+  ChevronDown,
+  AlertCircle,
+  Fingerprint,
+  BadgeCheck,
+  CircleDashed,
+  MessageSquarePlus,
+  ClipboardCheck,
+  BarChart3,
+  Download,
 } from "lucide-react";
-import { Card, PageHeader, Button, StatusBadge } from "@/components/backoffice/ui";
-import { FilterBar } from "@/components/backoffice/ui/FilterBar";
+import {
+  Button,
+  PageHeader,
+  Card,
+  Drawer,
+  DrawerFooter,
+  EmptyState,
+} from "@/components/backoffice/ui";
 import { Breadcrumb } from "@/components/backoffice/layout";
 
-// Types
-interface KYCApplication {
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface KYCReviewRecord {
   id: string;
   userId: string;
   userName: string;
   email: string;
   phone: string;
+  regionCode: string;
   country: string;
-  submittedAt: string;
-  type: "individual" | "corporate";
-  documents: {
-    idCard: { status: "pending" | "approved" | "rejected"; url: string };
-    proofOfAddress: { status: "pending" | "approved" | "rejected"; url: string };
-    selfie?: { status: "pending" | "approved" | "rejected"; url: string };
-  };
+  kycLevel: "basic" | "standard" | "enhanced";
+  status: "submitted" | "under_review" | "approved" | "rejected";
   riskLevel: "low" | "medium" | "high";
-  reviewer?: string;
+  documentType: string;
+  documentFrontUrl: string;
+  documentBackUrl?: string;
+  selfieUrl?: string;
+  ocrConfidence: number;
+  livenessPassed: boolean;
+  submittedAt: string;
   reviewedAt?: string;
-  status: "pending" | "approved" | "rejected";
+  reviewedBy?: string;
   rejectionReason?: string;
+  personalInfo?: {
+    fullName: string;
+    dateOfBirth: string;
+    nationality: string;
+    address: string;
+    city: string;
+    country: string;
+  };
+  amlPassed: boolean;
+  amlRiskScore: number;
+  flags: string[];
 }
 
-// Mock data
-const mockApplications: KYCApplication[] = [
-  {
-    id: "KYC001",
-    userId: "USR008",
-    userName: "Robert Chen",
-    email: "robert.chen@email.com",
-    phone: "+1 555 123 4567",
-    country: "United States",
-    submittedAt: "2024-03-15 10:30",
-    type: "individual",
-    documents: {
-      idCard: { status: "approved", url: "/docs/id-1.jpg" },
-      proofOfAddress: { status: "pending", url: "/docs/poa-1.jpg" },
-      selfie: { status: "approved", url: "/docs/selfie-1.jpg" },
-    },
-    riskLevel: "low",
-    status: "pending",
-  },
-  {
-    id: "KYC002",
-    userId: "USR009",
-    userName: "Maria Garcia",
-    email: "maria.garcia@email.com",
-    phone: "+34 612 345 678",
-    country: "Spain",
-    submittedAt: "2024-03-15 09:15",
-    type: "individual",
-    documents: {
-      idCard: { status: "approved", url: "/docs/id-2.jpg" },
-      proofOfAddress: { status: "approved", url: "/docs/poa-2.jpg" },
-      selfie: { status: "approved", url: "/docs/selfie-2.jpg" },
-    },
-    riskLevel: "low",
-    status: "pending",
-  },
-  {
-    id: "KYC003",
-    userId: "USR010",
-    userName: "Global Trading Ltd",
-    email: "compliance@globaltrading.com",
-    phone: "+44 20 7946 0958",
-    country: "United Kingdom",
-    submittedAt: "2024-03-14 16:45",
-    type: "corporate",
-    documents: {
-      idCard: { status: "approved", url: "/docs/cert-1.pdf" },
-      proofOfAddress: { status: "pending", url: "/docs/utility-1.pdf" },
-    },
-    riskLevel: "high",
-    status: "pending",
-  },
-  {
-    id: "KYC004",
-    userId: "USR011",
-    userName: "Hans Mueller",
-    email: "hans.mueller@email.de",
-    phone: "+49 151 2345 6789",
-    country: "Germany",
-    submittedAt: "2024-03-14 14:20",
-    type: "individual",
-    documents: {
-      idCard: { status: "rejected", url: "/docs/id-3.jpg" },
-      proofOfAddress: { status: "rejected", url: "/docs/poa-3.jpg" },
-      selfie: { status: "rejected", url: "/docs/selfie-3.jpg" },
-    },
-    riskLevel: "medium",
-    status: "rejected",
-    rejectionReason: "证件照片不清晰，无法验证身份",
-    reviewer: "admin_01",
-    reviewedAt: "2024-03-15 11:00",
-  },
-  {
-    id: "KYC005",
-    userId: "USR012",
-    userName: "Yuki Tanaka",
-    email: "yuki.tanaka@email.jp",
-    phone: "+81 90 1234 5678",
-    country: "Japan",
-    submittedAt: "2024-03-15 08:00",
-    type: "individual",
-    documents: {
-      idCard: { status: "approved", url: "/docs/id-4.jpg" },
-      proofOfAddress: { status: "approved", url: "/docs/poa-4.jpg" },
-      selfie: { status: "approved", url: "/docs/selfie-4.jpg" },
-    },
-    riskLevel: "low",
-    status: "approved",
-    reviewer: "admin_02",
-    reviewedAt: "2024-03-15 10:30",
-  },
-];
+interface ApiStats {
+  total: number;
+  submitted: number;
+  under_review: number;
+  approved: number;
+  rejected: number;
+  high_risk: number;
+}
 
-const statusConfig = {
-  pending: {
+// ─── Config Maps ──────────────────────────────────────────────────────────────
+
+const STATUS_CONFIG = {
+  submitted: {
     label: "待审核",
     color: "text-amber-600",
-    bg: "bg-amber-100",
-    icon: Clock,
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    icon: CircleDashed,
+  },
+  under_review: {
+    label: "审核中",
+    color: "text-blue-600",
+    bg: "bg-blue-50",
+    border: "border-blue-200",
+    icon: Eye,
   },
   approved: {
     label: "已通过",
     color: "text-emerald-600",
-    bg: "bg-emerald-100",
-    icon: CheckCircle,
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    icon: CheckCircle2,
   },
   rejected: {
     label: "已拒绝",
     color: "text-red-600",
-    bg: "bg-red-100",
+    bg: "bg-red-50",
+    border: "border-red-200",
     icon: XCircle,
   },
 };
 
-const riskConfig = {
-  low: { label: "低风险", color: "text-emerald-600", bg: "bg-emerald-100" },
-  medium: { label: "中风险", color: "text-amber-600", bg: "bg-amber-100" },
-  high: { label: "高风险", color: "text-red-600", bg: "bg-red-100" },
+const RISK_CONFIG = {
+  low: { label: "低风险", color: "text-emerald-700", bg: "bg-emerald-100" },
+  medium: { label: "中风险", color: "text-amber-700", bg: "bg-amber-100" },
+  high: { label: "高风险", color: "text-red-700", bg: "bg-red-100" },
 };
 
+const LEVEL_CONFIG = {
+  basic: { label: "Basic KYC", color: "text-slate-600", bg: "bg-slate-100" },
+  standard: { label: "Standard KYC", color: "text-blue-700", bg: "bg-blue-100" },
+  enhanced: { label: "Enhanced KYC", color: "text-purple-700", bg: "bg-purple-100" },
+};
+
+const DOC_TYPE_LABELS: Record<string, string> = {
+  id_card: "身份证",
+  passport: "护照",
+  driving_license: "驾照",
+};
+
+const REGION_FLAGS: Record<string, string> = {
+  VN: "🇻🇳", TH: "🇹🇭", IN: "🇮🇳", AE: "🇦🇪",
+  KR: "🇰🇷", JP: "🇯🇵", FR: "🇫🇷", ES: "🇪🇸", BR: "🇧🇷",
+};
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function StatusBadge({ status }: { status: KYCReviewRecord["status"] }) {
+  const cfg = STATUS_CONFIG[status];
+  const Icon = cfg.icon;
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+        ${cfg.bg} ${cfg.color} border ${cfg.border}`}
+    >
+      <Icon className="w-3.5 h-3.5" />
+      {cfg.label}
+    </span>
+  );
+}
+
+function RiskBadge({ level }: { level: KYCReviewRecord["riskLevel"] }) {
+  const cfg = RISK_CONFIG[level];
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${cfg.bg} ${cfg.color}`}>
+      {cfg.label}
+    </span>
+  );
+}
+
+function ConfidenceBar({ value }: { value: number }) {
+  const pct = Math.round(value * 100);
+  const color = pct >= 90 ? "bg-emerald-500" : pct >= 80 ? "bg-amber-500" : "bg-red-500";
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className={`text-xs font-mono font-medium ${pct >= 90 ? "text-emerald-600" : pct >= 80 ? "text-amber-600" : "text-red-600"}`}>
+        {pct}%
+      </span>
+    </div>
+  );
+}
+
+// ─── Review Drawer ────────────────────────────────────────────────────────────
+
+function ReviewDrawer({
+  record,
+  onClose,
+  onAction,
+}: {
+  record: KYCReviewRecord;
+  onClose: () => void;
+  onAction: (action: "approve" | "reject" | "request_info" | "start_review", reason?: string) => Promise<void>;
+}) {
+  const [actionMode, setActionMode] = useState<"idle" | "reject" | "request_info">("idle");
+  const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const canAct = ["submitted", "under_review"].includes(record.status);
+
+  const handleAction = async (action: "approve" | "reject" | "request_info" | "start_review") => {
+    setLoading(true);
+    try {
+      await onAction(action, reason || undefined);
+      setActionMode("idle");
+      setReason("");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Drawer
+      isOpen
+      onClose={onClose}
+      size="lg"
+      title={`KYC 审核 · ${record.id}`}
+      description={`${record.userName} · ${REGION_FLAGS[record.regionCode] ?? ""} ${record.country}`}
+      footer={
+        canAct ? (
+          actionMode === "idle" ? (
+            <div className="w-full">
+              {record.status === "submitted" && (
+                <div className="flex gap-3 mb-3">
+                  <Button
+                    variant="secondary"
+                    className="flex-1"
+                    onClick={() => handleAction("start_review")}
+                    disabled={loading}
+                  >
+                    <Eye className="w-4 h-4" />
+                    接单审核
+                  </Button>
+                </div>
+              )}
+              <div className="flex gap-3">
+                <Button
+                  variant="secondary"
+                  className="flex-1 text-amber-700 border-amber-300 hover:bg-amber-50"
+                  onClick={() => setActionMode("request_info")}
+                  disabled={loading}
+                >
+                  <MessageSquarePlus className="w-4 h-4" />
+                  要求补充
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="flex-1 text-red-700 border-red-300 hover:bg-red-50"
+                  onClick={() => setActionMode("reject")}
+                  disabled={loading}
+                >
+                  <XCircle className="w-4 h-4" />
+                  拒绝
+                </Button>
+                <Button
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  onClick={() => handleAction("approve")}
+                  disabled={loading}
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  通过审核
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full space-y-3">
+              <p className="text-sm font-medium text-slate-700">
+                {actionMode === "reject" ? "拒绝原因（必填）" : "补充材料说明（必填）"}
+              </p>
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder={
+                  actionMode === "reject"
+                    ? "请填写拒绝原因，此信息将发送给用户..."
+                    : "请说明需要补充的材料或信息..."
+                }
+                rows={3}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <DrawerFooter>
+                <Button variant="ghost" onClick={() => { setActionMode("idle"); setReason(""); }} disabled={loading}>
+                  取消
+                </Button>
+                <Button
+                  variant={actionMode === "reject" ? "danger" : undefined}
+                  onClick={() => handleAction(actionMode === "reject" ? "reject" : "request_info")}
+                  disabled={!reason.trim() || loading}
+                >
+                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {actionMode === "reject" ? "确认拒绝" : "确认发送"}
+                </Button>
+              </DrawerFooter>
+            </div>
+          )
+        ) : null
+      }
+    >
+      <div className="space-y-6">
+        {/* Status Header */}
+        <div className="flex items-center justify-between">
+          <StatusBadge status={record.status} />
+          <div className="flex items-center gap-2">
+            <RiskBadge level={record.riskLevel} />
+            <span
+              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                ${LEVEL_CONFIG[record.kycLevel].bg} ${LEVEL_CONFIG[record.kycLevel].color}`}
+            >
+              {LEVEL_CONFIG[record.kycLevel].label}
+            </span>
+          </div>
+        </div>
+
+        {/* Risk Flags */}
+        {record.flags.length > 0 && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-red-600" />
+              <span className="text-sm font-medium text-red-700">风险标记</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              {record.flags.map((flag, i) => (
+                <p key={i} className="text-xs text-red-600">• {flag}</p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* User Info */}
+        <section>
+          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">用户信息</h3>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: "用户 ID", value: record.userId, mono: true },
+              { label: "姓名", value: record.userName },
+              { label: "邮箱", value: record.email },
+              { label: "手机", value: record.phone },
+              { label: "地区", value: `${REGION_FLAGS[record.regionCode] ?? ""} ${record.country}` },
+              { label: "提交时间", value: new Date(record.submittedAt).toLocaleString("zh-CN") },
+            ].map(({ label, value, mono }) => (
+              <div key={label} className="p-3 bg-slate-50 rounded-lg">
+                <p className="text-xs text-slate-400 mb-0.5">{label}</p>
+                <p className={`text-sm font-medium text-slate-900 ${mono ? "font-mono" : ""}`}>{value}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Personal Info */}
+        {record.personalInfo && (
+          <section>
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">个人信息</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: "全名", value: record.personalInfo.fullName },
+                { label: "出生日期", value: record.personalInfo.dateOfBirth },
+                { label: "国籍", value: record.personalInfo.nationality },
+                { label: "城市", value: record.personalInfo.city },
+              ].map(({ label, value }) => (
+                <div key={label} className="p-3 bg-slate-50 rounded-lg">
+                  <p className="text-xs text-slate-400 mb-0.5">{label}</p>
+                  <p className="text-sm font-medium text-slate-900">{value}</p>
+                </div>
+              ))}
+              <div className="col-span-2 p-3 bg-slate-50 rounded-lg">
+                <p className="text-xs text-slate-400 mb-0.5">地址</p>
+                <p className="text-sm font-medium text-slate-900">{record.personalInfo.address}</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Document Verification */}
+        <section>
+          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">证件验证</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-700">证件类型</span>
+              </div>
+              <span className="text-sm font-medium">{DOC_TYPE_LABELS[record.documentType] ?? record.documentType}</span>
+            </div>
+            <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <BadgeCheck className="w-4 h-4 text-slate-400" />
+                  <span className="text-sm text-slate-700">OCR 识别置信度</span>
+                </div>
+              </div>
+              <ConfidenceBar value={record.ocrConfidence} />
+            </div>
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Fingerprint className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-700">活体检测</span>
+              </div>
+              {record.livenessPassed ? (
+                <span className="flex items-center gap-1 text-emerald-600 text-sm font-medium">
+                  <CheckCircle2 className="w-4 h-4" /> 通过
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-red-600 text-sm font-medium">
+                  <XCircle className="w-4 h-4" /> 未通过
+                </span>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* Document Images */}
+        <section>
+          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">证件图片</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="aspect-video bg-slate-100 rounded-lg flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200">
+              <FileText className="w-8 h-8 text-slate-300" />
+              <span className="text-xs text-slate-400">正面</span>
+            </div>
+            {record.documentBackUrl && (
+              <div className="aspect-video bg-slate-100 rounded-lg flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200">
+                <FileText className="w-8 h-8 text-slate-300" />
+                <span className="text-xs text-slate-400">反面</span>
+              </div>
+            )}
+            {record.selfieUrl && (
+              <div className="aspect-video bg-slate-100 rounded-lg flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200">
+                <User className="w-8 h-8 text-slate-300" />
+                <span className="text-xs text-slate-400">自拍认证</span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* AML Check */}
+        <section>
+          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">AML 合规筛查</h3>
+          <div className="p-4 rounded-lg border ${record.amlPassed ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}">
+            <div
+              className={`p-4 rounded-lg border ${
+                record.amlPassed
+                  ? "border-emerald-200 bg-emerald-50"
+                  : "border-red-200 bg-red-50"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span
+                  className={`text-sm font-medium ${
+                    record.amlPassed ? "text-emerald-700" : "text-red-700"
+                  }`}
+                >
+                  {record.amlPassed ? "✓ AML 筛查通过" : "✗ AML 筛查异常"}
+                </span>
+                <span
+                  className={`text-xs font-mono font-medium px-2 py-0.5 rounded ${
+                    record.amlRiskScore < 30
+                      ? "bg-emerald-100 text-emerald-700"
+                      : record.amlRiskScore < 60
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  Risk Score: {record.amlRiskScore}
+                </span>
+              </div>
+              <div className="h-2 bg-white/60 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${
+                    record.amlRiskScore < 30
+                      ? "bg-emerald-500"
+                      : record.amlRiskScore < 60
+                      ? "bg-amber-500"
+                      : "bg-red-500"
+                  }`}
+                  style={{ width: `${record.amlRiskScore}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Rejection Reason */}
+        {record.rejectionReason && (
+          <section>
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">拒绝原因</h3>
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-700">{record.rejectionReason}</p>
+              {record.reviewedAt && (
+                <p className="text-xs text-red-500 mt-2">
+                  {record.reviewedBy} · {new Date(record.reviewedAt).toLocaleString("zh-CN")}
+                </p>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Approved Info */}
+        {record.status === "approved" && record.reviewedAt && (
+          <section>
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-emerald-700">审核已通过</p>
+                <p className="text-xs text-emerald-600">
+                  {record.reviewedBy} · {new Date(record.reviewedAt).toLocaleString("zh-CN")}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
+    </Drawer>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+type FilterStatus = "all" | KYCReviewRecord["status"];
+type FilterRisk = "all" | KYCReviewRecord["riskLevel"];
+
 export default function KYCReviewPage() {
-  const [applications] = useState<KYCApplication[]>(mockApplications);
-  const [selectedApp, setSelectedApp] = useState<KYCApplication | null>(null);
-  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [records, setRecords] = useState<KYCReviewRecord[]>([]);
+  const [stats, setStats] = useState<ApiStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedRecord, setSelectedRecord] = useState<KYCReviewRecord | null>(null);
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+  const [filterRisk, setFilterRisk] = useState<FilterRisk>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  const filteredApps = applications.filter((app) => {
-    if (filter !== "all" && app.status !== filter) return false;
-    if (searchQuery && !app.userName.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
-  });
-
-  const stats = {
-    total: applications.length,
-    pending: applications.filter((a) => a.status === "pending").length,
-    approved: applications.filter((a) => a.status === "approved").length,
-    rejected: applications.filter((a) => a.status === "rejected").length,
+  const showToast = (type: "success" | "error", message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
   };
 
-  const handleApprove = (app: KYCApplication) => {
-    console.log("Approve", app.id);
-    setSelectedApp(null);
+  const fetchRecords = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (filterStatus !== "all") params.append("status", filterStatus);
+      if (filterRisk !== "all") params.append("risk", filterRisk);
+      if (searchQuery) params.append("search", searchQuery);
+
+      const res = await fetch(`/api/backoffice/kyc/review?${params}`);
+      const data = await res.json();
+      if (data.success) {
+        setRecords(data.items);
+        setStats(data.stats);
+      }
+    } catch {
+      showToast("error", "获取数据失败，请稍后重试");
+    } finally {
+      setLoading(false);
+    }
+  }, [filterStatus, filterRisk, searchQuery]);
+
+  useEffect(() => {
+    fetchRecords();
+  }, [fetchRecords]);
+
+  const handleAction = async (
+    action: "approve" | "reject" | "request_info" | "start_review",
+    reason?: string
+  ) => {
+    if (!selectedRecord) return;
+    try {
+      const res = await fetch("/api/backoffice/kyc/review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedRecord.id, action, reason }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("success", data.message);
+        setSelectedRecord(data.record);
+        fetchRecords();
+      } else {
+        showToast("error", data.error || "操作失败");
+      }
+    } catch {
+      showToast("error", "网络错误，请重试");
+    }
   };
 
-  const handleReject = (app: KYCApplication, reason: string) => {
-    console.log("Reject", app.id, reason);
-    setSelectedApp(null);
-  };
+  const pendingCount = stats ? stats.submitted + stats.under_review : 0;
 
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
-      <Breadcrumb items={[{ label: "合规" }, { label: "KYC审核" }]} />
+      <Breadcrumb items={[{ label: "合规" }, { label: "KYC 审核" }]} />
 
       {/* Page Header */}
       <PageHeader
-        title="KYC审核"
+        title="KYC 审核"
         description="审核用户身份认证材料，确保合规要求"
         actions={
-          <div className="flex gap-3">
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={fetchRecords}>
+              <RefreshCw className="w-4 h-4" />
+              刷新
+            </Button>
             <Button variant="secondary">
               <Download className="w-4 h-4" />
-              导出报告
+              导出
             </Button>
           </div>
         }
       />
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="!p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-              <FileText className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</p>
-              <p className="text-sm text-slate-500">总申请</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="!p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
-              <p className="text-sm text-slate-500">待审核</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="!p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-emerald-600">{stats.approved}</p>
-              <p className="text-sm text-slate-500">已通过</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="!p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-              <XCircle className="w-5 h-5 text-red-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
-              <p className="text-sm text-slate-500">已拒绝</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <div className="flex items-center gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="搜索用户名或邮箱..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
-          {(["all", "pending", "approved", "rejected"] as const).map((status) => (
-            <button
-              key={status}
-              onClick={() => setFilter(status)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                filter === status
-                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
-            >
-              {status === "all" ? "全部" : status === "pending" ? "待审核" : status === "approved" ? "已通过" : "已拒绝"}
-            </button>
+      {/* Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+          {[
+            { label: "总申请", value: stats.total, icon: BarChart3, color: "text-slate-600", bg: "bg-slate-100" },
+            { label: "待审核", value: stats.submitted, icon: CircleDashed, color: "text-amber-600", bg: "bg-amber-100" },
+            { label: "审核中", value: stats.under_review, icon: Eye, color: "text-blue-600", bg: "bg-blue-100" },
+            { label: "已通过", value: stats.approved, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-100" },
+            { label: "已拒绝", value: stats.rejected, icon: XCircle, color: "text-red-600", bg: "bg-red-100" },
+            { label: "高风险", value: stats.high_risk, icon: AlertTriangle, color: "text-orange-600", bg: "bg-orange-100" },
+          ].map(({ label, value, icon: Icon, color, bg }) => (
+            <Card key={label} className="!p-4">
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-lg ${bg} flex items-center justify-center flex-shrink-0`}>
+                  <Icon className={`w-4 h-4 ${color}`} />
+                </div>
+                <div>
+                  <p className={`text-xl font-bold ${color}`}>{value}</p>
+                  <p className="text-xs text-slate-500">{label}</p>
+                </div>
+              </div>
+            </Card>
           ))}
         </div>
-      </div>
+      )}
 
-      {/* Applications List */}
-      <div className="space-y-3">
-        {filteredApps.map((app) => {
-          const status = statusConfig[app.status];
-          const risk = riskConfig[app.riskLevel];
-          const StatusIcon = status.icon;
+      {/* Pending Alert */}
+      {pendingCount > 0 && (
+        <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+          <p className="text-sm text-amber-700">
+            当前有 <span className="font-bold">{pendingCount}</span> 份申请待处理，请及时审核
+          </p>
+        </div>
+      )}
 
-          return (
-            <motion.div
-              key={app.id}
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:border-blue-300 dark:hover:border-blue-600 transition-colors cursor-pointer"
-              onClick={() => setSelectedApp(app)}
-            >
-              <div className="p-4">
-                <div className="flex items-start justify-between">
-                  {/* Left - User Info */}
-                  <div className="flex items-start gap-4">
-                    {/* Avatar */}
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
-                      {app.userName.slice(0, 2).toUpperCase()}
-                    </div>
+      {/* Filters */}
+      <Card className="!p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search */}
+          <div className="flex-1 min-w-[200px] relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="搜索用户名、邮箱、申请 ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 h-9 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-900 dark:text-white">
-                          {app.userName}
-                        </h3>
-                        <span className={`px-2 py-0.5 ${risk.bg} ${risk.color} rounded text-xs font-medium`}>
-                          {risk.label}
-                        </span>
-                        {app.riskLevel === "high" && (
-                          <span className="flex items-center gap-1 text-red-600">
-                            <AlertTriangle className="w-3 h-3" />
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 mt-1 text-sm text-slate-500">
-                        <span className="font-mono">{app.userId}</span>
-                        <span>•</span>
-                        <span>{app.email}</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {app.country}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+          {/* Status Filter */}
+          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg text-sm">
+            {(["all", "submitted", "under_review", "approved", "rejected"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setFilterStatus(s)}
+                className={`px-3 py-1.5 rounded-md font-medium transition-all ${
+                  filterStatus === s
+                    ? "bg-white shadow-sm text-slate-900"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {s === "all" ? "全部" : STATUS_CONFIG[s].label}
+              </button>
+            ))}
+          </div>
 
-                  {/* Right - Status & Time */}
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="flex items-center gap-2">
-                        <StatusIcon className={`w-4 h-4 ${status.color}`} />
-                        <span className={`text-sm font-medium ${status.color}`}>
-                          {status.label}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 mt-1 text-xs text-slate-500">
-                        <Clock className="w-3 h-3" />
-                        {app.submittedAt}
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-slate-400" />
-                  </div>
-                </div>
+          {/* Risk Filter */}
+          <select
+            value={filterRisk}
+            onChange={(e) => setFilterRisk(e.target.value as FilterRisk)}
+            className="h-9 px-3 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">全部风险</option>
+            <option value="low">低风险</option>
+            <option value="medium">中风险</option>
+            <option value="high">高风险</option>
+          </select>
+        </div>
+      </Card>
 
-                {/* Document Status */}
-                <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${
-                      app.documents.idCard.status === "approved" ? "bg-emerald-500" :
-                      app.documents.idCard.status === "rejected" ? "bg-red-500" : "bg-amber-500"
-                    }`} />
-                    <span className="text-sm text-slate-600 dark:text-slate-400">身份证</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${
-                      app.documents.proofOfAddress.status === "approved" ? "bg-emerald-500" :
-                      app.documents.proofOfAddress.status === "rejected" ? "bg-red-500" : "bg-amber-500"
-                    }`} />
-                    <span className="text-sm text-slate-600 dark:text-slate-400">地址证明</span>
-                  </div>
-                  {app.documents.selfie && (
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${
-                        app.documents.selfie.status === "approved" ? "bg-emerald-500" :
-                        app.documents.selfie.status === "rejected" ? "bg-red-500" : "bg-amber-500"
-                      }`} />
-                      <span className="text-sm text-slate-600 dark:text-slate-400">自拍认证</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
+      {/* Table */}
+      <Card className="!p-0 overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          </div>
+        ) : records.length === 0 ? (
+          <EmptyState
+            icon={<Shield className="w-12 h-12 text-slate-300" />}
+            title="暂无申请记录"
+            description="所有 KYC 申请均已处理完毕"
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50">
+                  {["申请 ID / 用户", "地区", "证件", "风险评估", "状态", "提交时间", "操作"].map((h) => (
+                    <th key={h} className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <AnimatePresence initial={false}>
+                  {records.map((record) => (
+                    <motion.tr
+                      key={record.id}
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors cursor-pointer"
+                      onClick={() => setSelectedRecord(record)}
+                    >
+                      {/* ID / User */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                            {record.userName.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-slate-900">{record.userName}</p>
+                            <p className="text-xs text-slate-400 font-mono">{record.id}</p>
+                          </div>
+                        </div>
+                      </td>
 
-        {filteredApps.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-            <Shield className="w-12 h-12 mb-4 opacity-50" />
-            <p className="text-lg font-medium">暂无申请记录</p>
-            <p className="text-sm">所有 KYC 申请已处理完毕</p>
+                      {/* Region */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-base">{REGION_FLAGS[record.regionCode] ?? "🌐"}</span>
+                          <span className="text-sm text-slate-600">{record.regionCode}</span>
+                        </div>
+                      </td>
+
+                      {/* Document */}
+                      <td className="py-3.5 px-4">
+                        <div>
+                          <p className="text-sm text-slate-700">{DOC_TYPE_LABELS[record.documentType] ?? record.documentType}</p>
+                          <ConfidenceBar value={record.ocrConfidence} />
+                        </div>
+                      </td>
+
+                      {/* Risk */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-col gap-1">
+                          <RiskBadge level={record.riskLevel} />
+                          {record.flags.length > 0 && (
+                            <span className="text-xs text-red-500">
+                              {record.flags.length} 项标记
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-3.5 px-4">
+                        <StatusBadge status={record.status} />
+                      </td>
+
+                      {/* Time */}
+                      <td className="py-3.5 px-4">
+                        <p className="text-sm text-slate-700">
+                          {new Date(record.submittedAt).toLocaleDateString("zh-CN")}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {new Date(record.submittedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-3.5 px-4" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedRecord(record)}
+                        >
+                          <ClipboardCheck className="w-4 h-4" />
+                          审核
+                        </Button>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              </tbody>
+            </table>
           </div>
         )}
-      </div>
+      </Card>
 
-      {/* Detail Modal */}
+      {/* Review Drawer */}
+      {selectedRecord && (
+        <ReviewDrawer
+          record={selectedRecord}
+          onClose={() => setSelectedRecord(null)}
+          onAction={handleAction}
+        />
+      )}
+
+      {/* Toast */}
       <AnimatePresence>
-        {selectedApp && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedApp(null)}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl bg-white dark:bg-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden"
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-6 right-6 z-[9999]"
+          >
+            <div
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium ${
+                toast.type === "success"
+                  ? "bg-emerald-600 text-white"
+                  : "bg-red-600 text-white"
+              }`}
             >
-              {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
-                    {selectedApp.userName.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div>
-                    <h2 className="font-semibold text-slate-900 dark:text-white">
-                      {selectedApp.userName}
-                    </h2>
-                    <p className="text-sm text-slate-500">{selectedApp.email}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedApp(null)}
-                  className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
-                >
-                  <XCircle className="w-5 h-5 text-slate-400" />
-                </button>
-              </div>
-
-              {/* Content */}
-              <div className="p-6 max-h-96 overflow-y-auto">
-                {/* User Info */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <p className="text-xs text-slate-500 mb-1">用户ID</p>
-                    <p className="font-mono font-medium">{selectedApp.userId}</p>
-                  </div>
-                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <p className="text-xs text-slate-500 mb-1">申请类型</p>
-                    <p className="font-medium">{selectedApp.type === "individual" ? "个人" : "企业"}</p>
-                  </div>
-                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <p className="text-xs text-slate-500 mb-1">手机</p>
-                    <p className="font-medium">{selectedApp.phone}</p>
-                  </div>
-                  <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <p className="text-xs text-slate-500 mb-1">国家</p>
-                    <p className="font-medium">{selectedApp.country}</p>
-                  </div>
-                </div>
-
-                {/* Documents */}
-                <h3 className="text-sm font-medium text-slate-900 dark:text-white mb-3">提交材料</h3>
-                <div className="space-y-3">
-                  {Object.entries(selectedApp.documents).map(([key, doc]) => (
-                    <div key={key} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-slate-400" />
-                        <span className="font-medium">
-                          {key === "idCard" ? "身份证" : key === "proofOfAddress" ? "地址证明" : "自拍认证"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          doc.status === "approved" ? "bg-emerald-100 text-emerald-700" :
-                          doc.status === "rejected" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
-                        }`}>
-                          {doc.status === "approved" ? "通过" : doc.status === "rejected" ? "拒绝" : "待审核"}
-                        </span>
-                        <Button variant="secondary" size="sm">
-                          <Eye className="w-4 h-4" />
-                          查看
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Risk Warning */}
-                {selectedApp.riskLevel === "high" && (
-                  <div className="flex items-start gap-3 p-4 mt-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
-                    <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-red-900 dark:text-red-400">高风险标记</p>
-                      <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                        该用户被标记为高风险，请仔细审核所有材料
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Rejection Reason */}
-                {selectedApp.rejectionReason && (
-                  <div className="p-4 mt-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">拒绝原因</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                      {selectedApp.rejectionReason}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Actions */}
-              {selectedApp.status === "pending" && (
-                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                  <Button variant="secondary">
-                    <XCircle className="w-4 h-4" />
-                    拒绝
-                  </Button>
-                  <Button>
-                    <CheckCircle className="w-4 h-4" />
-                    通过审核
-                  </Button>
-                </div>
+              {toast.type === "success" ? (
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+              ) : (
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
               )}
-            </motion.div>
-          </>
+              {toast.message}
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

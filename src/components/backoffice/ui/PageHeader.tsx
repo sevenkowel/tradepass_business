@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { ButtonHTMLAttributes, forwardRef } from "react";
+import { ButtonHTMLAttributes, forwardRef, HTMLAttributes } from "react";
 
 // Button Component
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -115,13 +115,13 @@ export function PageHeader({
 }
 
 // Card Component
-interface CardProps {
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
   padding?: "sm" | "md" | "lg" | "none";
 }
 
-export function Card({ children, className, padding = "md" }: CardProps) {
+export function Card({ children, className, padding = "md", ...rest }: CardProps) {
   const paddings = {
     none: "",
     sm: "p-4",
@@ -136,6 +136,7 @@ export function Card({ children, className, padding = "md" }: CardProps) {
         paddings[padding],
         className
       )}
+      {...rest}
     >
       {children}
     </div>

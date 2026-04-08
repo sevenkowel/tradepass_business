@@ -6,7 +6,9 @@ import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DrawerProps {
-  isOpen: boolean;
+  isOpen?: boolean;
+  /** Alias for isOpen */
+  open?: boolean;
   onClose: () => void;
   title?: string;
   description?: string;
@@ -18,6 +20,7 @@ interface DrawerProps {
 
 export function Drawer({
   isOpen,
+  open,
   onClose,
   title,
   description,
@@ -26,6 +29,8 @@ export function Drawer({
   showClose = true,
   footer,
 }: DrawerProps) {
+  // support both `isOpen` and `open` prop aliases
+  const resolvedOpen = isOpen ?? open ?? false;
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -34,7 +39,7 @@ export function Drawer({
   );
 
   useEffect(() => {
-    if (isOpen) {
+    if (resolvedOpen) {
       document.addEventListener("keydown", handleEscape);
       document.body.style.overflow = "hidden";
     }
@@ -42,7 +47,7 @@ export function Drawer({
       document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "";
     };
-  }, [isOpen, handleEscape]);
+  }, [resolvedOpen, handleEscape]);
 
   const sizes = {
     sm: "max-w-md",
@@ -52,7 +57,7 @@ export function Drawer({
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {resolvedOpen && (
         <>
           {/* Overlay */}
           <motion.div

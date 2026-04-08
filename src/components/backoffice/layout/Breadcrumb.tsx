@@ -62,7 +62,7 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
     if (segment === "backoffice") continue;
 
     // Format segment label
-    let label = segment
+    const label = segment
       .split("-")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");

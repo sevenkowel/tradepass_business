@@ -456,7 +456,7 @@ function UsersPageContent() {
               重置密码
             </DialogTitle>
             <DialogDescription className="pt-4">
-              为管理员 <strong>"{adminToAction?.username}"</strong> 设置新密码
+              为管理员 <strong>&quot;{adminToAction?.username}&quot;</strong> 设置新密码
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-4">

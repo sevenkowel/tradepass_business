@@ -47,21 +47,23 @@ const DEFAULT_POSITION = { x: 20, y: 100 };
 // 创建 Context
 const DevConfigContext = createContext<DevConfigContextType | null>(null);
 
+// 服务端安全的默认状态（SSR 和 hydration 阶段保持一致）
+const DEFAULT_STATE: DevConfigState = {
+  currentPerspective: getCurrentPerspective(),
+  toolboxOpen: false,
+  toolboxPosition: DEFAULT_POSITION,
+  skipOtpVerification: false,
+  preVerifiedPhone: "",
+  preVerifiedEmail: "",
+};
+
 // Provider 组件
 export function DevConfigProvider({ children }: { children: React.ReactNode }) {
-  // 从 localStorage 恢复状态
-  const [state, setState] = useState<DevConfigState>(() => {
-    if (typeof window === "undefined") {
-      return {
-        currentPerspective: getCurrentPerspective(),
-        toolboxOpen: false,
-        toolboxPosition: DEFAULT_POSITION,
-        skipOtpVerification: false,
-        preVerifiedPhone: "",
-        preVerifiedEmail: "",
-      };
-    }
+  // 使用服务端安全的默认值初始化，避免 SSR/Client Hydration mismatch
+  const [state, setState] = useState<DevConfigState>(DEFAULT_STATE);
 
+  // 客户端挂载后从 localStorage 恢复状态（避免 SSR hydration mismatch）
+  useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       const savedPosition = localStorage.getItem(POSITION_KEY);
@@ -69,7 +71,7 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
       const parsed = saved ? JSON.parse(saved) : {};
       const parsedPosition = savedPosition ? JSON.parse(savedPosition) : DEFAULT_POSITION;
 
-      return {
+      setState({
         currentPerspective: parsed.currentPerspectiveId
           ? getUserPerspective(parsed.currentPerspectiveId)
           : getCurrentPerspective(),
@@ -78,18 +80,11 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
         skipOtpVerification: parsed.skipOtpVerification ?? false,
         preVerifiedPhone: parsed.preVerifiedPhone ?? "",
         preVerifiedEmail: parsed.preVerifiedEmail ?? "",
-      };
+      });
     } catch {
-      return {
-        currentPerspective: getCurrentPerspective(),
-        toolboxOpen: false,
-        toolboxPosition: DEFAULT_POSITION,
-        skipOtpVerification: false,
-        preVerifiedPhone: "",
-        preVerifiedEmail: "",
-      };
+      // 读取失败时保持默认值
     }
-  });
+  }, []);
 
   // 保存状态到 localStorage
   useEffect(() => {
@@ -189,4 +184,15 @@ export function useDevConfig() {
 // 判断是否在开发环境
 export function isDevEnvironment(): boolean {
   return process.env.NODE_ENV === "development";
+}
+
+// Hook 版本 - 客户端安全
+export function useIsDevEnvironment(): boolean {
+  const [isDev, setIsDev] = useState(false);
+  
+  useEffect(() => {
+    setIsDev(process.env.NODE_ENV === "development");
+  }, []);
+  
+  return isDev;
 }

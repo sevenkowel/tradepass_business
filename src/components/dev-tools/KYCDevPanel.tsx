@@ -44,6 +44,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { useDevConfig } from "@/lib/dev-config";
+import { useKYCSystemConfig } from "@/lib/kyc/use-kyc-system-config";
 import { cn } from "@/lib/utils";
 import { useCallback, useState } from "react";
 
@@ -140,9 +141,11 @@ export function KYCDevPanel() {
   const kycStore = useKYCStore();
   const mockConfig = useKYCMockConfig();
   const devConfig = useDevConfig();
+  const { config: unifiedConfig, loading: configLoading } = useKYCSystemConfig();
   const [activeTab, setActiveTab] = useState<"snapshots" | "tiers" | "config">("snapshots");
 
   const currentRegionConfig = regionKYCConfigs[mockConfig.regionCode];
+  const currentUnifiedRegion = unifiedConfig?.regions[mockConfig.regionCode];
 
   // ── 快照应用函数 ──
 
@@ -666,6 +669,46 @@ export function KYCDevPanel() {
                   </div>
                   <div className="text-xs text-gray-400 pt-1 border-t border-gray-100">
                     证件类型: {currentRegionConfig.allowedDocuments.join(", ")}
+                  </div>
+                </div>
+              )}
+
+              {/* 统一配置预览 */}
+              {currentUnifiedRegion && !configLoading && (
+                <div className="p-2.5 bg-blue-50/50 rounded-lg space-y-1.5 border border-blue-100">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-blue-600 font-medium">统一配置预览</span>
+                    <span className="text-[10px] text-blue-400">
+                      v{unifiedConfig?.version}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-500">开户步骤:</span>
+                      <span className="text-gray-700">
+                        {Object.entries(currentUnifiedRegion.opening.steps)
+                          .filter(([, s]) => s.enabled)
+                          .length} 个启用
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-500">默认等级:</span>
+                      <span className="text-gray-700">
+                        Tier {currentUnifiedRegion.opening.defaultTierOnComplete}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-500">升级路径:</span>
+                      <span className="text-gray-700">
+                        {Object.values(currentUnifiedRegion.kyc.upgradePaths).flat().length} 条
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-500">补充规则:</span>
+                      <span className="text-gray-700">
+                        {currentUnifiedRegion.kyc.supplementalTriggers.largeWithdrawal.enabled ? 1 : 0} 条
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}

@@ -75,6 +75,7 @@ const menuGroups: MenuGroup[] = [
     permission: "compliance",
     items: [
       { label: "KYC Review", href: "/backoffice/compliance/kyc-review", icon: ShieldCheck, permission: "compliance" },
+      { label: "Supplemental KYC", href: "/backoffice/compliance/supplemental-review", icon: ShieldCheck, permission: "compliance" },
       { label: "Risk Control", href: "/backoffice/compliance/risk", icon: AlertTriangle, permission: "compliance" },
       { label: "Blacklist", href: "/backoffice/compliance/blacklist", icon: ShieldCheck, permission: "compliance" },
       { label: "Audit Logs", href: "/backoffice/compliance/audit", icon: ShieldCheck, permission: "compliance" },
@@ -194,6 +195,7 @@ const menuGroups: MenuGroup[] = [
       { label: "Roles & Permissions", href: "/backoffice/system/roles", icon: Settings, permission: "system" },
       { label: "Staff Management", href: "/backoffice/system/staff", icon: UserCog, permission: "system" },
       { label: "Security Settings", href: "/backoffice/system/security", icon: Shield, permission: "system" },
+      { label: "KYC Config", href: "/backoffice/system/kyc", icon: Settings, permission: "system" },
       { label: "Config Center", href: "/backoffice/system/config", icon: Settings, permission: "system" },
       { label: "API Management", href: "/backoffice/system/api", icon: Settings, permission: "system" },
       { label: "Operation Logs", href: "/backoffice/system/logs", icon: Settings, permission: "system" },

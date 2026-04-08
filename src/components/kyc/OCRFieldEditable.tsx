@@ -17,6 +17,58 @@ interface OCRFieldEditableProps {
   similarity?: number; // 姓名相似度（仅用于姓名字段）
 }
 
+// Extracted to module level to avoid "Cannot create components during render"
+interface SimilarityIndicatorProps {
+  similarity: number | undefined;
+  fieldKey: string;
+}
+
+function SimilarityIndicator({ similarity, fieldKey }: SimilarityIndicatorProps) {
+  if (similarity === undefined || fieldKey !== "fullName") return null;
+
+  const isGood = similarity >= 0.8;
+  const isWarning = similarity >= 0.6 && similarity < 0.8;
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-1.5 text-xs mt-1.5",
+        isGood && "text-green-600",
+        isWarning && "text-amber-600",
+        !isGood && !isWarning && "text-red-600"
+      )}
+    >
+      {isGood ? (
+        <Check className="w-3.5 h-3.5" />
+      ) : (
+        <AlertCircle className="w-3.5 h-3.5" />
+      )}
+      <span>
+        与OCR识别相似度: {Math.round(similarity * 100)}%
+        {isGood && " (通过)"}
+        {isWarning && " (需确认)"}
+        {!isGood && !isWarning && " (不匹配)"}
+      </span>
+    </div>
+  );
+}
+
+interface ChangeIndicatorProps {
+  hasChanged: boolean;
+  originalValue: string | undefined;
+}
+
+function ChangeIndicator({ hasChanged, originalValue }: ChangeIndicatorProps) {
+  if (!hasChanged) return null;
+
+  return (
+    <div className="flex items-center gap-1.5 text-xs text-amber-600 mt-1.5">
+      <Edit2 className="w-3 h-3" />
+      <span>已修改 (原值: {originalValue || "-"})</span>
+    </div>
+  );
+}
+
 export function OCRFieldEditable({
   config,
   originalValue,
@@ -35,49 +87,6 @@ export function OCRFieldEditable({
     },
     [onChange]
   );
-
-  // 相似度指示器（仅姓名字段）
-  const SimilarityIndicator = () => {
-    if (similarity === undefined || config.key !== "fullName") return null;
-
-    const isGood = similarity >= 0.8;
-    const isWarning = similarity >= 0.6 && similarity < 0.8;
-
-    return (
-      <div
-        className={cn(
-          "flex items-center gap-1.5 text-xs mt-1.5",
-          isGood && "text-green-600",
-          isWarning && "text-amber-600",
-          !isGood && !isWarning && "text-red-600"
-        )}
-      >
-        {isGood ? (
-          <Check className="w-3.5 h-3.5" />
-        ) : (
-          <AlertCircle className="w-3.5 h-3.5" />
-        )}
-        <span>
-          与OCR识别相似度: {Math.round(similarity * 100)}%
-          {isGood && " (通过)"}
-          {isWarning && " (需确认)"}
-          {!isGood && !isWarning && " (不匹配)"}
-        </span>
-      </div>
-    );
-  };
-
-  // 修改提示
-  const ChangeIndicator = () => {
-    if (!hasChanged) return null;
-
-    return (
-      <div className="flex items-center gap-1.5 text-xs text-amber-600 mt-1.5">
-        <Edit2 className="w-3 h-3" />
-        <span>已修改 (原值: {originalValue || "-"})</span>
-      </div>
-    );
-  };
 
   return (
     <div className="space-y-2">
@@ -159,10 +168,10 @@ export function OCRFieldEditable({
       )}
 
       {/* 相似度指示 */}
-      <SimilarityIndicator />
+      <SimilarityIndicator similarity={similarity} fieldKey={config.key} />
 
       {/* 修改提示 */}
-      <ChangeIndicator />
+      <ChangeIndicator hasChanged={hasChanged} originalValue={originalValue} />
     </div>
   );
 }

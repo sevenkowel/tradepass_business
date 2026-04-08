@@ -22,7 +22,7 @@ export function OnboardingFunnel({ user }: OnboardingFunnelProps) {
   const isAccountRejected = user.stage === "account_rejected";
 
   return (
-    <section className="border-b border-gray-100 pb-6">
+    <section className="py-6 border-b border-gray-100">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-medium text-gray-900">
           {isAccountFailed

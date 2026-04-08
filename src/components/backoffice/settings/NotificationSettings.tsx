@@ -9,6 +9,34 @@ interface NotificationSettingsProps {
   onChange: (notifications: UserSettings["notifications"]) => void;
 }
 
+// Extracted to module level to avoid "Cannot create components during render"
+interface ToggleProps {
+  checked: boolean;
+  onChange: () => void;
+  disabled?: boolean;
+}
+
+function Toggle({ checked, onChange, disabled }: ToggleProps) {
+  return (
+    <button
+      onClick={onChange}
+      disabled={disabled}
+      className={cn(
+        "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+        checked ? "bg-blue-600" : "bg-gray-200 dark:bg-slate-700",
+        disabled && "opacity-50 cursor-not-allowed"
+      )}
+    >
+      <span
+        className={cn(
+          "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+          checked ? "translate-x-6" : "translate-x-1"
+        )}
+      />
+    </button>
+  );
+}
+
 export function NotificationSettings({
   notifications,
   onChange,
@@ -68,33 +96,6 @@ export function NotificationSettings({
       icon: Megaphone,
     },
   ];
-
-  const Toggle = ({
-    checked,
-    onChange,
-    disabled,
-  }: {
-    checked: boolean;
-    onChange: () => void;
-    disabled?: boolean;
-  }) => (
-    <button
-      onClick={onChange}
-      disabled={disabled}
-      className={cn(
-        "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
-        checked ? "bg-blue-600" : "bg-gray-200 dark:bg-slate-700",
-        disabled && "opacity-50 cursor-not-allowed"
-      )}
-    >
-      <span
-        className={cn(
-          "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
-          checked ? "translate-x-6" : "translate-x-1"
-        )}
-      />
-    </button>
-  );
 
   return (
     <div className="space-y-6">

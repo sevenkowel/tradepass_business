@@ -422,7 +422,7 @@ export default function AccountsPage() {
                     </div>
                     <div className="p-3 rounded-lg bg-yellow-500/10 text-yellow-600 text-sm flex items-start gap-2">
                       <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      <span>Bank accounts require verification. We'll make a small deposit to verify ownership.</span>
+                      <span>Bank accounts require verification. We&apos;ll make a small deposit to verify ownership.</span>
                     </div>
                     <Button 
                       onClick={handleAddBank}

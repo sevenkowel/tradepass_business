@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-04-04T14:24:06.747Z",
+  "sourceFiles": [
+    "kyc-system-config.json",
+    "kyc-config.json"
+  ],
+  "outputFile": "kyc-config-unified.json",
+  "statistics": {
+    "regions": 9,
+    "tiers": 5,
+    "stages": 4
+  },
+  "regions": [
+    "VN",
+    "TH",
+    "IN",
+    "AE",
+    "KR",
+    "JP",
+    "FR",
+    "ES",
+    "BR"
+  ],
+  "warnings": []
+}

@@ -47,6 +47,37 @@ export interface StageConfig {
 }
 
 // ============================================================
+// 补充认证触发规则
+// ============================================================
+
+export interface SupplementalTriggerConfig {
+  enabled: boolean;
+  // 触发条件类型
+  condition: "amount_threshold" | "risk_score" | "manual" | "document_expiry";
+  // 触发阈值（金额阈值或风险评分）
+  threshold?: number;
+  // 货币（用于金额阈值）
+  currency?: string;
+  // 要求补充的阶段
+  requireStage: VerificationStage;
+  // 提示信息
+  messageLocal: Record<string, string>;
+}
+
+export interface RegionSupplementalRules {
+  // 大额提款触发补充认证
+  largeWithdrawal: SupplementalTriggerConfig;
+  // 风险评分触发
+  riskScore?: SupplementalTriggerConfig;
+  // 证件过期检查
+  documentExpiry?: {
+    enabled: boolean;
+    warningDays: number; // 提前多少天警告
+    graceDays: number;   // 过期后宽限天数
+  };
+}
+
+// ============================================================
 // 地区认证流程配置
 // ============================================================
 
@@ -56,6 +87,8 @@ export interface RegionKYCFlow {
   defaultTier: KYCTierLevel;
   stages: Record<VerificationStage, StageConfig>;
   tierRequirements: Record<KYCTierLevel, VerificationStage[]>;
+  // 补充认证触发规则
+  supplementalRules: RegionSupplementalRules;
 }
 
 // ============================================================

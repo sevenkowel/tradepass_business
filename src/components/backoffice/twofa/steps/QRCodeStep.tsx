@@ -49,7 +49,7 @@ export function QRCodeStep({ onBack, onNext }: QRCodeStepProps) {
       {/* Instructions */}
       <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
         <p>1. 在手机上安装 Google Authenticator 或 Microsoft Authenticator</p>
-        <p>2. 打开应用，点击"添加账户"或"+"</p>
+        <p>2. 打开应用，点击&ldquo;添加账户&rdquo;或&ldquo;+&rdquo;</p>
         <p>3. 扫描二维码或手动输入密钥</p>
       </div>
 

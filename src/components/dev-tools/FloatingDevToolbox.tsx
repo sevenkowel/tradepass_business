@@ -1,252 +1,74 @@
 "use client";
 
 /**
- * 悬浮开发工具箱
- * 仅在开发环境显示，支持拖拽、展开收起、位置记忆
+ * 悬浮开发工具箱 - 简化调试版本
  */
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, useDragControls } from "framer-motion";
-import { 
-  Wrench, 
-  X, 
-  GripHorizontal,
-  Eye,
-  ChevronRight,
-  ShieldCheck,
-} from "lucide-react";
-import { useDevConfig } from "@/lib/dev-config";
+import { useState } from "react";
+import { Wrench, X, Eye, ShieldCheck } from "lucide-react";
 import { PerspectiveSwitcher } from "./PerspectiveSwitcher";
 import { KYCDevPanel } from "./KYCDevPanel";
-import { cn } from "@/lib/utils";
-
-// 工具定义
-interface DevTool {
-  id: string;
-  name: string;
-  icon: React.ElementType;
-  component: React.FC;
-}
-
-// 可用工具列表
-const DEV_TOOLS: DevTool[] = [
-  {
-    id: "perspective",
-    name: "视角切换",
-    icon: Eye,
-    component: PerspectiveSwitcher,
-  },
-  {
-    id: "kyc-control",
-    name: "KYC 控制",
-    icon: ShieldCheck,
-    component: KYCDevPanel,
-  },
-];
-
-// 默认位置（右下角偏移）
-const DEFAULT_RIGHT = 20;
-const DEFAULT_BOTTOM = 100;
 
 export function FloatingDevToolbox() {
-  const { 
-    toolboxOpen, 
-    toggleToolbox, 
-    setToolboxOpen,
-    toolboxPosition, 
-    setToolboxPosition,
-    resetToolboxPosition,
-  } = useDevConfig();
-  
-  const [activeToolId, setActiveToolId] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const dragControls = useDragControls();
+  const [open, setOpen] = useState(false);
+  const [activeTool, setActiveTool] = useState<string | null>(null);
 
-  // 客户端挂载标记 - 避免 hydration 不匹配
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const tools = [
+    { id: "perspective", name: "视角切换", icon: Eye, component: PerspectiveSwitcher },
+    { id: "kyc", name: "KYC 控制", icon: ShieldCheck, component: KYCDevPanel },
+  ];
 
-  // 获取当前激活的工具
-  const activeTool = DEV_TOOLS.find(t => t.id === activeToolId);
-  const ActiveToolComponent = activeTool?.component;
-
-  // 计算实际 right/bottom 值（仅在客户端使用 localStorage 值）
-  const right = isMounted ? (toolboxPosition.x ?? DEFAULT_RIGHT) : DEFAULT_RIGHT;
-  const bottom = isMounted ? (toolboxPosition.y ?? DEFAULT_BOTTOM) : DEFAULT_BOTTOM;
-
-  // 处理拖拽结束，保存位置
-  const handleDragEnd = useCallback(() => {
-    setIsDragging(false);
-    
-    if (!containerRef.current || typeof window === "undefined") return;
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    
-    // 计算相对于视口右下角的位置
-    const newRight = viewportWidth - rect.right;
-    const newBottom = viewportHeight - rect.bottom;
-    
-    setToolboxPosition({ x: newRight, y: newBottom });
-  }, [setToolboxPosition]);
-
-  // 处理工具选择
-  const handleToolSelect = (toolId: string) => {
-    setActiveToolId(toolId);
-  };
-
-  // 返回工具列表
-  const handleBack = () => {
-    setActiveToolId(null);
-  };
-
-  // 重置位置
-  const handleReset = () => {
-    resetToolboxPosition();
-  };
+  const ActiveComponent = activeTool ? tools.find(t => t.id === activeTool)?.component : null;
 
   return (
     <div
-      className="fixed z-[9999] select-none"
+      className="fixed z-[9999]"
       style={{ 
-        right: `${right}px`, 
-        bottom: `${bottom}px`,
-        touchAction: "none",
+        right: "20px", 
+        bottom: "20px",
       }}
     >
-      <motion.div
-        ref={containerRef}
-        drag
-        dragControls={dragControls}
-        dragMomentum={false}
-        dragElastic={0}
-        onDragStart={() => setIsDragging(true)}
-        onDragEnd={handleDragEnd}
-        className={cn(
-          isDragging && "cursor-grabbing",
-          !isDragging && toolboxOpen && "cursor-default",
-          !isDragging && !toolboxOpen && "cursor-grab"
-        )}
-      >
-        {/* 收起状态 - 悬浮球 */}
-        {!toolboxOpen && (
-          <motion.button
-            onClick={toggleToolbox}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={cn(
-              "flex items-center justify-center w-12 h-12 rounded-full shadow-lg",
-              "bg-gray-900 text-white hover:bg-gray-800",
-              "transition-colors duration-200"
-            )}
-            title="开发工具箱"
-          >
-            <Wrench size={20} />
-          </motion.button>
-        )}
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="flex items-center justify-center w-12 h-12 rounded-full shadow-lg bg-gray-900 text-white hover:bg-gray-800"
+          title="开发工具箱"
+        >
+          <Wrench size={20} />
+        </button>
+      ) : (
+        <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-72">
+          {/* 头部 */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+            <span className="text-sm font-medium text-gray-900">
+              {activeTool ? tools.find(t => t.id === activeTool)?.name : "开发工具箱"}
+            </span>
+            <button onClick={() => { setOpen(false); setActiveTool(null); }}>
+              <X size={16} className="text-gray-500" />
+            </button>
+          </div>
 
-        {/* 展开状态 - 工具箱面板 */}
-        {toolboxOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
-            className={cn(
-              "bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden",
-              "w-72"
-            )}
-          >
-            {/* 拖拽手柄 */}
-            <div
-              onPointerDown={(e) => dragControls.start(e)}
-              className={cn(
-                "flex items-center justify-center h-6 bg-gray-50 border-b border-gray-100",
-                "cursor-grab active:cursor-grabbing hover:bg-gray-100 transition-colors"
-              )}
-            >
-              <GripHorizontal size={16} className="text-gray-400" />
-            </div>
-
-            {/* 头部 */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                {activeTool ? (
-                  <>
-                    <button
-                      onClick={handleBack}
-                      className="p-1 -ml-1 rounded hover:bg-gray-100 transition-colors"
-                    >
-                      <ChevronRight size={16} className="rotate-180 text-gray-500" />
-                    </button>
-                    <span className="text-sm font-medium text-gray-900">{activeTool.name}</span>
-                  </>
-                ) : (
-                  <>
-                    <Wrench size={16} className="text-gray-500" />
-                    <span className="text-sm font-medium text-gray-900">开发工具箱</span>
-                  </>
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                {!activeTool && (
+          {/* 内容 */}
+          <div className="p-4">
+            {ActiveComponent ? (
+              <ActiveComponent />
+            ) : (
+              <div className="space-y-2">
+                {tools.map((tool) => (
                   <button
-                    onClick={handleReset}
-                    className="p-1.5 rounded hover:bg-gray-100 transition-colors"
-                    title="重置位置"
+                    key={tool.id}
+                    onClick={() => setActiveTool(tool.id)}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm text-gray-700 hover:bg-gray-50"
                   >
-                    <span className="text-xs text-gray-500">复位</span>
+                    <tool.icon size={18} className="text-gray-500" />
+                    <span>{tool.name}</span>
                   </button>
-                )}
-                <button
-                  onClick={() => setToolboxOpen(false)}
-                  className="p-1.5 rounded hover:bg-gray-100 transition-colors"
-                  title="收起"
-                >
-                  <X size={16} className="text-gray-500" />
-                </button>
+                ))}
               </div>
-            </div>
-
-            {/* 内容区 */}
-            <div className="p-4">
-              {activeTool && ActiveToolComponent ? (
-                <ActiveToolComponent />
-              ) : (
-                <div className="space-y-2">
-                  {DEV_TOOLS.map((tool) => (
-                    <button
-                      key={tool.id}
-                      onClick={() => handleToolSelect(tool.id)}
-                      className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg",
-                        "text-left text-sm text-gray-700",
-                        "hover:bg-gray-50 transition-colors",
-                        "border border-transparent hover:border-gray-100"
-                      )}
-                    >
-                      <tool.icon size={18} className="text-gray-500" />
-                      <span className="flex-1">{tool.name}</span>
-                      <ChevronRight size={16} className="text-gray-400" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* 底部提示 */}
-            <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
-              <p className="text-xs text-gray-400 text-center">
-                拖拽顶部手柄移动位置
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </motion.div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

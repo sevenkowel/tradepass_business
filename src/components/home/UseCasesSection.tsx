@@ -50,7 +50,7 @@ export function UseCasesSection() {
             <span className="gradient-text">Brokerage Growth</span>
           </h2>
           <p className="text-lg text-foreground/60 max-w-2xl mx-auto">
-            Whether you're just starting or already operating at scale, 
+            Whether you&apos;re just starting or already operating at scale,
             TradePass has the right solution for you.
           </p>
         </motion.div>

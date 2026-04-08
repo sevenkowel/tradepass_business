@@ -20,6 +20,64 @@ interface PasswordDialogProps {
   isSubmitting?: boolean;
 }
 
+// Extracted to module level to avoid "Cannot create components during render"
+interface PasswordInputProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+  show: boolean;
+  onToggle: () => void;
+  placeholder?: string;
+}
+
+function PasswordInput({
+  label,
+  value,
+  onChange,
+  error,
+  show,
+  onToggle,
+  placeholder,
+}: PasswordInputProps) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={cn(
+            "w-full h-10 px-3 pr-10 bg-white dark:bg-slate-900 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900",
+            error
+              ? "border-red-300 focus:border-red-400"
+              : "border-gray-200 dark:border-slate-700 focus:border-blue-400"
+          )}
+        />
+        <button
+          type="button"
+          onClick={onToggle}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        >
+          {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </button>
+      </div>
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+    </div>
+  );
+}
+
+interface PasswordDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (data: ChangePasswordRequest) => Promise<{ success: boolean; message: string }>;
+  isSubmitting?: boolean;
+}
+
 export function PasswordDialog({ open, onOpenChange, onSubmit, isSubmitting }: PasswordDialogProps) {
   const [formData, setFormData] = useState({
     currentPassword: "",
@@ -84,52 +142,6 @@ export function PasswordDialog({ open, onOpenChange, onSubmit, isSubmitting }: P
     setSubmitError("");
     onOpenChange(false);
   };
-
-  const PasswordInput = ({
-    label,
-    value,
-    onChange,
-    error,
-    show,
-    onToggle,
-    placeholder,
-  }: {
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    error?: string;
-    show: boolean;
-    onToggle: () => void;
-    placeholder?: string;
-  }) => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          type={show ? "text" : "password"}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className={cn(
-            "w-full h-10 px-3 pr-10 bg-white dark:bg-slate-900 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900",
-            error
-              ? "border-red-300 focus:border-red-400"
-              : "border-gray-200 dark:border-slate-700 focus:border-blue-400"
-          )}
-        />
-        <button
-          type="button"
-          onClick={onToggle}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-        >
-          {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-        </button>
-      </div>
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-    </div>
-  );
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

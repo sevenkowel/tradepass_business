@@ -1,66 +1,135 @@
 {
-  "version": "1.0.0",
-  "updatedAt": "2026-04-03T12:00:00.000Z",
-  "updatedBy": "system",
+  "version": "1.1.0",
+  "changelog": "Added supplemental KYC rules for VN/JP/IN regions with differentiated onboarding flows",
+  "updatedAt": "2026-04-03T12:29:23.482Z",
+  "updatedBy": "admin",
   "tiers": [
     {
       "level": 0,
       "name": "Unverified",
-      "nameLocal": { "en": "Unverified", "zh": "未认证", "vi": "Chưa xác minh", "th": "ยังไม่ยืนยัน" },
+      "nameLocal": {
+        "en": "Unverified",
+        "zh": "未认证",
+        "vi": "Chưa xác minh",
+        "th": "ยังไม่ยืนยัน"
+      },
       "description": "Email/Phone registered only",
       "requiredStages": [],
-      "badge": { "color": "gray", "icon": "CircleDashed" }
+      "badge": {
+        "color": "gray",
+        "icon": "CircleDashed"
+      }
     },
     {
       "level": 1,
       "name": "Basic",
-      "nameLocal": { "en": "Basic", "zh": "基础认证", "vi": "Cơ bản", "th": "พื้นฐาน" },
+      "nameLocal": {
+        "en": "Basic",
+        "zh": "基础认证",
+        "vi": "Cơ bản",
+        "th": "พื้นฐาน"
+      },
       "description": "Identity verified",
-      "requiredStages": ["identity"],
-      "badge": { "color": "blue", "icon": "Shield" }
+      "requiredStages": [
+        "identity"
+      ],
+      "badge": {
+        "color": "blue",
+        "icon": "Shield"
+      }
     },
     {
       "level": 2,
       "name": "Standard",
-      "nameLocal": { "en": "Standard", "zh": "标准认证", "vi": "Tiêu chuẩn", "th": "มาตรฐาน" },
+      "nameLocal": {
+        "en": "Standard",
+        "zh": "标准认证",
+        "vi": "Tiêu chuẩn",
+        "th": "มาตรฐาน"
+      },
       "description": "Identity + Liveness",
-      "requiredStages": ["identity", "liveness"],
-      "badge": { "color": "green", "icon": "ShieldCheck" }
+      "requiredStages": [
+        "identity",
+        "liveness"
+      ],
+      "badge": {
+        "color": "green",
+        "icon": "ShieldCheck"
+      }
     },
     {
       "level": 3,
       "name": "Advanced",
-      "nameLocal": { "en": "Advanced", "zh": "高级认证", "vi": "Nâng cao", "th": "ขั้นสูง" },
+      "nameLocal": {
+        "en": "Advanced",
+        "zh": "高级认证",
+        "vi": "Nâng cao",
+        "th": "ขั้นสูง"
+      },
       "description": "Identity + Liveness + Address",
-      "requiredStages": ["identity", "liveness", "address"],
-      "badge": { "color": "purple", "icon": "BadgeCheck" }
+      "requiredStages": [
+        "identity",
+        "liveness",
+        "address"
+      ],
+      "badge": {
+        "color": "purple",
+        "icon": "BadgeCheck"
+      }
     },
     {
       "level": 4,
       "name": "Complete",
-      "nameLocal": { "en": "Complete", "zh": "完整认证", "vi": "Hoàn tất", "th": "สมบูรณ์" },
+      "nameLocal": {
+        "en": "Complete",
+        "zh": "完整认证",
+        "vi": "Hoàn tất",
+        "th": "สมบูรณ์"
+      },
       "description": "Full compliance with questionnaire",
-      "requiredStages": ["identity", "liveness", "address", "questionnaire"],
-      "badge": { "color": "amber", "icon": "Crown" }
+      "requiredStages": [
+        "identity",
+        "liveness",
+        "address",
+        "questionnaire"
+      ],
+      "badge": {
+        "color": "amber",
+        "icon": "Crown"
+      }
     }
   ],
   "stageDefinitions": {
     "identity": {
       "id": "identity",
       "name": "Identity Verification",
-      "nameLocal": { "en": "Identity", "zh": "身份认证", "vi": "Danh tính", "th": "ตัวตน" },
+      "nameLocal": {
+        "en": "Identity",
+        "zh": "身份认证",
+        "vi": "Danh tính",
+        "th": "ตัวตน"
+      },
       "description": "Upload and verify government-issued ID",
       "enabled": true,
       "required": true,
       "autoApprove": true,
       "maxAttempts": 3,
       "timeout": 30,
-      "documents": ["id_card", "passport", "driving_license"]
+      "documents": [
+        "id_card",
+        "passport",
+        "driving_license"
+      ]
     },
     "liveness": {
       "id": "liveness",
       "name": "Liveness Check",
-      "nameLocal": { "en": "Liveness", "zh": "活体检测", "vi": "Sinh trắc học", "th": "ตรวจสอบชีวิต" },
+      "nameLocal": {
+        "en": "Liveness",
+        "zh": "活体检测",
+        "vi": "Sinh trắc học",
+        "th": "ตรวจสอบชีวิต"
+      },
       "description": "Facial recognition and anti-spoofing",
       "enabled": true,
       "required": true,
@@ -71,21 +140,34 @@
     "address": {
       "id": "address",
       "name": "Address Verification",
-      "nameLocal": { "en": "Address", "zh": "地址证明", "vi": "Địa chỉ", "th": "ที่อยู่" },
+      "nameLocal": {
+        "en": "Address",
+        "zh": "地址证明",
+        "vi": "Địa chỉ",
+        "th": "ที่อยู่"
+      },
       "description": "Proof of residence document",
-      "enabled": false,
+      "enabled": true,
       "required": false,
       "autoApprove": false,
       "maxAttempts": 3,
       "timeout": 60,
-      "documents": ["utility_bill", "bank_statement"]
+      "documents": [
+        "utility_bill",
+        "bank_statement"
+      ]
     },
     "questionnaire": {
       "id": "questionnaire",
       "name": "Suitability Questionnaire",
-      "nameLocal": { "en": "Questionnaire", "zh": "问卷调查", "vi": "Khảo sát", "th": "แบบสอบถาม" },
+      "nameLocal": {
+        "en": "Questionnaire",
+        "zh": "问卷调查",
+        "vi": "Khảo sát",
+        "th": "แบบสอบถาม"
+      },
       "description": "Investment experience and risk assessment",
-      "enabled": false,
+      "enabled": true,
       "required": false,
       "autoApprove": true,
       "timeout": 30
@@ -95,55 +177,368 @@
     "VN": {
       "regionCode": "VN",
       "enabled": true,
-      "defaultTier": 2,
+      "defaultTier": 1,
       "stages": {
-        "identity": { "id": "identity", "name": "Identity Verification", "nameLocal": { "en": "Identity", "zh": "身份认证", "vi": "Danh tính", "th": "ตัวตน" }, "description": "Upload and verify government-issued ID", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 3, "timeout": 30, "documents": ["id_card", "passport", "driving_license"] },
-        "liveness": { "id": "liveness", "name": "Liveness Check", "nameLocal": { "en": "Liveness", "zh": "活体检测", "vi": "Sinh trắc học", "th": "ตรวจสอบชีวิต" }, "description": "Facial recognition and anti-spoofing", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 5, "timeout": 15 },
-        "address": { "id": "address", "name": "Address Verification", "nameLocal": { "en": "Address", "zh": "地址证明", "vi": "Địa chỉ", "th": "ที่อยู่" }, "description": "Proof of residence document", "enabled": false, "required": false, "autoApprove": false, "maxAttempts": 3, "timeout": 60, "documents": ["utility_bill", "bank_statement"] },
-        "questionnaire": { "id": "questionnaire", "name": "Suitability Questionnaire", "nameLocal": { "en": "Questionnaire", "zh": "问卷调查", "vi": "Khảo sát", "th": "แบบสอบถาม" }, "description": "Investment experience and risk assessment", "enabled": false, "required": false, "autoApprove": true, "timeout": 30 }
+        "identity": {
+          "id": "identity",
+          "name": "Identity Verification",
+          "nameLocal": {
+            "en": "Identity",
+            "zh": "身份认证",
+            "vi": "Danh tính",
+            "th": "ตัวตน"
+          },
+          "description": "Upload and verify government-issued ID",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 3,
+          "timeout": 30,
+          "documents": [
+            "id_card",
+            "passport",
+            "driving_license"
+          ]
+        },
+        "liveness": {
+          "id": "liveness",
+          "name": "Liveness Check",
+          "nameLocal": {
+            "en": "Liveness",
+            "zh": "活体检测",
+            "vi": "Sinh trắc học",
+            "th": "ตรวจสอบชีวิต"
+          },
+          "description": "Facial recognition and anti-spoofing",
+          "enabled": false,
+          "required": false,
+          "autoApprove": true,
+          "maxAttempts": 5,
+          "timeout": 15
+        },
+        "address": {
+          "id": "address",
+          "name": "Address Verification",
+          "nameLocal": {
+            "en": "Address",
+            "zh": "地址证明",
+            "vi": "Địa chỉ",
+            "th": "ที่อยู่"
+          },
+          "description": "Proof of residence document",
+          "enabled": true,
+          "required": false,
+          "autoApprove": false,
+          "maxAttempts": 3,
+          "timeout": 60,
+          "documents": [
+            "utility_bill",
+            "bank_statement"
+          ]
+        },
+        "questionnaire": {
+          "id": "questionnaire",
+          "name": "Suitability Questionnaire",
+          "nameLocal": {
+            "en": "Questionnaire",
+            "zh": "问卷调查",
+            "vi": "Khảo sát",
+            "th": "แบบสอบถาม"
+          },
+          "description": "Investment experience and risk assessment",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "timeout": 30
+        }
       },
       "tierRequirements": {
         "0": [],
-        "1": ["identity"],
-        "2": ["identity", "liveness"],
-        "3": ["identity", "liveness", "address"],
-        "4": ["identity", "liveness", "address", "questionnaire"]
+        "1": [
+          "identity",
+          "questionnaire"
+        ],
+        "2": [
+          "identity",
+          "liveness",
+          "questionnaire"
+        ],
+        "3": [
+          "identity",
+          "liveness",
+          "address",
+          "questionnaire"
+        ],
+        "4": [
+          "identity",
+          "liveness",
+          "address",
+          "questionnaire"
+        ]
+      },
+      "supplementalRules": {
+        "largeWithdrawal": {
+          "enabled": true,
+          "condition": "amount_threshold",
+          "threshold": 5000,
+          "currency": "USD",
+          "requireStage": "address",
+          "messageLocal": {
+            "en": "Large withdrawal requires address verification. Please complete address verification to proceed.",
+            "zh": "大额提款需要地址证明。请完成地址认证以继续。",
+            "vi": "Rút tiền lớn yêu cầu xác minh địa chỉ. Vui lòng hoàn thành xác minh địa chỉ để tiếp tục."
+          }
+        },
+        "documentExpiry": {
+          "enabled": true,
+          "warningDays": 30,
+          "graceDays": 30
+        }
       }
     },
     "TH": {
       "regionCode": "TH",
-      "enabled": true,
+      "enabled": false,
       "defaultTier": 2,
       "stages": {
-        "identity": { "id": "identity", "name": "Identity Verification", "nameLocal": { "en": "Identity", "zh": "身份认证", "vi": "Danh tính", "th": "ตัวตน" }, "description": "Upload and verify government-issued ID", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 3, "timeout": 30, "documents": ["id_card", "passport", "driving_license"] },
-        "liveness": { "id": "liveness", "name": "Liveness Check", "nameLocal": { "en": "Liveness", "zh": "活体检测", "vi": "Sinh trắc học", "th": "ตรวจสอบชีวิต" }, "description": "Facial recognition and anti-spoofing", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 5, "timeout": 15 },
-        "address": { "id": "address", "name": "Address Verification", "nameLocal": { "en": "Address", "zh": "地址证明", "vi": "Địa chỉ", "th": "ที่อยู่" }, "description": "Proof of residence document", "enabled": false, "required": false, "autoApprove": false, "maxAttempts": 3, "timeout": 60, "documents": ["utility_bill", "bank_statement"] },
-        "questionnaire": { "id": "questionnaire", "name": "Suitability Questionnaire", "nameLocal": { "en": "Questionnaire", "zh": "问卷调查", "vi": "Khảo sát", "th": "แบบสอบถาม" }, "description": "Investment experience and risk assessment", "enabled": false, "required": false, "autoApprove": true, "timeout": 30 }
+        "identity": {
+          "id": "identity",
+          "name": "Identity Verification",
+          "nameLocal": {
+            "en": "Identity",
+            "zh": "身份认证",
+            "vi": "Danh tính",
+            "th": "ตัวตน"
+          },
+          "description": "Upload and verify government-issued ID",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 3,
+          "timeout": 30,
+          "documents": [
+            "id_card",
+            "passport",
+            "driving_license"
+          ]
+        },
+        "liveness": {
+          "id": "liveness",
+          "name": "Liveness Check",
+          "nameLocal": {
+            "en": "Liveness",
+            "zh": "活体检测",
+            "vi": "Sinh trắc học",
+            "th": "ตรวจสอบชีวิต"
+          },
+          "description": "Facial recognition and anti-spoofing",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 5,
+          "timeout": 15
+        },
+        "address": {
+          "id": "address",
+          "name": "Address Verification",
+          "nameLocal": {
+            "en": "Address",
+            "zh": "地址证明",
+            "vi": "Địa chỉ",
+            "th": "ที่อยู่"
+          },
+          "description": "Proof of residence document",
+          "enabled": false,
+          "required": false,
+          "autoApprove": false,
+          "maxAttempts": 3,
+          "timeout": 60,
+          "documents": [
+            "utility_bill",
+            "bank_statement"
+          ]
+        },
+        "questionnaire": {
+          "id": "questionnaire",
+          "name": "Suitability Questionnaire",
+          "nameLocal": {
+            "en": "Questionnaire",
+            "zh": "问卷调查",
+            "vi": "Khảo sát",
+            "th": "แบบสอบถาม"
+          },
+          "description": "Investment experience and risk assessment",
+          "enabled": false,
+          "required": false,
+          "autoApprove": true,
+          "timeout": 30
+        }
       },
       "tierRequirements": {
         "0": [],
-        "1": ["identity"],
-        "2": ["identity", "liveness"],
-        "3": ["identity", "liveness", "address"],
-        "4": ["identity", "liveness", "address", "questionnaire"]
+        "1": [
+          "identity"
+        ],
+        "2": [
+          "identity",
+          "liveness"
+        ],
+        "3": [
+          "identity",
+          "liveness",
+          "address"
+        ],
+        "4": [
+          "identity",
+          "liveness",
+          "address",
+          "questionnaire"
+        ]
+      },
+      "supplementalRules": {
+        "largeWithdrawal": {
+          "enabled": true,
+          "condition": "amount_threshold",
+          "threshold": 50000,
+          "currency": "USD",
+          "requireStage": "address",
+          "messageLocal": {
+            "en": "Large withdrawal requires address verification."
+          }
+        },
+        "documentExpiry": {
+          "enabled": true,
+          "warningDays": 30,
+          "graceDays": 30
+        }
       }
     },
     "IN": {
       "regionCode": "IN",
       "enabled": true,
-      "defaultTier": 2,
+      "defaultTier": 1,
       "stages": {
-        "identity": { "id": "identity", "name": "Identity Verification", "nameLocal": { "en": "Identity", "zh": "身份认证", "vi": "Danh tính", "th": "ตัวตน" }, "description": "Upload and verify government-issued ID", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 3, "timeout": 30, "documents": ["id_card", "passport", "driving_license"] },
-        "liveness": { "id": "liveness", "name": "Liveness Check", "nameLocal": { "en": "Liveness", "zh": "活体检测", "vi": "Sinh trắc học", "th": "ตรวจสอบชีวิต" }, "description": "Facial recognition and anti-spoofing", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 5, "timeout": 15 },
-        "address": { "id": "address", "name": "Address Verification", "nameLocal": { "en": "Address", "zh": "地址证明", "vi": "Địa chỉ", "th": "ที่อยู่" }, "description": "Proof of residence document", "enabled": true, "required": true, "autoApprove": false, "maxAttempts": 3, "timeout": 60, "documents": ["utility_bill", "bank_statement"] },
-        "questionnaire": { "id": "questionnaire", "name": "Suitability Questionnaire", "nameLocal": { "en": "Questionnaire", "zh": "问卷调查", "vi": "Khảo sát", "th": "แบบสอบถาม" }, "description": "Investment experience and risk assessment", "enabled": false, "required": false, "autoApprove": true, "timeout": 30 }
+        "identity": {
+          "id": "identity",
+          "name": "Identity Verification",
+          "nameLocal": {
+            "en": "Identity",
+            "zh": "身份认证",
+            "vi": "Danh tính",
+            "th": "ตัวตน",
+            "hi": "पहचान"
+          },
+          "description": "Upload and verify government-issued ID (PAN/Aadhaar/Passport)",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 3,
+          "timeout": 30,
+          "documents": [
+            "pan_card",
+            "aadhaar_card",
+            "passport",
+            "voter_id",
+            "driving_license"
+          ]
+        },
+        "liveness": {
+          "id": "liveness",
+          "name": "Liveness Check",
+          "nameLocal": {
+            "en": "Liveness",
+            "zh": "活体检测",
+            "vi": "Sinh trắc học",
+            "th": "ตรวจสอบชีวิต",
+            "hi": "लाइवनेस"
+          },
+          "description": "Facial recognition and anti-spoofing",
+          "enabled": true,
+          "required": false,
+          "autoApprove": true,
+          "maxAttempts": 5,
+          "timeout": 15
+        },
+        "address": {
+          "id": "address",
+          "name": "Address Verification",
+          "nameLocal": {
+            "en": "Address",
+            "zh": "地址证明",
+            "vi": "Địa chỉ",
+            "th": "ที่อยู่",
+            "hi": "पता"
+          },
+          "description": "Proof of residence document",
+          "enabled": true,
+          "required": false,
+          "autoApprove": false,
+          "maxAttempts": 3,
+          "timeout": 60,
+          "documents": [
+            "utility_bill",
+            "bank_statement",
+            "aadhaar_card"
+          ]
+        },
+        "questionnaire": {
+          "id": "questionnaire",
+          "name": "Suitability Questionnaire",
+          "nameLocal": {
+            "en": "Questionnaire",
+            "zh": "问卷调查",
+            "vi": "Khảo sát",
+            "th": "แบบสอบถาม",
+            "hi": "प्रश्नावली"
+          },
+          "description": "Investment experience and risk assessment",
+          "enabled": true,
+          "required": false,
+          "autoApprove": true,
+          "timeout": 30
+        }
       },
       "tierRequirements": {
         "0": [],
-        "1": ["identity"],
-        "2": ["identity", "liveness"],
-        "3": ["identity", "liveness", "address"],
-        "4": ["identity", "liveness", "address", "questionnaire"]
+        "1": [
+          "identity"
+        ],
+        "2": [
+          "identity",
+          "liveness",
+          "questionnaire"
+        ],
+        "3": [
+          "identity",
+          "liveness",
+          "address",
+          "questionnaire"
+        ],
+        "4": [
+          "identity",
+          "liveness",
+          "address",
+          "questionnaire"
+        ]
+      },
+      "supplementalRules": {
+        "largeWithdrawal": {
+          "enabled": true,
+          "condition": "amount_threshold",
+          "threshold": 1,
+          "currency": "USD",
+          "requireStage": "address",
+          "messageLocal": {
+            "en": "Withdrawal requires address verification. Please complete address verification to proceed.",
+            "zh": "提款需要地址证明。请完成地址认证以继续。",
+            "hi": "निकासी के लिए पता सत्यापन आवश्यक है। कृपया आगे बढ़ने के लिए पता सत्यापन पूरा करें।"
+          }
+        },
+        "documentExpiry": {
+          "enabled": true,
+          "warningDays": 30,
+          "graceDays": 30
+        }
       }
     },
     "AE": {
@@ -151,17 +546,116 @@
       "enabled": true,
       "defaultTier": 2,
       "stages": {
-        "identity": { "id": "identity", "name": "Identity Verification", "nameLocal": { "en": "Identity", "zh": "身份认证", "vi": "Danh tính", "th": "ตัวตน" }, "description": "Upload and verify government-issued ID", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 3, "timeout": 30, "documents": ["id_card", "passport", "driving_license"] },
-        "liveness": { "id": "liveness", "name": "Liveness Check", "nameLocal": { "en": "Liveness", "zh": "活体检测", "vi": "Sinh trắc học", "th": "ตรวจสอบชีวิต" }, "description": "Facial recognition and anti-spoofing", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 5, "timeout": 15 },
-        "address": { "id": "address", "name": "Address Verification", "nameLocal": { "en": "Address", "zh": "地址证明", "vi": "Địa chỉ", "th": "ที่อยู่" }, "description": "Proof of residence document", "enabled": true, "required": true, "autoApprove": false, "maxAttempts": 3, "timeout": 60, "documents": ["utility_bill", "bank_statement"] },
-        "questionnaire": { "id": "questionnaire", "name": "Suitability Questionnaire", "nameLocal": { "en": "Questionnaire", "zh": "问卷调查", "vi": "Khảo sát", "th": "แบบสอบถาม" }, "description": "Investment experience and risk assessment", "enabled": false, "required": false, "autoApprove": true, "timeout": 30 }
+        "identity": {
+          "id": "identity",
+          "name": "Identity Verification",
+          "nameLocal": {
+            "en": "Identity",
+            "zh": "身份认证",
+            "vi": "Danh tính",
+            "th": "ตัวตน"
+          },
+          "description": "Upload and verify government-issued ID",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 3,
+          "timeout": 30,
+          "documents": [
+            "id_card",
+            "passport",
+            "driving_license"
+          ]
+        },
+        "liveness": {
+          "id": "liveness",
+          "name": "Liveness Check",
+          "nameLocal": {
+            "en": "Liveness",
+            "zh": "活体检测",
+            "vi": "Sinh trắc học",
+            "th": "ตรวจสอบชีวิต"
+          },
+          "description": "Facial recognition and anti-spoofing",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 5,
+          "timeout": 15
+        },
+        "address": {
+          "id": "address",
+          "name": "Address Verification",
+          "nameLocal": {
+            "en": "Address",
+            "zh": "地址证明",
+            "vi": "Địa chỉ",
+            "th": "ที่อยู่"
+          },
+          "description": "Proof of residence document",
+          "enabled": true,
+          "required": true,
+          "autoApprove": false,
+          "maxAttempts": 3,
+          "timeout": 60,
+          "documents": [
+            "utility_bill",
+            "bank_statement"
+          ]
+        },
+        "questionnaire": {
+          "id": "questionnaire",
+          "name": "Suitability Questionnaire",
+          "nameLocal": {
+            "en": "Questionnaire",
+            "zh": "问卷调查",
+            "vi": "Khảo sát",
+            "th": "แบบสอบถาม"
+          },
+          "description": "Investment experience and risk assessment",
+          "enabled": false,
+          "required": false,
+          "autoApprove": true,
+          "timeout": 30
+        }
       },
       "tierRequirements": {
         "0": [],
-        "1": ["identity"],
-        "2": ["identity", "liveness"],
-        "3": ["identity", "liveness", "address"],
-        "4": ["identity", "liveness", "address", "questionnaire"]
+        "1": [
+          "identity"
+        ],
+        "2": [
+          "identity",
+          "liveness"
+        ],
+        "3": [
+          "identity",
+          "liveness",
+          "address"
+        ],
+        "4": [
+          "identity",
+          "liveness",
+          "address",
+          "questionnaire"
+        ]
+      },
+      "supplementalRules": {
+        "largeWithdrawal": {
+          "enabled": true,
+          "condition": "amount_threshold",
+          "threshold": 50000,
+          "currency": "USD",
+          "requireStage": "address",
+          "messageLocal": {
+            "en": "Large withdrawal requires address verification."
+          }
+        },
+        "documentExpiry": {
+          "enabled": true,
+          "warningDays": 30,
+          "graceDays": 30
+        }
       }
     },
     "KR": {
@@ -169,35 +663,241 @@
       "enabled": true,
       "defaultTier": 2,
       "stages": {
-        "identity": { "id": "identity", "name": "Identity Verification", "nameLocal": { "en": "Identity", "zh": "身份认证", "vi": "Danh tính", "th": "ตัวตน" }, "description": "Upload and verify government-issued ID", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 3, "timeout": 30, "documents": ["id_card", "passport", "driving_license"] },
-        "liveness": { "id": "liveness", "name": "Liveness Check", "nameLocal": { "en": "Liveness", "zh": "活体检测", "vi": "Sinh trắc học", "th": "ตรวจสอบชีวิต" }, "description": "Facial recognition and anti-spoofing", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 5, "timeout": 15 },
-        "address": { "id": "address", "name": "Address Verification", "nameLocal": { "en": "Address", "zh": "地址证明", "vi": "Địa chỉ", "th": "ที่อยู่" }, "description": "Proof of residence document", "enabled": false, "required": false, "autoApprove": false, "maxAttempts": 3, "timeout": 60, "documents": ["utility_bill", "bank_statement"] },
-        "questionnaire": { "id": "questionnaire", "name": "Suitability Questionnaire", "nameLocal": { "en": "Questionnaire", "zh": "问卷调查", "vi": "Khảo sát", "th": "แบบสอบถาม" }, "description": "Investment experience and risk assessment", "enabled": false, "required": false, "autoApprove": true, "timeout": 30 }
+        "identity": {
+          "id": "identity",
+          "name": "Identity Verification",
+          "nameLocal": {
+            "en": "Identity",
+            "zh": "身份认证",
+            "vi": "Danh tính",
+            "th": "ตัวตน"
+          },
+          "description": "Upload and verify government-issued ID",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 3,
+          "timeout": 30,
+          "documents": [
+            "id_card",
+            "passport",
+            "driving_license"
+          ]
+        },
+        "liveness": {
+          "id": "liveness",
+          "name": "Liveness Check",
+          "nameLocal": {
+            "en": "Liveness",
+            "zh": "活体检测",
+            "vi": "Sinh trắc học",
+            "th": "ตรวจสอบชีวิต"
+          },
+          "description": "Facial recognition and anti-spoofing",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 5,
+          "timeout": 15
+        },
+        "address": {
+          "id": "address",
+          "name": "Address Verification",
+          "nameLocal": {
+            "en": "Address",
+            "zh": "地址证明",
+            "vi": "Địa chỉ",
+            "th": "ที่อยู่"
+          },
+          "description": "Proof of residence document",
+          "enabled": false,
+          "required": false,
+          "autoApprove": false,
+          "maxAttempts": 3,
+          "timeout": 60,
+          "documents": [
+            "utility_bill",
+            "bank_statement"
+          ]
+        },
+        "questionnaire": {
+          "id": "questionnaire",
+          "name": "Suitability Questionnaire",
+          "nameLocal": {
+            "en": "Questionnaire",
+            "zh": "问卷调查",
+            "vi": "Khảo sát",
+            "th": "แบบสอบถาม"
+          },
+          "description": "Investment experience and risk assessment",
+          "enabled": false,
+          "required": false,
+          "autoApprove": true,
+          "timeout": 30
+        }
       },
       "tierRequirements": {
         "0": [],
-        "1": ["identity"],
-        "2": ["identity", "liveness"],
-        "3": ["identity", "liveness", "address"],
-        "4": ["identity", "liveness", "address", "questionnaire"]
+        "1": [
+          "identity"
+        ],
+        "2": [
+          "identity",
+          "liveness"
+        ],
+        "3": [
+          "identity",
+          "liveness",
+          "address"
+        ],
+        "4": [
+          "identity",
+          "liveness",
+          "address",
+          "questionnaire"
+        ]
+      },
+      "supplementalRules": {
+        "largeWithdrawal": {
+          "enabled": true,
+          "condition": "amount_threshold",
+          "threshold": 50000,
+          "currency": "USD",
+          "requireStage": "address",
+          "messageLocal": {
+            "en": "Large withdrawal requires address verification."
+          }
+        },
+        "documentExpiry": {
+          "enabled": true,
+          "warningDays": 30,
+          "graceDays": 30
+        }
       }
     },
     "JP": {
       "regionCode": "JP",
-      "enabled": false,
-      "defaultTier": 2,
+      "enabled": true,
+      "defaultTier": 4,
       "stages": {
-        "identity": { "id": "identity", "name": "Identity Verification", "nameLocal": { "en": "Identity", "zh": "身份认证", "vi": "Danh tính", "th": "ตัวตน" }, "description": "Upload and verify government-issued ID", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 3, "timeout": 30, "documents": ["id_card", "passport", "driving_license"] },
-        "liveness": { "id": "liveness", "name": "Liveness Check", "nameLocal": { "en": "Liveness", "zh": "活体检测", "vi": "Sinh trắc học", "th": "ตรวจสอบชีวิต" }, "description": "Facial recognition and anti-spoofing", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 5, "timeout": 15 },
-        "address": { "id": "address", "name": "Address Verification", "nameLocal": { "en": "Address", "zh": "地址证明", "vi": "Địa chỉ", "th": "ที่อยู่" }, "description": "Proof of residence document", "enabled": true, "required": true, "autoApprove": false, "maxAttempts": 3, "timeout": 60, "documents": ["utility_bill", "bank_statement"] },
-        "questionnaire": { "id": "questionnaire", "name": "Suitability Questionnaire", "nameLocal": { "en": "Questionnaire", "zh": "问卷调查", "vi": "Khảo sát", "th": "แบบสอบถาม" }, "description": "Investment experience and risk assessment", "enabled": true, "required": true, "autoApprove": true, "timeout": 30 }
+        "identity": {
+          "id": "identity",
+          "name": "Identity Verification",
+          "nameLocal": {
+            "en": "Identity",
+            "zh": "身份认证",
+            "vi": "Danh tính",
+            "th": "ตัวตน",
+            "ja": "本人確認"
+          },
+          "description": "Upload and verify government-issued ID",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 3,
+          "timeout": 30,
+          "documents": [
+            "id_card",
+            "passport",
+            "driving_license",
+            "my_number_card"
+          ]
+        },
+        "liveness": {
+          "id": "liveness",
+          "name": "Liveness Check",
+          "nameLocal": {
+            "en": "Liveness",
+            "zh": "活体检测",
+            "vi": "Sinh trắc học",
+            "th": "ตรวจสอบชีวิต",
+            "ja": "生体認証"
+          },
+          "description": "Facial recognition and anti-spoofing",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 5,
+          "timeout": 15
+        },
+        "address": {
+          "id": "address",
+          "name": "Address Verification",
+          "nameLocal": {
+            "en": "Address",
+            "zh": "地址证明",
+            "vi": "Địa chỉ",
+            "th": "ที่อยู่",
+            "ja": "住所確認"
+          },
+          "description": "Proof of residence document",
+          "enabled": true,
+          "required": true,
+          "autoApprove": false,
+          "maxAttempts": 3,
+          "timeout": 60,
+          "documents": [
+            "utility_bill",
+            "bank_statement",
+            "residence_certificate",
+            "my_number_card"
+          ]
+        },
+        "questionnaire": {
+          "id": "questionnaire",
+          "name": "Suitability Questionnaire",
+          "nameLocal": {
+            "en": "Questionnaire",
+            "zh": "问卷调查",
+            "vi": "Khảo sát",
+            "th": "แบบสอบถาม",
+            "ja": "適性確認"
+          },
+          "description": "Investment experience and risk assessment",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "timeout": 30
+        }
       },
       "tierRequirements": {
         "0": [],
-        "1": ["identity"],
-        "2": ["identity", "liveness"],
-        "3": ["identity", "liveness", "address"],
-        "4": ["identity", "liveness", "address", "questionnaire"]
+        "1": [
+          "identity"
+        ],
+        "2": [
+          "identity",
+          "liveness"
+        ],
+        "3": [
+          "identity",
+          "liveness",
+          "address"
+        ],
+        "4": [
+          "identity",
+          "liveness",
+          "address",
+          "questionnaire"
+        ]
+      },
+      "supplementalRules": {
+        "largeWithdrawal": {
+          "enabled": false,
+          "condition": "amount_threshold",
+          "threshold": 100000,
+          "currency": "USD",
+          "requireStage": "address",
+          "messageLocal": {
+            "en": "Additional verification may be required for large withdrawals.",
+            "ja": "大額の出金には追加の確認が必要な場合があります。"
+          }
+        },
+        "documentExpiry": {
+          "enabled": true,
+          "warningDays": 30,
+          "graceDays": 30
+        }
       }
     },
     "FR": {
@@ -205,17 +905,116 @@
       "enabled": true,
       "defaultTier": 2,
       "stages": {
-        "identity": { "id": "identity", "name": "Identity Verification", "nameLocal": { "en": "Identity", "zh": "身份认证", "vi": "Danh tính", "th": "ตัวตน" }, "description": "Upload and verify government-issued ID", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 3, "timeout": 30, "documents": ["id_card", "passport", "driving_license"] },
-        "liveness": { "id": "liveness", "name": "Liveness Check", "nameLocal": { "en": "Liveness", "zh": "活体检测", "vi": "Sinh trắc học", "th": "ตรวจสอบชีวิต" }, "description": "Facial recognition and anti-spoofing", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 5, "timeout": 15 },
-        "address": { "id": "address", "name": "Address Verification", "nameLocal": { "en": "Address", "zh": "地址证明", "vi": "Địa chỉ", "th": "ที่อยู่" }, "description": "Proof of residence document", "enabled": true, "required": true, "autoApprove": false, "maxAttempts": 3, "timeout": 60, "documents": ["utility_bill", "bank_statement"] },
-        "questionnaire": { "id": "questionnaire", "name": "Suitability Questionnaire", "nameLocal": { "en": "Questionnaire", "zh": "问卷调查", "vi": "Khảo sát", "th": "แบบสอบถาม" }, "description": "Investment experience and risk assessment", "enabled": false, "required": false, "autoApprove": true, "timeout": 30 }
+        "identity": {
+          "id": "identity",
+          "name": "Identity Verification",
+          "nameLocal": {
+            "en": "Identity",
+            "zh": "身份认证",
+            "vi": "Danh tính",
+            "th": "ตัวตน"
+          },
+          "description": "Upload and verify government-issued ID",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 3,
+          "timeout": 30,
+          "documents": [
+            "id_card",
+            "passport",
+            "driving_license"
+          ]
+        },
+        "liveness": {
+          "id": "liveness",
+          "name": "Liveness Check",
+          "nameLocal": {
+            "en": "Liveness",
+            "zh": "活体检测",
+            "vi": "Sinh trắc học",
+            "th": "ตรวจสอบชีวิต"
+          },
+          "description": "Facial recognition and anti-spoofing",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 5,
+          "timeout": 15
+        },
+        "address": {
+          "id": "address",
+          "name": "Address Verification",
+          "nameLocal": {
+            "en": "Address",
+            "zh": "地址证明",
+            "vi": "Địa chỉ",
+            "th": "ที่อยู่"
+          },
+          "description": "Proof of residence document",
+          "enabled": true,
+          "required": true,
+          "autoApprove": false,
+          "maxAttempts": 3,
+          "timeout": 60,
+          "documents": [
+            "utility_bill",
+            "bank_statement"
+          ]
+        },
+        "questionnaire": {
+          "id": "questionnaire",
+          "name": "Suitability Questionnaire",
+          "nameLocal": {
+            "en": "Questionnaire",
+            "zh": "问卷调查",
+            "vi": "Khảo sát",
+            "th": "แบบสอบถาม"
+          },
+          "description": "Investment experience and risk assessment",
+          "enabled": false,
+          "required": false,
+          "autoApprove": true,
+          "timeout": 30
+        }
       },
       "tierRequirements": {
         "0": [],
-        "1": ["identity"],
-        "2": ["identity", "liveness"],
-        "3": ["identity", "liveness", "address"],
-        "4": ["identity", "liveness", "address", "questionnaire"]
+        "1": [
+          "identity"
+        ],
+        "2": [
+          "identity",
+          "liveness"
+        ],
+        "3": [
+          "identity",
+          "liveness",
+          "address"
+        ],
+        "4": [
+          "identity",
+          "liveness",
+          "address",
+          "questionnaire"
+        ]
+      },
+      "supplementalRules": {
+        "largeWithdrawal": {
+          "enabled": true,
+          "condition": "amount_threshold",
+          "threshold": 50000,
+          "currency": "USD",
+          "requireStage": "address",
+          "messageLocal": {
+            "en": "Large withdrawal requires address verification."
+          }
+        },
+        "documentExpiry": {
+          "enabled": true,
+          "warningDays": 30,
+          "graceDays": 30
+        }
       }
     },
     "ES": {
@@ -223,17 +1022,116 @@
       "enabled": true,
       "defaultTier": 2,
       "stages": {
-        "identity": { "id": "identity", "name": "Identity Verification", "nameLocal": { "en": "Identity", "zh": "身份认证", "vi": "Danh tính", "th": "ตัวตน" }, "description": "Upload and verify government-issued ID", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 3, "timeout": 30, "documents": ["id_card", "passport", "driving_license"] },
-        "liveness": { "id": "liveness", "name": "Liveness Check", "nameLocal": { "en": "Liveness", "zh": "活体检测", "vi": "Sinh trắc học", "th": "ตรวจสอบชีวิต" }, "description": "Facial recognition and anti-spoofing", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 5, "timeout": 15 },
-        "address": { "id": "address", "name": "Address Verification", "nameLocal": { "en": "Address", "zh": "地址证明", "vi": "Địa chỉ", "th": "ที่อยู่" }, "description": "Proof of residence document", "enabled": true, "required": true, "autoApprove": false, "maxAttempts": 3, "timeout": 60, "documents": ["utility_bill", "bank_statement"] },
-        "questionnaire": { "id": "questionnaire", "name": "Suitability Questionnaire", "nameLocal": { "en": "Questionnaire", "zh": "问卷调查", "vi": "Khảo sát", "th": "แบบสอบถาม" }, "description": "Investment experience and risk assessment", "enabled": false, "required": false, "autoApprove": true, "timeout": 30 }
+        "identity": {
+          "id": "identity",
+          "name": "Identity Verification",
+          "nameLocal": {
+            "en": "Identity",
+            "zh": "身份认证",
+            "vi": "Danh tính",
+            "th": "ตัวตน"
+          },
+          "description": "Upload and verify government-issued ID",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 3,
+          "timeout": 30,
+          "documents": [
+            "id_card",
+            "passport",
+            "driving_license"
+          ]
+        },
+        "liveness": {
+          "id": "liveness",
+          "name": "Liveness Check",
+          "nameLocal": {
+            "en": "Liveness",
+            "zh": "活体检测",
+            "vi": "Sinh trắc học",
+            "th": "ตรวจสอบชีวิต"
+          },
+          "description": "Facial recognition and anti-spoofing",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 5,
+          "timeout": 15
+        },
+        "address": {
+          "id": "address",
+          "name": "Address Verification",
+          "nameLocal": {
+            "en": "Address",
+            "zh": "地址证明",
+            "vi": "Địa chỉ",
+            "th": "ที่อยู่"
+          },
+          "description": "Proof of residence document",
+          "enabled": true,
+          "required": true,
+          "autoApprove": false,
+          "maxAttempts": 3,
+          "timeout": 60,
+          "documents": [
+            "utility_bill",
+            "bank_statement"
+          ]
+        },
+        "questionnaire": {
+          "id": "questionnaire",
+          "name": "Suitability Questionnaire",
+          "nameLocal": {
+            "en": "Questionnaire",
+            "zh": "问卷调查",
+            "vi": "Khảo sát",
+            "th": "แบบสอบถาม"
+          },
+          "description": "Investment experience and risk assessment",
+          "enabled": false,
+          "required": false,
+          "autoApprove": true,
+          "timeout": 30
+        }
       },
       "tierRequirements": {
         "0": [],
-        "1": ["identity"],
-        "2": ["identity", "liveness"],
-        "3": ["identity", "liveness", "address"],
-        "4": ["identity", "liveness", "address", "questionnaire"]
+        "1": [
+          "identity"
+        ],
+        "2": [
+          "identity",
+          "liveness"
+        ],
+        "3": [
+          "identity",
+          "liveness",
+          "address"
+        ],
+        "4": [
+          "identity",
+          "liveness",
+          "address",
+          "questionnaire"
+        ]
+      },
+      "supplementalRules": {
+        "largeWithdrawal": {
+          "enabled": true,
+          "condition": "amount_threshold",
+          "threshold": 50000,
+          "currency": "USD",
+          "requireStage": "address",
+          "messageLocal": {
+            "en": "Large withdrawal requires address verification."
+          }
+        },
+        "documentExpiry": {
+          "enabled": true,
+          "warningDays": 30,
+          "graceDays": 30
+        }
       }
     },
     "BR": {
@@ -241,55 +1139,335 @@
       "enabled": true,
       "defaultTier": 2,
       "stages": {
-        "identity": { "id": "identity", "name": "Identity Verification", "nameLocal": { "en": "Identity", "zh": "身份认证", "vi": "Danh tính", "th": "ตัวตน" }, "description": "Upload and verify government-issued ID", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 3, "timeout": 30, "documents": ["id_card", "passport", "driving_license"] },
-        "liveness": { "id": "liveness", "name": "Liveness Check", "nameLocal": { "en": "Liveness", "zh": "活体检测", "vi": "Sinh trắc học", "th": "ตรวจสอบชีวิต" }, "description": "Facial recognition and anti-spoofing", "enabled": true, "required": true, "autoApprove": true, "maxAttempts": 5, "timeout": 15 },
-        "address": { "id": "address", "name": "Address Verification", "nameLocal": { "en": "Address", "zh": "地址证明", "vi": "Địa chỉ", "th": "ที่อยู่" }, "description": "Proof of residence document", "enabled": false, "required": false, "autoApprove": false, "maxAttempts": 3, "timeout": 60, "documents": ["utility_bill", "bank_statement"] },
-        "questionnaire": { "id": "questionnaire", "name": "Suitability Questionnaire", "nameLocal": { "en": "Questionnaire", "zh": "问卷调查", "vi": "Khảo sát", "th": "แบบสอบถาม" }, "description": "Investment experience and risk assessment", "enabled": false, "required": false, "autoApprove": true, "timeout": 30 }
+        "identity": {
+          "id": "identity",
+          "name": "Identity Verification",
+          "nameLocal": {
+            "en": "Identity",
+            "zh": "身份认证",
+            "vi": "Danh tính",
+            "th": "ตัวตน"
+          },
+          "description": "Upload and verify government-issued ID",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 3,
+          "timeout": 30,
+          "documents": [
+            "id_card",
+            "passport",
+            "driving_license"
+          ]
+        },
+        "liveness": {
+          "id": "liveness",
+          "name": "Liveness Check",
+          "nameLocal": {
+            "en": "Liveness",
+            "zh": "活体检测",
+            "vi": "Sinh trắc học",
+            "th": "ตรวจสอบชีวิต"
+          },
+          "description": "Facial recognition and anti-spoofing",
+          "enabled": true,
+          "required": true,
+          "autoApprove": true,
+          "maxAttempts": 5,
+          "timeout": 15
+        },
+        "address": {
+          "id": "address",
+          "name": "Address Verification",
+          "nameLocal": {
+            "en": "Address",
+            "zh": "地址证明",
+            "vi": "Địa chỉ",
+            "th": "ที่อยู่"
+          },
+          "description": "Proof of residence document",
+          "enabled": false,
+          "required": false,
+          "autoApprove": false,
+          "maxAttempts": 3,
+          "timeout": 60,
+          "documents": [
+            "utility_bill",
+            "bank_statement"
+          ]
+        },
+        "questionnaire": {
+          "id": "questionnaire",
+          "name": "Suitability Questionnaire",
+          "nameLocal": {
+            "en": "Questionnaire",
+            "zh": "问卷调查",
+            "vi": "Khảo sát",
+            "th": "แบบสอบถาม"
+          },
+          "description": "Investment experience and risk assessment",
+          "enabled": false,
+          "required": false,
+          "autoApprove": true,
+          "timeout": 30
+        }
       },
       "tierRequirements": {
         "0": [],
-        "1": ["identity"],
-        "2": ["identity", "liveness"],
-        "3": ["identity", "liveness", "address"],
-        "4": ["identity", "liveness", "address", "questionnaire"]
+        "1": [
+          "identity"
+        ],
+        "2": [
+          "identity",
+          "liveness"
+        ],
+        "3": [
+          "identity",
+          "liveness",
+          "address"
+        ],
+        "4": [
+          "identity",
+          "liveness",
+          "address",
+          "questionnaire"
+        ]
+      },
+      "supplementalRules": {
+        "largeWithdrawal": {
+          "enabled": true,
+          "condition": "amount_threshold",
+          "threshold": 50000,
+          "currency": "USD",
+          "requireStage": "address",
+          "messageLocal": {
+            "en": "Large withdrawal requires address verification."
+          }
+        },
+        "documentExpiry": {
+          "enabled": true,
+          "warningDays": 30,
+          "graceDays": 30
+        }
       }
     }
   },
   "tierPermissions": {
     "0": {
       "tier": 0,
-      "funds": { "depositEnabled": false, "depositLimit": 0, "depositLimitCurrency": "USD", "withdrawEnabled": false, "withdrawLimit": 0, "maxBalance": 0 },
-      "transfer": { "internalTransferEnabled": false, "internalTransferLimit": 0, "wireTransferEnabled": false, "wireTransferLimit": 0, "cryptoTransferEnabled": false, "cryptoTransferLimit": 0 },
-      "trading": { "canOpenAccount": false, "maxAccounts": 0, "accountTypes": [], "leverageMax": 0, "tradingEnabled": false, "productsAllowed": [] },
-      "growth": { "campaignAccess": false, "bonusEligible": false, "referralEnabled": false, "loyaltyProgram": false, "aiSignalsQuota": 0, "premiumFeatures": [] }
+      "funds": {
+        "depositEnabled": false,
+        "depositLimit": 0,
+        "depositLimitCurrency": "USD",
+        "withdrawEnabled": false,
+        "withdrawLimit": 0,
+        "maxBalance": 0
+      },
+      "transfer": {
+        "internalTransferEnabled": false,
+        "internalTransferLimit": 0,
+        "wireTransferEnabled": false,
+        "wireTransferLimit": 0,
+        "cryptoTransferEnabled": false,
+        "cryptoTransferLimit": 0
+      },
+      "trading": {
+        "canOpenAccount": false,
+        "maxAccounts": 0,
+        "accountTypes": [],
+        "leverageMax": 0,
+        "tradingEnabled": false,
+        "productsAllowed": []
+      },
+      "growth": {
+        "campaignAccess": false,
+        "bonusEligible": false,
+        "referralEnabled": false,
+        "loyaltyProgram": false,
+        "aiSignalsQuota": 0,
+        "premiumFeatures": []
+      }
     },
     "1": {
       "tier": 1,
-      "funds": { "depositEnabled": true, "depositLimit": 1000, "depositLimitCurrency": "USD", "withdrawEnabled": false, "withdrawLimit": 0, "maxBalance": 5000 },
-      "transfer": { "internalTransferEnabled": false, "internalTransferLimit": 0, "wireTransferEnabled": false, "wireTransferLimit": 0, "cryptoTransferEnabled": false, "cryptoTransferLimit": 0 },
-      "trading": { "canOpenAccount": true, "maxAccounts": 1, "accountTypes": ["standard"], "leverageMax": 50, "tradingEnabled": true, "productsAllowed": ["forex"] },
-      "growth": { "campaignAccess": true, "bonusEligible": true, "referralEnabled": false, "loyaltyProgram": false, "aiSignalsQuota": 5, "premiumFeatures": [] }
+      "funds": {
+        "depositEnabled": true,
+        "depositLimit": 1000,
+        "depositLimitCurrency": "USD",
+        "withdrawEnabled": false,
+        "withdrawLimit": 0,
+        "maxBalance": 5000
+      },
+      "transfer": {
+        "internalTransferEnabled": false,
+        "internalTransferLimit": 0,
+        "wireTransferEnabled": false,
+        "wireTransferLimit": 0,
+        "cryptoTransferEnabled": false,
+        "cryptoTransferLimit": 0
+      },
+      "trading": {
+        "canOpenAccount": true,
+        "maxAccounts": 1,
+        "accountTypes": [
+          "standard"
+        ],
+        "leverageMax": 50,
+        "tradingEnabled": true,
+        "productsAllowed": [
+          "forex"
+        ]
+      },
+      "growth": {
+        "campaignAccess": true,
+        "bonusEligible": true,
+        "referralEnabled": false,
+        "loyaltyProgram": false,
+        "aiSignalsQuota": 5,
+        "premiumFeatures": []
+      }
     },
     "2": {
       "tier": 2,
-      "funds": { "depositEnabled": true, "depositLimit": 10000, "depositLimitCurrency": "USD", "withdrawEnabled": true, "withdrawLimit": 5000, "maxBalance": 50000 },
-      "transfer": { "internalTransferEnabled": true, "internalTransferLimit": 5000, "wireTransferEnabled": false, "wireTransferLimit": 0, "cryptoTransferEnabled": false, "cryptoTransferLimit": 0 },
-      "trading": { "canOpenAccount": true, "maxAccounts": 3, "accountTypes": ["standard", "ecn"], "leverageMax": 100, "tradingEnabled": true, "productsAllowed": ["forex", "stocks", "indices"] },
-      "growth": { "campaignAccess": true, "bonusEligible": true, "referralEnabled": true, "loyaltyProgram": true, "aiSignalsQuota": 20, "premiumFeatures": ["basic_signals"] }
+      "funds": {
+        "depositEnabled": true,
+        "depositLimit": 10000,
+        "depositLimitCurrency": "USD",
+        "withdrawEnabled": true,
+        "withdrawLimit": 5000,
+        "maxBalance": 50000
+      },
+      "transfer": {
+        "internalTransferEnabled": true,
+        "internalTransferLimit": 5000,
+        "wireTransferEnabled": false,
+        "wireTransferLimit": 0,
+        "cryptoTransferEnabled": false,
+        "cryptoTransferLimit": 0
+      },
+      "trading": {
+        "canOpenAccount": true,
+        "maxAccounts": 3,
+        "accountTypes": [
+          "standard",
+          "ecn"
+        ],
+        "leverageMax": 100,
+        "tradingEnabled": true,
+        "productsAllowed": [
+          "forex",
+          "stocks",
+          "indices"
+        ]
+      },
+      "growth": {
+        "campaignAccess": true,
+        "bonusEligible": true,
+        "referralEnabled": true,
+        "loyaltyProgram": true,
+        "aiSignalsQuota": 20,
+        "premiumFeatures": [
+          "basic_signals"
+        ]
+      }
     },
     "3": {
       "tier": 3,
-      "funds": { "depositEnabled": true, "depositLimit": 50000, "depositLimitCurrency": "USD", "withdrawEnabled": true, "withdrawLimit": 25000, "maxBalance": 250000 },
-      "transfer": { "internalTransferEnabled": true, "internalTransferLimit": 25000, "wireTransferEnabled": true, "wireTransferLimit": 10000, "cryptoTransferEnabled": false, "cryptoTransferLimit": 0 },
-      "trading": { "canOpenAccount": true, "maxAccounts": 5, "accountTypes": ["standard", "ecn", "pro"], "leverageMax": 200, "tradingEnabled": true, "productsAllowed": ["forex", "stocks", "indices", "commodities"] },
-      "growth": { "campaignAccess": true, "bonusEligible": true, "referralEnabled": true, "loyaltyProgram": true, "aiSignalsQuota": 50, "premiumFeatures": ["advanced_signals", "priority_support"] }
+      "funds": {
+        "depositEnabled": true,
+        "depositLimit": 50000,
+        "depositLimitCurrency": "USD",
+        "withdrawEnabled": true,
+        "withdrawLimit": 25000,
+        "maxBalance": 250000
+      },
+      "transfer": {
+        "internalTransferEnabled": true,
+        "internalTransferLimit": 25000,
+        "wireTransferEnabled": true,
+        "wireTransferLimit": 10000,
+        "cryptoTransferEnabled": false,
+        "cryptoTransferLimit": 0
+      },
+      "trading": {
+        "canOpenAccount": true,
+        "maxAccounts": 5,
+        "accountTypes": [
+          "standard",
+          "ecn",
+          "pro"
+        ],
+        "leverageMax": 200,
+        "tradingEnabled": true,
+        "productsAllowed": [
+          "forex",
+          "stocks",
+          "indices",
+          "commodities"
+        ]
+      },
+      "growth": {
+        "campaignAccess": true,
+        "bonusEligible": true,
+        "referralEnabled": true,
+        "loyaltyProgram": true,
+        "aiSignalsQuota": 50,
+        "premiumFeatures": [
+          "advanced_signals",
+          "priority_support"
+        ]
+      }
     },
     "4": {
       "tier": 4,
-      "funds": { "depositEnabled": true, "depositLimit": 200000, "depositLimitCurrency": "USD", "withdrawEnabled": true, "withdrawLimit": 100000, "maxBalance": 1000000 },
-      "transfer": { "internalTransferEnabled": true, "internalTransferLimit": 100000, "wireTransferEnabled": true, "wireTransferLimit": 50000, "cryptoTransferEnabled": true, "cryptoTransferLimit": 25000 },
-      "trading": { "canOpenAccount": true, "maxAccounts": 10, "accountTypes": ["standard", "ecn", "pro", "vip"], "leverageMax": 500, "tradingEnabled": true, "productsAllowed": ["forex", "stocks", "indices", "commodities", "crypto"] },
-      "growth": { "campaignAccess": true, "bonusEligible": true, "referralEnabled": true, "loyaltyProgram": true, "aiSignalsQuota": -1, "premiumFeatures": ["all_signals", "vip_support", "personal_manager", "api_access"] }
+      "funds": {
+        "depositEnabled": true,
+        "depositLimit": 200000,
+        "depositLimitCurrency": "USD",
+        "withdrawEnabled": true,
+        "withdrawLimit": 100000,
+        "maxBalance": 1000000
+      },
+      "transfer": {
+        "internalTransferEnabled": true,
+        "internalTransferLimit": 100000,
+        "wireTransferEnabled": true,
+        "wireTransferLimit": 50000,
+        "cryptoTransferEnabled": true,
+        "cryptoTransferLimit": 25000
+      },
+      "trading": {
+        "canOpenAccount": true,
+        "maxAccounts": 10,
+        "accountTypes": [
+          "standard",
+          "ecn",
+          "pro",
+          "vip"
+        ],
+        "leverageMax": 500,
+        "tradingEnabled": true,
+        "productsAllowed": [
+          "forex",
+          "stocks",
+          "indices",
+          "commodities",
+          "crypto"
+        ]
+      },
+      "growth": {
+        "campaignAccess": true,
+        "bonusEligible": true,
+        "referralEnabled": true,
+        "loyaltyProgram": true,
+        "aiSignalsQuota": -1,
+        "premiumFeatures": [
+          "all_signals",
+          "vip_support",
+          "personal_manager",
+          "api_access"
+        ]
+      }
     }
   },
   "settings": {

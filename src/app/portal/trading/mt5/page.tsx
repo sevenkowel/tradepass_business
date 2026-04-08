@@ -274,7 +274,7 @@ export default function MT5Page() {
             </div>
             <h3 className="font-semibold text-gray-800 mb-1">Add Server</h3>
             <p className="text-sm text-gray-500">
-              Open MT5 and search for "TradePass" in the broker list
+              Open MT5 and search for &quot;TradePass&quot; in the broker list
             </p>
           </div>
           <div className="bg-white rounded-xl p-4 border border-blue-100">
