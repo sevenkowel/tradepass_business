@@ -115,21 +115,20 @@ export default function WalletPage() {
   const selectedWallet = wallets.find(w => w.currency === selectedCurrency);
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6 space-y-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-[rgba(var(--tp-accent-rgb),0.1)]">
-              <Wallet className="w-6 h-6 text-[rgb(var(--tp-accent-rgb))]" />
+            <div className="p-2.5 rounded-xl bg-emerald-500/10">
+              <Wallet className="w-6 h-6 text-emerald-500" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-[rgb(var(--tp-fg-rgb))]">My Wallets</h1>
-              <p className="text-sm text-[rgba(var(--tp-fg-rgb),0.6)]">Manage your multi-currency wallets</p>
+              <h1 className="text-2xl font-bold text-slate-900">My Wallets</h1>
+              <p className="text-sm text-slate-500">Manage your multi-currency wallets</p>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={() => setHideBalance(!hideBalance)}>
@@ -143,7 +142,6 @@ export default function WalletPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="mb-8"
       >
         <Card className="bg-gradient-to-r from-[rgb(var(--tp-accent-rgb))] to-[rgba(var(--tp-accent-rgb),0.8)] text-white">
           <CardContent className="p-8">

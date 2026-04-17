@@ -90,20 +90,19 @@ export default function HistoryPage() {
   );
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6 space-y-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
       >
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 rounded-lg bg-purple-500/10">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-purple-500/10">
             <History className="w-6 h-6 text-purple-500" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[rgb(var(--tp-fg-rgb))]">Transaction History</h1>
-            <p className="text-sm text-[rgba(var(--tp-fg-rgb),0.6)]">View all your deposits, withdrawals, and transfers</p>
+            <h1 className="text-2xl font-bold text-slate-900">Transaction History</h1>
+            <p className="text-sm text-slate-500">View all your deposits, withdrawals, and transfers</p>
           </div>
         </div>
       </motion.div>
@@ -113,59 +112,54 @@ export default function HistoryPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="mb-6"
       >
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-wrap gap-4 items-end">
-              <div className="flex-1 min-w-[200px]">
-                <Label className="text-xs mb-2 block">Search</Label>
-                <Input
-                  placeholder="Search by transaction ID"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-[rgb(var(--tp-surface-rgb))]"
-                />
-              </div>
-              <div className="w-40">
-                <Label className="text-xs mb-2 block">Type</Label>
-                <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="bg-[rgb(var(--tp-surface-rgb))]">
-                    <SelectValue placeholder="All Types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="deposit">Deposit</SelectItem>
-                    <SelectItem value="withdraw">Withdraw</SelectItem>
-                    <SelectItem value="transfer">Transfer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="w-40">
-                <Label className="text-xs mb-2 block">Status</Label>
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="bg-[rgb(var(--tp-surface-rgb))]">
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button variant="outline" className="h-10">
-                <Filter className="w-4 h-4 mr-2" />
-                Filter
-              </Button>
-              <Button variant="outline" className="h-10">
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <div>
+            <Label className="text-xs text-slate-500 mb-2 block">Search</Label>
+            <Input
+              placeholder="Search by transaction ID"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label className="text-xs text-slate-500 mb-2 block">Type</Label>
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="deposit">Deposit</SelectItem>
+                <SelectItem value="withdraw">Withdraw</SelectItem>
+                <SelectItem value="transfer">Transfer</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs text-slate-500 mb-2 block">Status</Label>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="failed">Failed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-2 items-end">
+            <Button variant="outline" className="flex-1 h-10">
+              <Filter className="w-4 h-4 mr-2" />
+              Filter
+            </Button>
+            <Button variant="outline" className="h-10">
+              <Download className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
       </motion.div>
 
       {/* Transaction List */}
@@ -188,25 +182,25 @@ export default function HistoryPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="flex items-center justify-between p-4 rounded-xl bg-[rgba(var(--tp-fg-rgb),0.03)] hover:bg-[rgba(var(--tp-fg-rgb),0.05)] transition-colors"
+                    className="flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", getTypeColor(txn.type))}>
                         <Icon className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="font-medium text-[rgb(var(--tp-fg-rgb))] capitalize">{txn.type}</p>
-                        <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.5)]">{txn.id}</p>
+                        <p className="font-medium text-slate-900 capitalize">{txn.type}</p>
+                        <p className="text-xs text-slate-400">{txn.id}</p>
                       </div>
                     </div>
                     <div className="text-center hidden md:block">
-                      <p className="text-sm text-[rgba(var(--tp-fg-rgb),0.6)]">{txn.method}</p>
-                      <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.4)]">{txn.date}</p>
+                      <p className="text-sm text-slate-600">{txn.method}</p>
+                      <p className="text-xs text-slate-400">{txn.date}</p>
                     </div>
                     <div className="text-right">
                       <p className={cn(
                         "font-semibold",
-                        txn.type === "deposit" ? "text-green-500" : txn.type === "withdraw" ? "text-red-500" : "text-blue-500"
+                        txn.type === "deposit" ? "text-emerald-600" : txn.type === "withdraw" ? "text-red-500" : "text-blue-500"
                       )}>
                         {txn.type === "deposit" ? "+" : txn.type === "withdraw" ? "-" : ""}
                         {txn.amount.toLocaleString()} {txn.currency}
@@ -222,8 +216,8 @@ export default function HistoryPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-6 pt-4 border-t border-[rgba(var(--tp-fg-rgb),0.1)]">
-                <p className="text-sm text-[rgba(var(--tp-fg-rgb),0.5)]">
+              <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
+                <p className="text-sm text-slate-500">
                   Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredTransactions.length)} of {filteredTransactions.length}
                 </p>
                 <div className="flex gap-2">
@@ -242,7 +236,7 @@ export default function HistoryPage() {
                       size="sm"
                       onClick={() => setCurrentPage(page)}
                       className={cn(
-                        currentPage === page && "bg-tp-accent text-white"
+                        currentPage === page && "bg-slate-900 text-white"
                       )}
                     >
                       {page}

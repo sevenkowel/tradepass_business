@@ -29,6 +29,8 @@ export interface TradingAccount {
   freeMargin: number;
   leverage: number;
   currency: string;
+  /** 账户产品类型，如 Standard / ECN / Raw */
+  accountType?: string;
 }
 
 // 余额信息

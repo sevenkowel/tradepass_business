@@ -1,514 +1,663 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowDownLeft,
-  Bitcoin,
-  CreditCard,
-  Landmark,
-  Wallet,
-  QrCode,
-  Copy,
-  Check,
-  ChevronRight,
-  AlertCircle,
-  ShieldCheck,
-  Clock,
-  CheckCircle2,
+  ArrowDownLeft, Wallet, CreditCard, Landmark, HelpCircle, ArrowUpRight,
+  Clock, ChevronDown, ChevronUp, MessageCircle, Lock, AlertTriangle,
+  Star, ChevronRight, CheckCircle2, Loader2, ArrowLeft, Copy,
 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-const depositMethods = [
-  {
-    id: "crypto",
-    name: "Cryptocurrency",
-    icon: Bitcoin,
-    description: "Deposit BTC, ETH, USDT, and more",
-    processingTime: "10-30 minutes",
-    fee: "Network fee only",
-    color: "orange",
-  },
-  {
-    id: "card",
-    name: "Credit/Debit Card",
-    icon: CreditCard,
-    description: "Visa, Mastercard, JCB",
-    processingTime: "Instant",
-    fee: "2.5%",
-    color: "blue",
-  },
-  {
-    id: "bank",
-    name: "Bank Transfer",
-    icon: Landmark,
-    description: "SWIFT, SEPA, Local Transfer",
-    processingTime: "1-3 business days",
-    fee: "Free",
-    color: "emerald",
-  },
-  {
-    id: "ewallet",
-    name: "E-Wallet",
-    icon: Wallet,
-    description: "PayPal, Skrill, Neteller",
-    processingTime: "Instant",
-    fee: "1.5%",
-    color: "purple",
-  },
+// ===================== Types =====================
+type CalculationMode = "deposit_first" | "payment_first";
+
+interface DepositAccount {
+  id: string;
+  platform: string;
+  accountType: string;
+  currency: string;
+  equity: number;
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  category: "crypto" | "card" | "bank" | "ewallet";
+  desc?: string;
+  feeType: "percentage" | "fixed";
+  feeValue: number;
+  calculationMode: CalculationMode;
+  paymentCurrency: string;
+  supportedCurrencies: string[];
+  exchangeRate: number;
+  kycRequired: number;
+  estimatedTime?: string;
+}
+
+interface CalculationResult {
+  depositAmount: number;
+  paymentAmount: number;
+  exchangeAmount: number;
+  fee: number;
+  rate: number;
+  rateDisplay: string;
+}
+
+// ===================== Data =====================
+const allAccounts: DepositAccount[] = [
+  { id: "wallet-usd", platform: "", accountType: "Wallet", currency: "USD", equity: 12500 },
+  { id: "7845321", platform: "MT4", accountType: "Standard", currency: "USD", equity: 8200 },
+  { id: "7845322", platform: "MT4", accountType: "Raw", currency: "JPY", equity: 920000 },
+  { id: "7845323", platform: "MT4", accountType: "ECN", currency: "EUR", equity: 5200 },
+  { id: "7845324", platform: "MT4", accountType: "Pro", currency: "USD", equity: 3500 },
+  { id: "7845325", platform: "MT4", accountType: "ECN", currency: "EUR", equity: 2800 },
+  { id: "8999999", platform: "MT5", accountType: "Standard", currency: "USD", equity: 1000 },
+  { id: "8999998", platform: "MT5", accountType: "Pro", currency: "JPY", equity: 1500000 },
+  { id: "8999997", platform: "MT5", accountType: "ECN", currency: "EUR", equity: 8500 },
+  { id: "8999996", platform: "MT5", accountType: "Pro", currency: "USD", equity: 5200 },
+  { id: "8999995", platform: "MT5", accountType: "ECN", currency: "JPY", equity: 850000 },
+  { id: "2000001", platform: "TP", accountType: "Classic", currency: "USD", equity: 15800 },
+  { id: "2000002", platform: "TP", accountType: "VIP", currency: "JPY", equity: 2200000 },
+  { id: "2000003", platform: "TP", accountType: "Pro", currency: "EUR", equity: 4200 },
+  { id: "2000004", platform: "TP", accountType: "Classic", currency: "USD", equity: 9500 },
+  { id: "2000005", platform: "TP", accountType: "ECN", currency: "EUR", equity: 3100 },
 ];
 
-const cryptoCurrencies = [
-  { id: "btc", name: "Bitcoin", symbol: "BTC", network: "Bitcoin", address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" },
-  { id: "eth", name: "Ethereum", symbol: "ETH", network: "ERC20", address: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F" },
-  { id: "usdt", name: "Tether", symbol: "USDT", network: "TRC20", address: "TNXoiG6hKZjN6TWnUcXxvPPgBBDu4RqDv7" },
-  { id: "usdc", name: "USD Coin", symbol: "USDC", network: "ERC20", address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" },
+const walletAccounts = allAccounts.filter(a => a.platform === "");
+const mt4Accounts = allAccounts.filter(a => a.platform === "MT4");
+const mt5Accounts = allAccounts.filter(a => a.platform === "MT5");
+const tpAccounts = allAccounts.filter(a => a.platform === "TP");
+const recommendedAccount = mt5Accounts.find(a => a.currency === "JPY") || mt5Accounts[0];
+
+const paymentMethods: PaymentMethod[] = [
+  { id: "usdt-trc20", name: "USDT-TRC20", category: "crypto", desc: "推荐", feeType: "percentage", feeValue: 0, calculationMode: "deposit_first", paymentCurrency: "USDT", supportedCurrencies: ["USD","EUR","JPY"], exchangeRate: 1.0, kycRequired: 0, estimatedTime: "即时到账" },
+  { id: "usdt-erc20", name: "USDT-ERC20", category: "crypto", feeType: "percentage", feeValue: 0, calculationMode: "deposit_first", paymentCurrency: "USDT", supportedCurrencies: ["USD","EUR","JPY"], exchangeRate: 1.0, kycRequired: 0, estimatedTime: "即时到账" },
+  { id: "btc", name: "BTC", category: "crypto", feeType: "percentage", feeValue: 0.5, calculationMode: "deposit_first", paymentCurrency: "BTC", supportedCurrencies: ["USD","EUR","JPY"], exchangeRate: 8333333, kycRequired: 1, estimatedTime: "约10分钟" },
+  { id: "eth", name: "ETH", category: "crypto", feeType: "percentage", feeValue: 0.5, calculationMode: "deposit_first", paymentCurrency: "ETH", supportedCurrencies: ["USD","EUR","JPY"], exchangeRate: 285714, kycRequired: 1, estimatedTime: "约5分钟" },
+  { id: "visa", name: "Visa", category: "card", feeType: "percentage", feeValue: 2.5, calculationMode: "deposit_first", paymentCurrency: "USD", supportedCurrencies: ["USD","EUR"], exchangeRate: 1.0, kycRequired: 0, estimatedTime: "即时到账" },
+  { id: "mastercard", name: "Mastercard", category: "card", feeType: "percentage", feeValue: 2.5, calculationMode: "deposit_first", paymentCurrency: "USD", supportedCurrencies: ["USD","EUR"], exchangeRate: 1.0, kycRequired: 0, estimatedTime: "即时到账" },
+  { id: "swift", name: "SWIFT", category: "bank", desc: "大额", feeType: "fixed", feeValue: 25, calculationMode: "payment_first", paymentCurrency: "USD", supportedCurrencies: ["USD","EUR","JPY"], exchangeRate: 1.0, kycRequired: 1, estimatedTime: "1-3个工作日" },
+  { id: "sepa", name: "SEPA", category: "bank", feeType: "fixed", feeValue: 15, calculationMode: "payment_first", paymentCurrency: "EUR", supportedCurrencies: ["EUR"], exchangeRate: 1.0, kycRequired: 1, estimatedTime: "1-2个工作日" },
+  { id: "paypal", name: "PayPal", category: "ewallet", desc: "推荐", feeType: "percentage", feeValue: 1.5, calculationMode: "deposit_first", paymentCurrency: "USD", supportedCurrencies: ["USD","EUR","JPY"], exchangeRate: 1.0, kycRequired: 0, estimatedTime: "即时到账" },
+  { id: "skrill", name: "Skrill", category: "ewallet", feeType: "percentage", feeValue: 1.5, calculationMode: "deposit_first", paymentCurrency: "USD", supportedCurrencies: ["USD","EUR","JPY"], exchangeRate: 1.0, kycRequired: 1, estimatedTime: "即时到账" },
 ];
 
-const tradingAccounts = [
-  { id: "wallet", name: "Main Wallet", balance: 12500.50 },
-  { id: "acc-001", name: "Standard Account", balance: 10000.00 },
-  { id: "acc-002", name: "Pro Account", balance: 25000.00 },
+const paymentCategories = [
+  { id: "crypto", name: "加密货币", icon: "💎" },
+  { id: "card", name: "银行卡", icon: "💳" },
+  { id: "bank", name: "银行转账", icon: "🏦" },
+  { id: "ewallet", name: "电子钱包", icon: "📱" },
 ];
 
-const recentDeposits = [
-  { amount: "+$5,000", method: "USDT TRC20", time: "2h ago", status: "confirmed" },
-  { amount: "+$3,000", method: "Bank Wire", time: "1d ago", status: "pending" },
-  { amount: "+$1,500", method: "Credit Card", time: "3d ago", status: "confirmed" },
+const faqItems = [
+  { q: "如何进行充值？", a: "选择充值方式 → 输入金额 → 完成支付 → 自动到账" },
+  { q: "充值需要多久到账？", a: "加密货币即时到账，银行转账 1-3 个工作日" },
+  { q: "充值限额是多少？", a: "L0: 单笔$1,000/L1: 单笔$10,000/L2: 单笔$50,000" },
+  { q: "充值失败怎么办？", a: "联系客服或提交工单，提供转账凭证" },
 ];
 
-const colorMap: Record<string, { bg: string; text: string; border: string; iconBg: string }> = {
-  orange: { bg: "bg-orange-50", text: "text-orange-600", border: "border-orange-200", iconBg: "bg-orange-100" },
-  blue: { bg: "bg-blue-50", text: "text-blue-600", border: "border-blue-200", iconBg: "bg-blue-100" },
-  emerald: { bg: "bg-emerald-50", text: "text-emerald-600", border: "border-emerald-200", iconBg: "bg-emerald-100" },
-  purple: { bg: "bg-purple-50", text: "text-purple-600", border: "border-purple-200", iconBg: "bg-purple-100" },
+const KYC_LIMITS: Record<number, { min: number; max: number; daily: number; monthly: number }> = {
+  0: { min: 10, max: 1000, daily: 5000, monthly: 20000 },
+  1: { min: 10, max: 10000, daily: 50000, monthly: 200000 },
+  2: { min: 10, max: 50000, daily: 200000, monthly: 1000000 },
+  3: { min: 10, max: 100000, daily: 500000, monthly: 5000000 },
 };
 
+// ===================== Helpers =====================
+function currencySymbol(currency: string) {
+  if (currency === "JPY") return "¥";
+  if (currency === "EUR") return "€";
+  if (currency === "BTC") return "₿";
+  if (currency === "ETH") return "Ξ";
+  if (currency === "USDT") return "₮";
+  return "$";
+}
+
+function fmtEquity(acc: DepositAccount): string {
+  const sym = currencySymbol(acc.currency);
+  return `${sym}${acc.equity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function formatAccountLabel(a: DepositAccount): string {
+  if (a.platform) return `${a.platform}-${a.id}-${a.accountType}-${fmtEquity(a)}`;
+  return `${a.accountType}-Wallet-${a.currency}-${fmtEquity(a)}`;
+}
+
+function accountLabel(id: string): string {
+  const a = allAccounts.find(x => x.id === id);
+  if (!a) return "选择账户";
+  return formatAccountLabel(a);
+}
+
+function calculateOrder(
+  mode: CalculationMode,
+  inputAmount: number,
+  method: PaymentMethod,
+  accountCurrency: string
+): CalculationResult | null {
+  if (isNaN(inputAmount) || inputAmount <= 0) return null;
+
+  const rate = method.exchangeRate || 1;
+  const rateDisplay = rate < 0.0001
+    ? `1 ${method.paymentCurrency} = ${rate.toPrecision(6)} ${accountCurrency}`
+    : `1 ${method.paymentCurrency} = ${rate.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${accountCurrency}`;
+
+  if (mode === "deposit_first") {
+    const exchangeAmount = inputAmount / rate;
+    let fee = 0;
+    if (method.feeType === "percentage") {
+      fee = exchangeAmount * (method.feeValue / 100);
+    } else {
+      fee = method.feeValue;
+    }
+    const paymentAmount = exchangeAmount + fee;
+    return {
+      depositAmount: inputAmount,
+      paymentAmount,
+      exchangeAmount,
+      fee,
+      rate,
+      rateDisplay,
+    };
+  } else {
+    let fee = 0;
+    if (method.feeType === "percentage") {
+      fee = inputAmount * (method.feeValue / 100) * rate;
+    } else {
+      fee = method.feeValue;
+    }
+    const exchangeAmount = inputAmount * rate;
+    const depositAmount = exchangeAmount - fee;
+    return {
+      depositAmount: Math.max(0, depositAmount),
+      paymentAmount: inputAmount,
+      exchangeAmount,
+      fee,
+      rate,
+      rateDisplay,
+    };
+  }
+}
+
+const steps = [
+  { id: 1, name: "账户与金额" },
+  { id: 2, name: "支付方式" },
+  { id: 3, name: "确认订单" },
+];
+
+// ===================== Main Page =====================
 export default function DepositPage() {
-  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
-  const [selectedCrypto, setSelectedCrypto] = useState("btc");
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [targetAccount, setTargetAccount] = useState<string>(recommendedAccount.id);
   const [amount, setAmount] = useState("");
-  const [targetAccount, setTargetAccount] = useState("wallet");
-  const [copied, setCopied] = useState(false);
-  const [step, setStep] = useState<"method" | "details" | "confirm">("method");
+  const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>("crypto");
+  const [submitted, setSubmitted] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [orderDetails, setOrderDetails] = useState<CalculationResult | null>(null);
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const userKyc = 1;
+  const limits = KYC_LIMITS[userKyc] || KYC_LIMITS[0];
+  const todayUsed = 2500;
 
-  const handleContinue = () => {
-    if (step === "method") setStep("details");
-    else if (step === "details") setStep("confirm");
-  };
+  const selectedAccount = useMemo(() => allAccounts.find(a => a.id === targetAccount) || null, [targetAccount]);
+  const accountSymbolStr = currencySymbol(selectedAccount?.currency || "USD");
 
-  const handleBack = () => {
-    if (step === "details") setStep("method");
-    else if (step === "confirm") setStep("details");
-  };
+  const selectedMethod = useMemo(() => paymentMethods.find(m => m.id === selectedMethodId) || null, [selectedMethodId]);
 
-  const currentCrypto = cryptoCurrencies.find((c) => c.id === selectedCrypto)!;
-  const currentMethod = depositMethods.find((m) => m.id === selectedMethod);
-  const currentAccount = tradingAccounts.find((a) => a.id === targetAccount)!;
+  const isAmountValid = !!amount && parseFloat(amount) > 0 && parseFloat(amount) >= limits.min;
+  const isSuspicious = !!amount && parseFloat(amount) > 0 && parseFloat(amount) < 10;
+
+  const quickAmounts = useMemo(() => {
+    return accountSymbolStr === "¥" ? ["10000", "50000", "100000", "500000"] : ["100", "500", "1000", "5000"];
+  }, [accountSymbolStr]);
+
+  function selectMethod(id: string) {
+    setSelectedMethodId(id);
+    const cat = paymentMethods.find(m => m.id === id)?.category;
+    if (cat) setExpandedCategory(cat);
+  }
+
+  async function handleConfirmMethod() {
+    if (!selectedMethod || !selectedAccount || !isAmountValid) return;
+    setIsCalculating(true);
+    // mock API calculation delay
+    await new Promise(r => setTimeout(r, 600));
+    const num = parseFloat(amount);
+    const result = calculateOrder(selectedMethod.calculationMode, num, selectedMethod, selectedAccount.currency);
+    setOrderDetails(result);
+    setIsCalculating(false);
+    setStep(3);
+  }
+
+  function handleSubmit() {
+    setSubmitted(true);
+  }
+
+  function resetFlow() {
+    setStep(1);
+    setTargetAccount(recommendedAccount.id);
+    setAmount("");
+    setSelectedMethodId(null);
+    setExpandedCategory("crypto");
+    setOrderDetails(null);
+    setSubmitted(false);
+  }
+
+  if (submitted) {
+    return (
+      <div className="p-6 min-h-[60vh] flex items-center justify-center">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-md">
+          <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-10 h-10" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">提交成功</h2>
+          <p className="text-slate-500 mb-6">您的存款订单已提交，系统将尽快处理。</p>
+          <div className="flex gap-3 justify-center">
+            <Button variant="outline" onClick={resetFlow}>再存一笔</Button>
+            <Button className="bg-slate-900 hover:bg-slate-800 text-white">查看记录</Button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center gap-3 mb-1">
-          <div className="p-2.5 rounded-xl bg-tp-accent-subtle">
-            <ArrowDownLeft className="w-6 h-6 text-[rgb(var(--tp-accent-rgb))]" />
+          <div className="p-2.5 rounded-xl bg-emerald-500/10">
+            <ArrowDownLeft className="w-6 h-6 text-emerald-500" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[rgb(var(--tp-fg-rgb))]">Deposit Funds</h1>
-            <p className="text-sm text-[rgba(var(--tp-fg-rgb),0.5)]">Add funds to your trading account</p>
+            <h1 className="text-2xl font-bold text-slate-900">充值</h1>
+            <p className="text-sm text-slate-500">快速安全的充值服务</p>
           </div>
         </div>
       </motion.div>
 
-      {/* Progress Steps */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.05 }}
-        className="flex items-center gap-2"
-      >
-        {["Select Method", "Enter Details", "Confirm"].map((s, i) => (
-          <div key={s} className="flex items-center">
-            <div
-              className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-colors",
-                (step === "method" && i === 0) ||
-                  (step === "details" && i <= 1) ||
-                  (step === "confirm" && i <= 2)
-                  ? "bg-tp-accent-subtle border-tp-accent text-[rgb(var(--tp-accent-rgb))]"
-                  : "bg-[var(--tp-surface)] border-[rgba(var(--tp-fg-rgb),0.08)] text-[rgba(var(--tp-fg-rgb),0.4)]"
-              )}
-            >
-              <div
-                className={cn(
-                  "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
-                  (step === "method" && i === 0) ||
-                    (step === "details" && i <= 1) ||
-                    (step === "confirm" && i <= 2)
-                    ? "bg-tp-accent text-white"
-                    : "bg-[rgba(var(--tp-fg-rgb),0.1)] text-[rgba(var(--tp-fg-rgb),0.4)]"
-                )}
-              >
-                {i + 1}
+      {/* Step Indicator */}
+      <div className="flex items-center gap-2">
+        {steps.map((s, idx) => {
+          const isActive = step === s.id;
+          const isDone = step > s.id;
+          return (
+            <div key={s.id} className="flex items-center gap-2">
+              <div className={cn(
+                "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
+                isActive ? "bg-slate-900 text-white" : isDone ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+              )}>
+                <span className={cn(
+                  "w-5 h-5 rounded-full flex items-center justify-center text-xs",
+                  isActive ? "bg-white text-slate-900" : isDone ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-500"
+                )}>
+                  {isDone ? <CheckCircle2 className="w-3 h-3" /> : s.id}
+                </span>
+                {s.name}
               </div>
-              <span className="hidden sm:inline">{s}</span>
+              {idx < steps.length - 1 && (
+                <ChevronRight className={cn("w-4 h-4", isDone ? "text-emerald-500" : "text-slate-300")} />
+              )}
             </div>
-            {i < 2 && <ChevronRight className="w-4 h-4 mx-1 text-[rgba(var(--tp-fg-rgb),0.2)]" />}
-          </div>
-        ))}
-      </motion.div>
+          );
+        })}
+      </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* Left: Form Area (3/4) */}
-        <div className="xl:col-span-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* Left content */}
+        <div className="lg:col-span-2 space-y-6">
           <AnimatePresence mode="wait">
-            {/* Step 1: Select Method */}
-            {step === "method" && (
+            {/* ===== Step 1: Account + Amount ===== */}
+            {step === 1 && (
               <motion.div
-                key="method"
-                initial={{ opacity: 0, x: 20 }}
+                key="step1"
+                initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-6"
               >
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Select Deposit Method</CardTitle>
-                    <CardDescription>Choose how you want to deposit funds</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {depositMethods.map((method) => {
-                        const colors = colorMap[method.color];
+                  <CardContent className="p-6 space-y-5">
+                    <h2 className="text-lg font-semibold text-slate-900">选择存入账户</h2>
+                    <Select value={targetAccount} onValueChange={(v) => { setTargetAccount(v); }}>
+                      <SelectTrigger className="h-12"><SelectValue placeholder="选择账户" /></SelectTrigger>
+                      <SelectContent className="max-h-[320px] w-[520px]">
+                        {recommendedAccount && (
+                          <>
+                            <div className="px-2 py-1.5 text-xs font-medium text-amber-600 flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-amber-500 text-amber-500" /> 推荐账户
+                            </div>
+                            <SelectItem value={recommendedAccount.id}>
+                              <span className="font-mono text-sm text-slate-900">{formatAccountLabel(recommendedAccount)}</span>
+                            </SelectItem>
+                            <div className="h-px bg-slate-100 mx-2 my-1" />
+                            <div className="px-2 py-1.5 text-xs font-medium text-slate-500">其他账户</div>
+                          </>
+                        )}
+                        {walletAccounts.length > 0 && (
+                          <>
+                            <div className="px-2 py-1.5 text-xs font-medium text-slate-500">钱包</div>
+                            {walletAccounts.map(acc => (
+                              <SelectItem key={acc.id} value={acc.id}>
+                                <span className="font-mono text-sm text-slate-700">{formatAccountLabel(acc)}</span>
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                        {mt4Accounts.filter(a => a.id !== recommendedAccount?.id).length > 0 && (
+                          <>
+                            <div className="h-px bg-slate-100 mx-2 my-1" />
+                            <div className="px-2 py-1.5 text-xs font-medium text-slate-500 flex justify-between">
+                              MT4 <span className="font-normal text-slate-400">({mt4Accounts.filter(a => a.id !== recommendedAccount?.id).length})</span>
+                            </div>
+                            {mt4Accounts.filter(a => a.id !== recommendedAccount?.id).map(acc => (
+                              <SelectItem key={acc.id} value={acc.id}>
+                                <span className="font-mono text-sm text-slate-700">{formatAccountLabel(acc)}</span>
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                        {mt5Accounts.filter(a => a.id !== recommendedAccount?.id).length > 0 && (
+                          <>
+                            <div className="h-px bg-slate-100 mx-2 my-1" />
+                            <div className="px-2 py-1.5 text-xs font-medium text-slate-500 flex justify-between">
+                              MT5 <span className="font-normal text-slate-400">({mt5Accounts.filter(a => a.id !== recommendedAccount?.id).length})</span>
+                            </div>
+                            {mt5Accounts.filter(a => a.id !== recommendedAccount?.id).map(acc => (
+                              <SelectItem key={acc.id} value={acc.id}>
+                                <span className="font-mono text-sm text-slate-700">{formatAccountLabel(acc)}</span>
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                        {tpAccounts.length > 0 && (
+                          <>
+                            <div className="h-px bg-slate-100 mx-2 my-1" />
+                            <div className="px-2 py-1.5 text-xs font-medium text-slate-500 flex justify-between">
+                              TP <span className="font-normal text-slate-400">({tpAccounts.length})</span>
+                            </div>
+                            {tpAccounts.map(acc => (
+                              <SelectItem key={acc.id} value={acc.id}>
+                                <span className="font-mono text-sm text-slate-700">{formatAccountLabel(acc)}</span>
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6 space-y-5">
+                    <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-slate-600" />
+                      输入存款金额
+                    </h2>
+
+                    <div className="flex flex-wrap gap-2">
+                      {quickAmounts.map(preset => (
+                        <button key={preset} onClick={() => setAmount(preset)}
+                          className="px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 transition-colors">
+                          {accountSymbolStr}{parseInt(preset).toLocaleString()}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="relative">
+                      <span className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-3xl font-bold text-slate-500">
+                        {accountSymbolStr}
+                      </span>
+                      <Input type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)}
+                        className="pl-14 h-16 text-3xl font-bold font-variant-numeric tabular-nums" />
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm text-slate-500">
+                      <span>单笔限额: {accountSymbolStr}{limits.min.toLocaleString()} - {accountSymbolStr}{limits.max.toLocaleString()}</span>
+                      <span>每日剩余: {accountSymbolStr}{(limits.daily - todayUsed).toLocaleString()}</span>
+                    </div>
+
+                    {isSuspicious && (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-amber-800">小额充值频繁</p>
+                          <p className="text-xs text-amber-600 mt-0.5">检测到连续小额充值，请确认是否本人操作</p>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => setStep(2)}
+                    disabled={!selectedAccount || !isAmountValid}
+                    className="h-12 px-8 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl"
+                  >
+                    下一步 <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ===== Step 2: Payment Method ===== */}
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-6"
+              >
+                <Card>
+                  <CardContent className="p-6 space-y-4">
+                    <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                      <Landmark className="w-5 h-5 text-slate-600" />选择支付方式
+                    </h2>
+
+                    <div className="space-y-2">
+                      {paymentCategories.map(cat => {
+                        const catMethods = paymentMethods.filter(m => m.category === cat.id);
+                        const isExpanded = expandedCategory === cat.id;
+                        const hasLocked = catMethods.some(m => m.kycRequired > userKyc);
+                        const recommended = catMethods.find(m => m.kycRequired <= userKyc && m.feeValue === 0);
                         return (
-                          <motion.div
-                            key={method.id}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => setSelectedMethod(method.id)}
-                            className={cn(
-                              "relative p-5 rounded-2xl border-2 cursor-pointer transition-all",
-                              selectedMethod === method.id
-                                ? cn(colors.bg, colors.border, "shadow-sm")
-                                : "border-[rgba(var(--tp-fg-rgb),0.08)] hover:border-[rgba(var(--tp-fg-rgb),0.15)] hover:bg-[rgba(var(--tp-fg-rgb),0.02)]"
-                            )}
-                          >
-                            {selectedMethod === method.id && (
-                              <div className="absolute top-3 right-3">
-                                <div className="w-5 h-5 rounded-full bg-tp-accent flex items-center justify-center">
-                                  <Check className="w-3 h-3 text-white" />
-                                </div>
+                          <div key={cat.id} className="border border-slate-200 rounded-xl overflow-hidden">
+                            <button onClick={() => setExpandedCategory(isExpanded ? null : cat.id)}
+                              className="w-full px-4 py-3 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors">
+                              <div className="flex items-center gap-3">
+                                <span className="text-lg">{cat.icon}</span>
+                                <span className="font-medium text-slate-900">{cat.name}</span>
+                                {recommended && <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">推荐</span>}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {hasLocked && <Lock className="w-4 h-4 text-slate-400" />}
+                                {isExpanded ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+                              </div>
+                            </button>
+                            {isExpanded && (
+                              <div className="divide-y divide-slate-100">
+                                {catMethods.map(item => {
+                                  const isLocked = item.kycRequired > userKyc;
+                                  const isSelected = selectedMethodId === item.id;
+                                  const unsupported = selectedAccount ? !item.supportedCurrencies.includes(selectedAccount.currency) : false;
+                                  const disabled = isLocked || unsupported;
+                                  return (
+                                    <button key={item.id} disabled={disabled} onClick={() => !disabled && selectMethod(item.id)}
+                                      className={cn("w-full px-4 py-3 flex items-center justify-between transition-colors text-left",
+                                        isSelected ? "bg-slate-900 text-white" : disabled ? "bg-slate-50 cursor-not-allowed" : "hover:bg-slate-50")}>
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className={isSelected ? "text-white" : disabled ? "text-slate-400" : "text-slate-700"}>{item.name}</span>
+                                        {item.desc && <span className={cn("text-xs px-1.5 py-0.5 rounded", isSelected ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-700")}>{item.desc}</span>}
+                                        {isLocked && <span className="text-xs px-1.5 py-0.5 bg-slate-200 text-slate-500 rounded">需 L{item.kycRequired}</span>}
+                                        {unsupported && <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded">不支持 {selectedAccount?.currency}</span>}
+                                      </div>
+                                      <span className={cn("text-sm shrink-0", isSelected ? "text-white/70" : disabled ? "text-slate-400" : "text-slate-500")}>
+                                        {item.feeValue === 0 ? "免费" : `${item.feeType === "percentage" ? `${item.feeValue}%` : `$${item.feeValue}`}`}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
                               </div>
                             )}
-                            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-3", colors.iconBg)}>
-                              <method.icon className={cn("w-6 h-6", colors.text)} />
-                            </div>
-                            <h3 className="font-bold text-[rgb(var(--tp-fg-rgb))] text-sm">{method.name}</h3>
-                            <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.5)] mt-1">{method.description}</p>
-                            <div className="flex items-center gap-3 mt-3 pt-3 border-t border-[rgba(var(--tp-fg-rgb),0.06)]">
-                              <span className="text-[10px] text-[rgba(var(--tp-fg-rgb),0.4)] flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {method.processingTime}
-                              </span>
-                              <span className="text-[10px] font-semibold text-emerald-600">
-                                {method.fee}
-                              </span>
-                            </div>
-                          </motion.div>
+                          </div>
                         );
                       })}
                     </div>
 
-                    <Button
-                      onClick={handleContinue}
-                      disabled={!selectedMethod}
-                      className="w-full mt-6 h-12 bg-tp-accent hover:bg-tp-accent-hover text-white font-medium rounded-xl"
-                    >
-                      Continue
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
+                    {selectedMethod && (
+                      <div className="p-4 bg-slate-50 rounded-xl text-sm text-slate-600 space-y-1">
+                        <div className="flex justify-between"><span className="text-slate-500">费率</span><span className="font-medium text-slate-900">{selectedMethod.feeValue === 0 ? "免费" : `${selectedMethod.feeType === "percentage" ? `${selectedMethod.feeValue}%` : `$${selectedMethod.feeValue} 固定`}`}</span></div>
+                        <div className="flex justify-between"><span className="text-slate-500">预计到账时间</span><span className="font-medium text-slate-900">{selectedMethod.estimatedTime}</span></div>
+                        <div className="flex justify-between"><span className="text-slate-500">支持币种</span><span className="font-medium text-slate-900">{selectedMethod.supportedCurrencies.join(", ")}</span></div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
+
+                <div className="flex items-center justify-between">
+                  <Button variant="outline" onClick={() => setStep(1)} className="h-12 px-6 rounded-xl">
+                    <ArrowLeft className="w-4 h-4 mr-2" /> 上一步
+                  </Button>
+                  <Button
+                    onClick={handleConfirmMethod}
+                    disabled={!selectedMethod || isCalculating}
+                    className="h-12 px-8 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl"
+                  >
+                    {isCalculating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> 计算中...</> : <><CheckCircle2 className="w-4 h-4 mr-2" /> 确认选择</>}
+                  </Button>
+                </div>
               </motion.div>
             )}
 
-            {/* Step 2: Enter Details */}
-            {step === "details" && selectedMethod && (
+            {/* ===== Step 3: Confirm Order ===== */}
+            {step === 3 && selectedAccount && selectedMethod && orderDetails && (
               <motion.div
-                key="details"
-                initial={{ opacity: 0, x: 20 }}
+                key="step3"
+                initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-6"
               >
-                <Card>
-                  <CardHeader>
-                    <CardTitle>
-                      {currentMethod?.name === "Cryptocurrency" ? "Crypto Deposit" : `Deposit via ${currentMethod?.name}`}
-                    </CardTitle>
-                    <CardDescription>
-                      {currentMethod?.id === "crypto"
-                        ? `Send ${currentCrypto.symbol} to the address below`
-                        : "Provide the required information for your deposit"}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Target Account */}
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Deposit To</Label>
-                      <Select value={targetAccount} onValueChange={setTargetAccount}>
-                        <SelectTrigger className="h-11">
-                          <SelectValue placeholder="Select account" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {tradingAccounts.map((account) => (
-                            <SelectItem key={account.id} value={account.id}>
-                              <span className="font-medium">{account.name}</span>
-                              <span className="ml-2 text-[rgba(var(--tp-fg-rgb),0.4)]">
-                                ${account.balance.toLocaleString()}
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                <Card className="border-slate-900/10 shadow-sm">
+                  <CardContent className="p-6 space-y-5">
+                    <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                      <CheckCircle2 className="w-5 h-5 text-slate-600" />确认存款订单
+                    </h2>
 
-                    {/* Crypto Deposit */}
-                    {selectedMethod === "crypto" && (
-                      <div className="space-y-5">
-                        {/* Crypto Selection */}
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Select Cryptocurrency</Label>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            {cryptoCurrencies.map((crypto) => {
-                              const selected = selectedCrypto === crypto.id;
-                              return (
-                                <motion.button
-                                  key={crypto.id}
-                                  whileTap={{ scale: 0.97 }}
-                                  onClick={() => setSelectedCrypto(crypto.id)}
-                                  className={cn(
-                                    "p-3 rounded-xl border-2 text-left transition-all",
-                                    selected
-                                      ? "bg-tp-accent-subtle border-tp-accent"
-                                      : "border-[rgba(var(--tp-fg-rgb),0.08)] hover:border-[rgba(var(--tp-fg-rgb),0.15)]"
-                                  )}
-                                >
-                                  <p className="font-bold text-[rgb(var(--tp-fg-rgb))]">{crypto.symbol}</p>
-                                  <p className="text-[10px] text-[rgba(var(--tp-fg-rgb),0.4)]">{crypto.network}</p>
-                                </motion.button>
-                              );
-                            })}
-                          </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 bg-slate-50 rounded-xl">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-xs text-slate-500">存入账户</p>
+                          <button onClick={() => setStep(1)} className="text-xs text-blue-600 hover:underline">修改</button>
                         </div>
-
-                        {/* QR Code + Address */}
-                        <div className="rounded-2xl border-2 border-dashed border-[rgba(var(--tp-fg-rgb),0.12)] p-6 text-center bg-[rgba(var(--tp-fg-rgb),0.02)]">
-                          <div className="w-36 h-36 mx-auto mb-4 bg-[var(--tp-surface)] rounded-2xl flex items-center justify-center border border-[rgba(var(--tp-fg-rgb),0.08)]">
-                            <QrCode className="w-24 h-24 text-[rgba(var(--tp-fg-rgb),0.3)]" />
-                          </div>
-                          <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.4)] mb-3">
-                            Send only <span className="font-semibold text-[rgb(var(--tp-fg-rgb))]">{currentCrypto.symbol}</span> on the{" "}
-                            <span className="font-semibold text-[rgb(var(--tp-fg-rgb))]">{currentCrypto.network}</span> network
-                          </p>
-                          <div className="flex items-center gap-2 max-w-lg mx-auto">
-                            <code className="flex-1 p-3 rounded-xl bg-[var(--tp-surface)] text-xs break-all text-[rgba(var(--tp-fg-rgb),0.7)] border border-[rgba(var(--tp-fg-rgb),0.08)]">
-                              {currentCrypto.address}
-                            </code>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleCopy(currentCrypto.address)}
-                              className="shrink-0 h-10 px-3"
-                            >
-                              {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                              <span className="ml-1.5 text-xs">{copied ? "Copied" : "Copy"}</span>
-                            </Button>
-                          </div>
-                          <div className="flex items-center gap-2 mt-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs">
-                            <AlertCircle className="w-4 h-4 shrink-0" />
-                            Sending other assets to this address may result in permanent loss.
-                          </div>
-                        </div>
+                        <p className="text-sm font-medium text-slate-900">{formatAccountLabel(selectedAccount)}</p>
                       </div>
-                    )}
-
-                    {/* Card Deposit */}
-                    {selectedMethod === "card" && (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Amount (USD)</Label>
-                          <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[rgba(var(--tp-fg-rgb),0.4)] font-semibold text-lg">$</span>
-                            <Input
-                              type="number"
-                              placeholder="Enter amount"
-                              value={amount}
-                              onChange={(e) => setAmount(e.target.value)}
-                              className="pl-10 h-12 text-lg font-semibold"
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            {["$100", "$500", "$1,000", "$5,000"].map((preset) => (
-                              <button
-                                key={preset}
-                                onClick={() => setAmount(preset.replace("$", "").replace(",", ""))}
-                                className="px-3 py-1.5 rounded-lg border border-[rgba(var(--tp-fg-rgb),0.1)] text-xs font-medium text-[rgba(var(--tp-fg-rgb),0.6)] hover:border-tp-accent hover:text-[rgb(var(--tp-accent-rgb))] transition-colors"
-                              >
-                                {preset}
-                              </button>
-                            ))}
-                          </div>
-                          <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.4)]">Min: $10 | Max: $10,000 per transaction</p>
+                      <div className="p-4 bg-slate-50 rounded-xl">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-xs text-slate-500">支付方式</p>
+                          <button onClick={() => setStep(2)} className="text-xs text-blue-600 hover:underline">修改</button>
                         </div>
-                        <div className="p-4 rounded-xl bg-[rgba(var(--tp-fg-rgb),0.03)] border border-[rgba(var(--tp-fg-rgb),0.06)]">
-                          <p className="text-sm text-[rgba(var(--tp-fg-rgb),0.5)]">
-                            You will be redirected to our secure payment processor to complete the transaction.
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Bank Transfer */}
-                    {selectedMethod === "bank" && (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Amount (USD)</Label>
-                          <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[rgba(var(--tp-fg-rgb),0.4)] font-semibold text-lg">$</span>
-                            <Input
-                              type="number"
-                              placeholder="Enter amount"
-                              value={amount}
-                              onChange={(e) => setAmount(e.target.value)}
-                              className="pl-10 h-12 text-lg font-semibold"
-                            />
-                          </div>
-                        </div>
-                        <div className="p-5 rounded-2xl bg-[rgba(var(--tp-fg-rgb),0.03)] border border-[rgba(var(--tp-fg-rgb),0.06)] space-y-4">
-                          <h4 className="font-semibold text-[rgb(var(--tp-fg-rgb))] text-sm">Bank Transfer Details</h4>
-                          <div className="grid grid-cols-2 gap-4">
-                            {[
-                              { label: "Bank Name", value: "TradePass Bank" },
-                              { label: "Account Number", value: "1234567890" },
-                              { label: "SWIFT Code", value: "TRADEPASSXX" },
-                              { label: "Reference", value: "TP-USER-001" },
-                            ].map((item) => (
-                              <div key={item.label} className="p-3 rounded-xl bg-[var(--tp-surface)] border border-[rgba(var(--tp-fg-rgb),0.06)]">
-                                <p className="text-[10px] text-[rgba(var(--tp-fg-rgb),0.4)] uppercase font-medium">{item.label}</p>
-                                <p className="text-sm font-semibold text-[rgb(var(--tp-fg-rgb))] mt-0.5">{item.value}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* E-Wallet */}
-                    {selectedMethod === "ewallet" && (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Select E-Wallet</Label>
-                          <Select>
-                            <SelectTrigger className="h-11">
-                              <SelectValue placeholder="Select e-wallet" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="paypal">PayPal</SelectItem>
-                              <SelectItem value="skrill">Skrill</SelectItem>
-                              <SelectItem value="neteller">Neteller</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">Amount (USD)</Label>
-                          <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[rgba(var(--tp-fg-rgb),0.4)] font-semibold text-lg">$</span>
-                            <Input
-                              type="number"
-                              placeholder="Enter amount"
-                              value={amount}
-                              onChange={(e) => setAmount(e.target.value)}
-                              className="pl-10 h-12 text-lg font-semibold"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-3 pt-2">
-                      <Button variant="outline" onClick={handleBack} className="flex-1 h-12 rounded-xl">
-                        Back
-                      </Button>
-                      <Button
-                        onClick={handleContinue}
-                        disabled={selectedMethod !== "crypto" && !amount}
-                        className="flex-1 h-12 bg-tp-accent hover:bg-tp-accent-hover text-white font-medium rounded-xl"
-                      >
-                        Continue
-                        <ChevronRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-
-            {/* Step 3: Confirm */}
-            {step === "confirm" && (
-              <motion.div
-                key="confirm"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Confirm Deposit</CardTitle>
-                    <CardDescription>Review your deposit details before confirming</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="p-5 rounded-2xl bg-[rgba(var(--tp-fg-rgb),0.03)] border border-[rgba(var(--tp-fg-rgb),0.06)] space-y-4">
-                      {[
-                        { label: "Method", value: currentMethod?.name },
-                        { label: "Amount", value: `$${amount || "0.00"}` },
-                        { label: "Fee", value: currentMethod?.fee, highlight: true },
-                        { label: "Deposit To", value: currentAccount?.name },
-                      ].map((item) => (
-                        <div key={item.label} className="flex justify-between items-center">
-                          <span className="text-sm text-[rgba(var(--tp-fg-rgb),0.5)]">{item.label}</span>
-                          <span className={cn("font-semibold", item.highlight && "text-emerald-600")}>{item.value}</span>
-                        </div>
-                      ))}
-                      <div className="border-t border-[rgba(var(--tp-fg-rgb),0.08)] pt-4">
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-[rgb(var(--tp-fg-rgb))]">Total</span>
-                          <span className="font-bold text-xl text-[rgb(var(--tp-fg-rgb))]">${amount || "0.00"}</span>
-                        </div>
+                        <p className="text-sm font-medium text-slate-900">{selectedMethod.name} ({selectedMethod.paymentCurrency})</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{selectedMethod.estimatedTime}</p>
                       </div>
                     </div>
 
-                    <div className="flex gap-3 pt-2">
-                      <Button variant="outline" onClick={handleBack} className="flex-1 h-12 rounded-xl">
-                        Back
+                    <div className="border border-slate-200 rounded-xl p-5 space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">{selectedMethod.calculationMode === "deposit_first" ? "存款金额" : "付款金额"}</span>
+                        <span className="font-medium text-slate-900">
+                          {currencySymbol(selectedMethod.calculationMode === "deposit_first" ? selectedAccount.currency : selectedMethod.paymentCurrency)}
+                          {(selectedMethod.calculationMode === "deposit_first" ? orderDetails.depositAmount : orderDetails.paymentAmount).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">参考汇率</span>
+                        <span className="font-medium text-slate-900">{orderDetails.rateDisplay}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">换汇金额</span>
+                        <span className="font-medium text-slate-900">
+                          {currencySymbol(selectedMethod.paymentCurrency)}{orderDetails.exchangeAmount.toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">手续费</span>
+                        <span className="font-medium text-emerald-600">
+                          {orderDetails.fee === 0 ? "免费" : `${currencySymbol(selectedMethod.paymentCurrency)}${orderDetails.fee.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
+                        </span>
+                      </div>
+                      <div className="border-t border-slate-200 pt-3 flex justify-between items-center">
+                        <span className="font-semibold text-slate-900">
+                          {selectedMethod.calculationMode === "deposit_first" ? "预计付款金额" : "预计到账金额"}
+                        </span>
+                        <span className="text-2xl font-bold text-slate-900">
+                          {currencySymbol(selectedMethod.calculationMode === "deposit_first" ? selectedMethod.paymentCurrency : selectedAccount.currency)}
+                          {(selectedMethod.calculationMode === "deposit_first" ? orderDetails.paymentAmount : orderDetails.depositAmount).toLocaleString(undefined, { maximumFractionDigits: selectedMethod.calculationMode === "deposit_first" ? 4 : 2 })}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Integrated receiving info */}
+                    {(selectedMethod.category === "bank" || selectedMethod.category === "crypto") && (
+                      <div className="p-5 border border-dashed border-slate-300 rounded-xl bg-slate-50/50 space-y-3">
+                        <p className="text-sm font-medium text-slate-900 flex items-center gap-2">
+                          <Wallet className="w-4 h-4 text-slate-500" />收款账户信息
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                          <div className="p-3 bg-white rounded-lg border border-slate-200">
+                            <p className="text-xs text-slate-500">账户名称</p>
+                            <p className="font-medium text-slate-900">TradePass Global Ltd</p>
+                          </div>
+                          <div className="p-3 bg-white rounded-lg border border-slate-200">
+                            <p className="text-xs text-slate-500">{selectedMethod.category === "crypto" ? "钱包地址" : "银行账号"}</p>
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-medium text-slate-900 truncate">{selectedMethod.category === "crypto" ? "0xA1B2C3...D4E5F6" : "8823-1100-4455-9921"}</p>
+                              <button className="p-1 hover:bg-slate-100 rounded text-slate-500"><Copy className="w-3.5 h-3.5" /></button>
+                            </div>
+                          </div>
+                          {selectedMethod.category === "bank" && (
+                            <div className="p-3 bg-white rounded-lg border border-slate-200 sm:col-span-2">
+                              <p className="text-xs text-slate-500">开户银行 / SWIFT</p>
+                              <p className="font-medium text-slate-900">Standard Chartered Bank / SCBLUS33</p>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-500">请准确复制以上信息完成转账，备注中注明您的交易账户号码。</p>
+                      </div>
+                    )}
+
+                    {/* Third-party redirect info */}
+                    {(selectedMethod.category === "card" || selectedMethod.category === "ewallet") && (
+                      <div className="p-5 border border-dashed border-slate-300 rounded-xl bg-slate-50/50 space-y-2">
+                        <p className="text-sm font-medium text-slate-900 flex items-center gap-2">
+                          <ArrowUpRight className="w-4 h-4 text-slate-500" />第三方支付
+                        </p>
+                        <p className="text-sm text-slate-600">确认订单后，我们将跳转至 {selectedMethod.name} 的安全支付页面完成付款。</p>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-2">
+                      <Button variant="outline" onClick={() => setStep(2)} className="h-12 px-6 rounded-xl">
+                        <ArrowLeft className="w-4 h-4 mr-2" /> 上一步
                       </Button>
-                      <Button className="flex-1 h-12 bg-tp-accent hover:bg-tp-accent-hover text-white font-medium rounded-xl">
-                        Confirm Deposit
+                      <Button onClick={handleSubmit}
+                        className="h-12 px-8 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl">
+                        {selectedMethod.category === "card" || selectedMethod.category === "ewallet"
+                          ? <>前往支付 <ArrowUpRight className="w-4 h-4 ml-2" /></>
+                          : <>确认存款 <ChevronRight className="w-4 h-4 ml-2" /></>}
                       </Button>
                     </div>
                   </CardContent>
@@ -518,64 +667,62 @@ export default function DepositPage() {
           </AnimatePresence>
         </div>
 
-        {/* Right: Info Panel (1/4) */}
-        <div className="space-y-5">
-          {/* Balance Card */}
-          <Card className="overflow-hidden">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-tp-accent-subtle flex items-center justify-center">
-                  <Wallet className="w-4 h-4 text-[rgb(var(--tp-accent-rgb))]" />
-                </div>
-                <h3 className="font-bold text-[rgb(var(--tp-fg-rgb))] text-sm">Wallet Balance</h3>
-              </div>
-              <p className="text-3xl font-bold text-[rgb(var(--tp-fg-rgb))]">$12,450.00</p>
-              <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.4)] mt-1">Available for trading</p>
-            </CardContent>
-          </Card>
-
-          {/* Security */}
-          <Card>
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                </div>
-                <h3 className="font-bold text-[rgb(var(--tp-fg-rgb))] text-sm">Security</h3>
-              </div>
-              <ul className="space-y-2.5">
-                {["Cold wallet storage", "Multi-signature required", "24/7 monitoring", "SSL encryption"].map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-sm text-[rgba(var(--tp-fg-rgb),0.6)]">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
-          {/* Recent Deposits */}
-          <Card>
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-blue-600" />
-                </div>
-                <h3 className="font-bold text-[rgb(var(--tp-fg-rgb))] text-sm">Recent Deposits</h3>
-              </div>
-              <div className="space-y-3">
-                {recentDeposits.map((d, i) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <div>
-                      <p className={cn("text-sm font-bold", d.status === "confirmed" ? "text-emerald-600" : "text-amber-600")}>{d.amount}</p>
-                      <p className="text-[10px] text-[rgba(var(--tp-fg-rgb),0.4)]">{d.method}</p>
-                    </div>
-                    <span className="text-[10px] text-[rgba(var(--tp-fg-rgb),0.3)]">{d.time}</span>
+        {/* Right sidebar */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-6 space-y-6">
+            <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white overflow-hidden">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2"><Wallet className="w-5 h-5" /><h3 className="font-bold text-white/90 text-sm">钱包余额</h3></div>
+                  <div className="flex items-center gap-1">
+                    <button className="p-1.5 rounded-lg hover:bg-white/10 text-white/70"><HelpCircle className="w-4 h-4" /></button>
+                    <button className="p-1.5 rounded-lg hover:bg-white/10 text-white/70"><ArrowUpRight className="w-4 h-4" /></button>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+                <p className="text-3xl font-bold">$12,500.00</p>
+                <p className="text-xs text-white/60 mt-1">可用余额</p>
+                <button className="mt-3 text-xs text-white/80 hover:text-white flex items-center gap-1">
+                  转账至交易账户 <ChevronRight className="w-3 h-3" />
+                </button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2"><Clock className="w-5 h-5 text-blue-600" /><h3 className="font-bold text-slate-900 text-sm">今日额度</h3></div>
+                  <div className="flex items-center gap-1">
+                    <button className="text-xs text-blue-600 hover:underline">提升</button>
+                    <button className="p-1 rounded-lg hover:bg-slate-100 text-slate-400"><HelpCircle className="w-4 h-4" /></button>
+                  </div>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(todayUsed / limits.daily) * 100}%` }} />
+                </div>
+                <div className="flex justify-between text-sm"><span className="text-slate-500">已用</span><span className="font-medium">${todayUsed.toLocaleString()}</span></div>
+                <div className="flex justify-between text-xs text-slate-400"><span>限额 ${limits.daily.toLocaleString()}</span><span>剩余 ${limits.daily - todayUsed}</span></div>
+                <p className="text-xs text-slate-500">💡 提升 KYC 等级可获得更高额度</p>
+                <Button variant="outline" size="sm" className="w-full h-8 text-xs">申请提升 →</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-3"><MessageCircle className="w-5 h-5 text-slate-600" /><h3 className="font-bold text-slate-900 text-sm">常见问题</h3></div>
+                <div className="space-y-0">
+                  {faqItems.map((item, i) => (
+                    <div key={i} className="border-b border-slate-100 last:border-0">
+                      <button onClick={() => {}}
+                        className="w-full flex items-center justify-between py-3 text-sm text-slate-700 hover:text-slate-900 text-left">
+                        {item.q}
+                        <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

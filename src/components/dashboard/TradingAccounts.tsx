@@ -300,27 +300,23 @@ export function TradingAccounts({ user }: TradingAccountsProps) {
                 className={`flex-shrink-0 ${accounts.length === 1 ? 'w-full' : accounts.length === 2 ? 'w-[calc(50%-8px)]' : 'w-[calc(50%-8px)] md:w-[380px]'}`}
               >
                 <div className="bg-slate-50 rounded-xl p-5 border border-slate-100 hover:border-slate-200 hover:shadow-md transition-all duration-200 h-full">
-                  {/* 账户头部信息 */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      {/* 账户类型标签 */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <span
-                          className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                            account.type === "live"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-slate-200 text-slate-600"
-                          }`}
-                        >
-                          {account.type === "live" ? "实盘账户" : "模拟账户"}
-                        </span>
-                        <span className="text-xs text-slate-400 font-mono">{account.id}</span>
-                      </div>
-                      <span className="text-xs text-slate-400">{account.leverage}:1 杠杆</span>
+                  {/* 账户头部信息 - 紧凑单行 */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center text-sm font-mono min-w-0">
+                      <span className="text-slate-700 truncate">
+                        MT5-{account.id}-{account.accountType || 'Standard'}-
+                        {showAmount ? (
+                          <span className="font-semibold text-slate-900 whitespace-nowrap">
+                            {currencySymbol}{formatCurrency(account.equity, account.currency).replace(/[$€¥£]/g, '')}
+                          </span>
+                        ) : (
+                          <span className="font-semibold text-slate-900 tracking-wider">****</span>
+                        )}
+                      </span>
                     </div>
-                    
+
                     {/* 更多操作按钮 */}
-                    <div className="relative">
+                    <div className="relative ml-3 shrink-0">
                       <button
                         ref={(el) => setButtonRef(account.id, el)}
                         onClick={() => setOpenMenuId(openMenuId === account.id ? null : account.id)}
@@ -328,42 +324,17 @@ export function TradingAccounts({ user }: TradingAccountsProps) {
                       >
                         <MoreHorizontal size={18} />
                       </button>
-                      <AccountMenu 
-                        accountId={account.id} 
-                        isOpen={openMenuId === account.id} 
+                      <AccountMenu
+                        accountId={account.id}
+                        isOpen={openMenuId === account.id}
                         onClose={() => setOpenMenuId(null)}
                         triggerRef={{ current: buttonRefs.current.get(account.id) || null }}
                       />
                     </div>
                   </div>
 
-                  {/* 余额 */}
-                  <div className="mb-4">
-                    {showAmount ? (
-                      <>
-                        <span className="text-2xl font-bold text-slate-900">
-                          {currencySymbol}{formatCurrency(account.balance, account.currency).replace(/[$€¥£]/g, '')}
-                        </span>
-                        <span className="text-sm text-slate-400 ml-1">{account.currency}</span>
-                      </>
-                    ) : (
-                      <span className="text-2xl font-bold text-slate-900 tracking-wider">****</span>
-                    )}
-                  </div>
-
-                  {/* 净值和可用 - 横向排列 */}
+                  {/* 可用余额 + 杠杆 */}
                   <div className="flex items-center gap-4 text-sm mb-4">
-                    <div className="flex items-center gap-1.5">
-                      <BarChart3 size={14} className="text-slate-400" />
-                      <span className="text-slate-500">净值</span>
-                      {showAmount ? (
-                        <span className="font-medium text-slate-700">
-                          {currencySymbol}{formatCurrency(account.equity, account.currency).replace(/[$€¥£]/g, '')}
-                        </span>
-                      ) : (
-                        <span className="font-medium text-slate-700 tracking-wider">****</span>
-                      )}
-                    </div>
                     <div className="flex items-center gap-1.5">
                       <TrendingUp size={14} className="text-slate-400" />
                       <span className="text-slate-500">可用</span>
@@ -374,6 +345,10 @@ export function TradingAccounts({ user }: TradingAccountsProps) {
                       ) : (
                         <span className="font-medium text-slate-700 tracking-wider">****</span>
                       )}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <BarChart3 size={14} className="text-slate-400" />
+                      <span className="text-slate-500">{account.leverage}:1</span>
                     </div>
                   </div>
 

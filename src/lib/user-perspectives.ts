@@ -18,6 +18,7 @@ const mockAccounts: Record<string, TradingAccount[]> = {
       freeMargin: 3200,
       leverage: 500,
       currency: "USD",
+      accountType: "Standard",
     },
   ],
   multiple: [
@@ -29,6 +30,7 @@ const mockAccounts: Record<string, TradingAccount[]> = {
       freeMargin: 8200,
       leverage: 500,
       currency: "USD",
+      accountType: "Standard",
     },
     {
       id: "ACC-67890",
@@ -38,6 +40,7 @@ const mockAccounts: Record<string, TradingAccount[]> = {
       freeMargin: 6200,
       leverage: 200,
       currency: "EUR",
+      accountType: "ECN",
     },
     {
       id: "ACC-54321",
@@ -47,6 +50,7 @@ const mockAccounts: Record<string, TradingAccount[]> = {
       freeMargin: 1200000,
       leverage: 100,
       currency: "JPY",
+      accountType: "Raw",
     },
   ],
 };
