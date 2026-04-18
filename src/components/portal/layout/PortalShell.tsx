@@ -32,8 +32,8 @@ export function PortalShell({ children, breadcrumbs, tenant }: PortalShellProps)
         </div>
       </main>
 
-      {/* 开发工具箱 - 强制显示用于调试 */}
-      <FloatingDevToolbox />
+      {/* 开发工具箱 - 仅开发环境显示 */}
+      {process.env.NODE_ENV !== "production" && <FloatingDevToolbox />}
     </div>
   );
 }

@@ -12,15 +12,15 @@ import { useKYCConfig } from "@/lib/config/hooks";
 import type { RegionCode } from "@/lib/kyc/region-config";
 
 const regionNames: Record<string, string> = {
-  VN: "Vietnam",
-  TH: "Thailand",
-  IN: "India",
-  AE: "United Arab Emirates",
-  KR: "South Korea",
-  JP: "Japan",
-  FR: "France",
-  ES: "Spain",
-  BR: "Brazil",
+  VN: "越南",
+  TH: "泰国",
+  IN: "印度",
+  AE: "阿联酋",
+  KR: "韩国",
+  JP: "日本",
+  FR: "法国",
+  ES: "西班牙",
+  BR: "巴西",
 };
 
 export default function KYCPage() {
@@ -62,7 +62,7 @@ export default function KYCPage() {
       <div className="min-h-screen bg-[rgb(var(--tp-bg-rgb))] flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-[rgb(var(--tp-accent-rgb))] mx-auto mb-4" />
-          <p className="text-[rgba(var(--tp-fg-rgb),0.6)]">Loading configuration...</p>
+          <p className="text-[rgba(var(--tp-fg-rgb),0.6)]">正在加载配置...</p>
         </div>
       </div>
     );
@@ -76,13 +76,13 @@ export default function KYCPage() {
           <CardContent className="pt-8 text-center">
             <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-[rgb(var(--tp-fg-rgb))] mb-2">
-              Configuration Error
+              配置加载失败
             </h2>
             <p className="text-[rgba(var(--tp-fg-rgb),0.6)] mb-6">
-              {configError || "Unable to load KYC configuration. Please try again."}
+              {configError || "无法加载 KYC 配置，请重试。"}
             </p>
             <Button onClick={refetch} variant="outline">
-              Retry
+              重试
             </Button>
           </CardContent>
         </Card>
@@ -98,10 +98,10 @@ export default function KYCPage() {
           <CardContent className="pt-8 text-center">
             <Construction className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-[rgb(var(--tp-fg-rgb))] mb-2">
-              Under Maintenance
+              系统维护中
             </h2>
             <p className="text-[rgba(var(--tp-fg-rgb),0.6)]">
-              {maintenanceMessage || "Account opening is temporarily unavailable. Please try again later."}
+              {maintenanceMessage || "开户服务暂时不可用，请稍后再试。"}
             </p>
           </CardContent>
         </Card>
@@ -117,10 +117,10 @@ export default function KYCPage() {
           <CardContent className="pt-8 text-center">
             <Shield className="w-12 h-12 text-[rgb(var(--tp-accent-rgb))] mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-[rgb(var(--tp-fg-rgb))] mb-2">
-              Registration Currently Closed
+              开户已关闭
             </h2>
             <p className="text-[rgba(var(--tp-fg-rgb),0.6)]">
-              Account opening is not available at this time. Please check back later.
+              当前无法开户，请稍后再试。
             </p>
           </CardContent>
         </Card>
@@ -143,10 +143,10 @@ export default function KYCPage() {
             <Shield className="w-8 h-8 text-[rgb(var(--tp-accent-rgb))]" />
           </div>
           <h1 className="text-3xl font-bold text-[rgb(var(--tp-fg-rgb))] mb-3">
-            Identity Verification
+            身份认证
           </h1>
           <p className="text-[rgba(var(--tp-fg-rgb),0.7)] max-w-md mx-auto">
-            Complete your KYC verification to unlock full trading capabilities. This process typically takes 5-10 minutes.
+            完成 KYC 认证以解锁完整交易权限。整个过程约需 5-10 分钟。
           </p>
           {config.version && (
             <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.3)] mt-2">
@@ -165,10 +165,10 @@ export default function KYCPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="w-5 h-5 text-[rgb(var(--tp-accent-rgb))]" />
-                Select Your Region
+                选择地区
               </CardTitle>
               <CardDescription>
-                {enabledRegions.length} region(s) available. Please select your country/region of residence.
+                共 {enabledRegions.length} 个地区可选，请选择您的居住国家/地区。
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -177,7 +177,7 @@ export default function KYCPage() {
                 onValueChange={(value) => setSelectedRegion(value as RegionCode)}
               >
                 <SelectTrigger className="h-12 bg-[rgb(var(--tp-surface-rgb))]">
-                  <SelectValue placeholder="Select your country/region" />
+                  <SelectValue placeholder="请选择您的国家/地区" />
                 </SelectTrigger>
                 <SelectContent>
                   {enabledRegions.map((code) => (
@@ -197,7 +197,7 @@ export default function KYCPage() {
                 >
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium text-[rgb(var(--tp-fg-rgb))]">
-                      Requirements for {regionNames[selectedRegion]}:
+                      {regionNames[selectedRegion]} 的认证要求：
                     </p>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-[rgba(var(--tp-accent-rgb),0.1)] text-[rgb(var(--tp-accent-rgb))] capitalize">
                       {selectedRegionConfig.kycLevel}
@@ -213,25 +213,25 @@ export default function KYCPage() {
                     {selectedRegionConfig.features.livenessRequired && (
                       <li className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--tp-accent-rgb))]" />
-                        Face verification (liveness check)
+                        人脸识别（活体检测）
                       </li>
                     )}
                     {selectedRegionConfig.features.addressProofRequired && (
                       <li className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--tp-accent-rgb))]" />
-                        Proof of address
+                        地址证明
                       </li>
                     )}
                     {config.steps.personalInfo.enabled && (
                       <li className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--tp-accent-rgb))]" />
-                        Personal and financial information
+                        个人及财务信息
                       </li>
                     )}
                     {config.steps.agreements.enabled && (
                       <li className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--tp-accent-rgb))]" />
-                        Agreement signatures
+                        协议签署
                       </li>
                     )}
                   </ul>
@@ -248,11 +248,11 @@ export default function KYCPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Starting...
+                    正在启动...
                   </>
                 ) : (
                   <>
-                    Start Verification
+                    开始认证
                     <ChevronRight className="w-4 h-4 ml-2" />
                   </>
                 )}
@@ -270,17 +270,17 @@ export default function KYCPage() {
         >
           <div className="p-4 rounded-xl bg-[rgba(var(--tp-fg-rgb),0.05)] text-center">
             <p className="text-2xl font-bold text-[rgb(var(--tp-accent-rgb))]">5-10</p>
-            <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.6)]">Minutes to complete</p>
+            <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.6)]">完成所需时间（分钟）</p>
           </div>
           <div className="p-4 rounded-xl bg-[rgba(var(--tp-fg-rgb),0.05)] text-center">
             <p className="text-2xl font-bold text-[rgb(var(--tp-accent-rgb))]">
               {config.defaults.reviewMode === "auto" ? "<1" : "1-2"}
             </p>
-            <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.6)]">Days for review ({config.defaults.reviewMode})</p>
+            <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.6)]">审核时间（天）· {config.defaults.reviewMode === "auto" ? "自动审核" : "人工审核"}</p>
           </div>
           <div className="p-4 rounded-xl bg-[rgba(var(--tp-fg-rgb),0.05)] text-center">
             <p className="text-2xl font-bold text-[rgb(var(--tp-accent-rgb))]">256-bit</p>
-            <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.6)]">Encryption</p>
+            <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.6)]">加密强度</p>
           </div>
         </motion.div>
 
@@ -291,7 +291,7 @@ export default function KYCPage() {
           transition={{ delay: 0.3 }}
           className="text-center text-xs text-[rgba(var(--tp-fg-rgb),0.4)] mt-8"
         >
-          Your data is protected with bank-level encryption and stored in compliance with GDPR regulations.
+          您的数据受银行级加密保护，并符合 GDPR 规范存储。
         </motion.p>
       </div>
     </div>

@@ -111,7 +111,7 @@ export default function RegisterPage() {
 
             {error && <p className="text-sm text-red-500">{error}</p>}
 
-            <Button type="submit" disabled={loading} className="w-full bg-slate-900 hover:bg-slate-800 text-white">
+            <Button type="submit" disabled={loading} className="w-full bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
               {loading ? "注册中..." : skipVerify ? "注册并进入 Console" : "注册"}
             </Button>
           </form>

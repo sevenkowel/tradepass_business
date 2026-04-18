@@ -5,8 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Loader2, Ban, RotateCcw } from "lucide-react";
+import { Search, Loader2, Ban, RotateCcw, KeyRound } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 interface LicenseItem {
   id: string;
@@ -57,8 +59,9 @@ export default function AdminLicensesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400 mr-2" />
+        <span className="text-sm text-slate-500">加载中...</span>
       </div>
     );
   }
@@ -95,7 +98,7 @@ export default function AdminLicensesPage() {
                 {filtered.map((l) => (
                   <tr key={l.id} className="border-b border-slate-100 hover:bg-slate-50/50">
                     <td className="px-5 py-3">
-                      <p className="font-mono text-xs text-slate-900 truncate max-w-[200px]">{l.key}</p>
+                      <LicenseKeyCell keyValue={l.key} />
                     </td>
                     <td className="px-5 py-3">
                       <p className="font-medium text-slate-900">{l.subscription.product.name}</p>
@@ -113,33 +116,48 @@ export default function AdminLicensesPage() {
                     </td>
                     <td className="px-5 py-3 text-right">
                       {l.status === "active" ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateStatus(l.id, "revoked")}
-                          disabled={updatingId === l.id}
-                        >
-                          {updatingId === l.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Ban className="w-3.5 h-3.5 mr-1" />
-                          )}
-                          吊销
-                        </Button>
+                        <ConfirmDialog
+                          title="确认吊销 License"
+                          description={`确定要吊销租户 ${l.tenant.name} 的 License 吗？吊销后该租户将无法使用对应产品。`}
+                          confirmText="吊销"
+                          variant="danger"
+                          onConfirm={() => updateStatus(l.id, "revoked")}
+                          trigger={
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={updatingId === l.id}
+                            >
+                              {updatingId === l.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Ban className="w-3.5 h-3.5 mr-1" />
+                              )}
+                              吊销
+                            </Button>
+                          }
+                        />
                       ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateStatus(l.id, "active")}
-                          disabled={updatingId === l.id}
-                        >
-                          {updatingId === l.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <RotateCcw className="w-3.5 h-3.5 mr-1" />
-                          )}
-                          恢复
-                        </Button>
+                        <ConfirmDialog
+                          title="确认恢复 License"
+                          description={`确定要恢复租户 ${l.tenant.name} 的 License 吗？`}
+                          confirmText="恢复"
+                          onConfirm={() => updateStatus(l.id, "active")}
+                          trigger={
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={updatingId === l.id}
+                            >
+                              {updatingId === l.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <RotateCcw className="w-3.5 h-3.5 mr-1" />
+                              )}
+                              恢复
+                            </Button>
+                          }
+                        />
                       )}
                     </td>
                   </tr>
@@ -147,7 +165,11 @@ export default function AdminLicensesPage() {
               </tbody>
             </table>
             {filtered.length === 0 && (
-              <div className="p-8 text-center text-slate-500">未找到匹配 License</div>
+              <EmptyState
+                icon={<KeyRound className="w-5 h-5" />}
+                title={search ? "未找到匹配 License" : "暂无 License"}
+                description={search ? "请尝试其他搜索关键词" : "还没有 License 被创建。"}
+              />
             )}
           </div>
         </CardContent>
@@ -171,5 +193,23 @@ function StatusBadge({ status }: { status: string }) {
     >
       {status}
     </span>
+  );
+}
+
+function LicenseKeyCell({ keyValue }: { keyValue: string }) {
+  const [revealed, setRevealed] = useState(false);
+
+  const masked = keyValue.length > 8
+    ? keyValue.slice(0, 4) + "****" + keyValue.slice(-4)
+    : "****";
+
+  return (
+    <button
+      onClick={() => setRevealed(!revealed)}
+      className="font-mono text-xs text-slate-900 hover:text-blue-600 transition-colors"
+      title={revealed ? "点击隐藏" : "点击显示"}
+    >
+      {revealed ? keyValue : masked}
+    </button>
   );
 }

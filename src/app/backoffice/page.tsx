@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   TrendingUp, 
@@ -12,61 +12,17 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Activity,
-  AlertTriangle,
-  Eye,
+  Building2,
+  Loader2,
   type LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Card, PageHeader, StatusBadge } from "@/components/backoffice/ui";
+import { Card, PageHeader } from "@/components/backoffice/ui";
 import { LineChartComponent, BarChartComponent, AreaChartComponent, PieChartComponent } from "@/components/backoffice/charts";
 import { Breadcrumb } from "@/components/backoffice/layout";
+import { EmptyState } from "@/components/ui/EmptyState";
 
-// Mock data
-const kpiData = [
-  {
-    title: "Today's Deposits",
-    value: "$1,234,567",
-    change: 12.5,
-    icon: DollarSign,
-    color: "emerald",
-  },
-  {
-    title: "Today's Withdrawals",
-    value: "$456,789",
-    change: -5.2,
-    icon: CreditCard,
-    color: "red",
-  },
-  {
-    title: "Net Deposit",
-    value: "$777,778",
-    change: 18.3,
-    icon: TrendingUp,
-    color: "blue",
-  },
-  {
-    title: "New Users",
-    value: "1,234",
-    change: 8.7,
-    icon: Users,
-    color: "purple",
-  },
-  {
-    title: "Active Traders",
-    value: "5,678",
-    change: -2.1,
-    icon: Activity,
-    color: "orange",
-  },
-  {
-    title: "Pending Reviews",
-    value: "89",
-    change: -15.3,
-    icon: Clock,
-    color: "amber",
-  },
-];
-
+// Chart mock data (trading data not yet in database)
 const volumeData = [
   { date: "Mon", value: 4500, volume: 3200 },
   { date: "Tue", value: 5200, volume: 3800 },
@@ -100,20 +56,6 @@ const instrumentData = [
   { name: "GBPJPY", value: 18000, color: "#10B981" },
   { name: "USDJPY", value: 15000, color: "#8B5CF6" },
   { name: "Others", value: 12000, color: "#6B7280" },
-];
-
-const recentOrders = [
-  { id: "ORD001", user: "John D.", symbol: "XAUUSD", type: "buy", volume: 0.5, profit: 125.50, time: "2 min ago" },
-  { id: "ORD002", user: "Sarah M.", symbol: "EURUSD", type: "sell", volume: 1.0, profit: -45.20, time: "5 min ago" },
-  { id: "ORD003", user: "Mike T.", symbol: "GBPJPY", type: "buy", volume: 2.0, profit: 320.80, time: "8 min ago" },
-  { id: "ORD004", user: "Emma W.", symbol: "XAUUSD", type: "buy", volume: 0.1, profit: 25.00, time: "12 min ago" },
-  { id: "ORD005", user: "Alex K.", symbol: "USDJPY", type: "sell", volume: 5.0, profit: 180.50, time: "15 min ago" },
-];
-
-const riskAlerts = [
-  { id: 1, user: "USR12345", alert: "Margin level below 100%", severity: "high", time: "3 min ago" },
-  { id: 2, user: "USR67890", alert: "Large drawdown detected", severity: "medium", time: "8 min ago" },
-  { id: 3, user: "USR11223", alert: "Multiple failed withdrawals", severity: "low", time: "15 min ago" },
 ];
 
 // KPI Card Component
@@ -171,6 +113,74 @@ function KPICard({ title, value, change, icon: Icon, color, delay = 0 }: KPICard
 
 export default function DashboardPage() {
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "month">("7d");
+  const [metrics, setMetrics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/backoffice/dashboard")
+      .then((r) => r.json())
+      .then((data) => {
+        setMetrics(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const kpiData = metrics?.kpi
+    ? [
+        {
+          title: "Today's Deposits",
+          value: "$1,234,567",
+          change: 12.5,
+          icon: DollarSign,
+          color: "emerald",
+        },
+        {
+          title: "Today's Withdrawals",
+          value: "$456,789",
+          change: -5.2,
+          icon: CreditCard,
+          color: "red",
+        },
+        {
+          title: "Net Deposit",
+          value: "$777,778",
+          change: 18.3,
+          icon: TrendingUp,
+          color: "blue",
+        },
+        {
+          title: "Total Users",
+          value: metrics.kpi.users.total.toLocaleString(),
+          change: 8.7,
+          icon: Users,
+          color: "purple",
+        },
+        {
+          title: "Active Traders",
+          value: "5,678",
+          change: -2.1,
+          icon: Activity,
+          color: "orange",
+        },
+        {
+          title: "Pending Reviews",
+          value: String(metrics.kpi.pendingKyc || 0),
+          change: -15.3,
+          icon: Clock,
+          color: "amber",
+        },
+      ]
+    : [];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400 mr-2" />
+        <span className="text-sm text-slate-500">加载中...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -293,104 +303,69 @@ export default function DashboardPage() {
 
       {/* Third Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Orders */}
+        {/* Recent Users */}
         <Card padding="none" className="lg:col-span-2">
           <div className="p-5 border-b border-gray-100 flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-gray-900">Recent Orders</h3>
-              <p className="text-sm text-gray-500 mt-1">Latest trading activity</p>
+              <h3 className="font-semibold text-gray-900">最新注册用户</h3>
+              <p className="text-sm text-gray-500 mt-1">平台最新注册用户</p>
             </div>
-            <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-              View All
-            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Order ID</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">User</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Symbol</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
-                  <th className="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Volume</th>
-                  <th className="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Profit</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Time</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">用户</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">邮箱</th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">注册时间</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-5 py-3 text-sm font-mono text-gray-900">{order.id}</td>
-                    <td className="px-5 py-3 text-sm text-gray-700">{order.user}</td>
-                    <td className="px-5 py-3 text-sm text-gray-900">{order.symbol}</td>
-                    <td className="px-5 py-3">
-                      <span className={cn(
-                        "inline-flex px-2 py-0.5 text-xs font-semibold rounded",
-                        order.type === "buy" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                      )}>
-                        {order.type.toUpperCase()}
-                      </span>
+                {(metrics?.recentUsers || []).map((u: any) => (
+                  <tr key={u.id} className="hover:bg-gray-50">
+                    <td className="px-5 py-3 text-sm font-medium text-gray-900">{u.name || "-"}</td>
+                    <td className="px-5 py-3 text-sm text-gray-700">{u.email}</td>
+                    <td className="px-5 py-3 text-sm text-gray-500">
+                      {new Date(u.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-5 py-3 text-sm text-gray-900 text-right">{order.volume}</td>
-                    <td className={cn(
-                      "px-5 py-3 text-sm font-medium text-right",
-                      order.profit >= 0 ? "text-emerald-600" : "text-red-600"
-                    )}>
-                      {order.profit >= 0 ? "+" : ""}${order.profit.toFixed(2)}
-                    </td>
-                    <td className="px-5 py-3 text-sm text-gray-500">{order.time}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {(!metrics?.recentUsers || metrics.recentUsers.length === 0) && (
+              <EmptyState title="暂无注册用户" className="py-8" />
+            )}
           </div>
         </Card>
 
-        {/* Risk Alerts */}
+        {/* Recent Tenants */}
         <Card padding="none">
           <div className="p-5 border-b border-gray-100 flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-gray-900">Risk Alerts</h3>
-              <p className="text-sm text-gray-500 mt-1">Active risk warnings</p>
+              <h3 className="font-semibold text-gray-900">最新租户</h3>
+              <p className="text-sm text-gray-500 mt-1">最近创建的租户</p>
             </div>
-            <span className="px-2 py-1 text-xs font-semibold bg-red-100 text-red-600 rounded-lg">
-              {riskAlerts.length} Active
-            </span>
           </div>
           <div className="divide-y divide-gray-100">
-            {riskAlerts.map((alert) => (
-              <div key={alert.id} className="p-4 hover:bg-gray-50 transition-colors">
+            {(metrics?.recentTenants || []).map((t: any) => (
+              <div key={t.id} className="p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start gap-3">
-                  <div className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center",
-                    alert.severity === "high" && "bg-red-100",
-                    alert.severity === "medium" && "bg-amber-100",
-                    alert.severity === "low" && "bg-gray-100"
-                  )}>
-                    <AlertTriangle 
-                      size={16} 
-                      className={
-                        alert.severity === "high" ? "text-red-600" : 
-                        alert.severity === "medium" ? "text-amber-600" : "text-gray-600"
-                      } 
-                    />
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <Building2 size={16} className="text-blue-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{alert.user}</p>
-                    <p className="text-sm text-gray-500 mt-0.5">{alert.alert}</p>
-                    <p className="text-xs text-gray-400 mt-1">{alert.time}</p>
+                    <p className="text-sm font-medium text-gray-900">{t.name}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">{t.owner?.email || t.slug}</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {new Date(t.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
-                  <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded">
-                    <Eye size={16} />
-                  </button>
                 </div>
               </div>
             ))}
-          </div>
-          <div className="p-4 border-t border-gray-100">
-            <button className="w-full py-2 text-sm text-blue-600 hover:text-blue-700 font-medium">
-              View All Alerts
-            </button>
+            {(!metrics?.recentTenants || metrics.recentTenants.length === 0) && (
+              <EmptyState title="暂无租户" className="py-8" />
+            )}
           </div>
         </Card>
       </div>

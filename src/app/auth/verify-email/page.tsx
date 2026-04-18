@@ -65,7 +65,7 @@ function VerifyEmailContent() {
             </div>
             <Button
               onClick={() => router.push("/auth/login")}
-              className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-11 px-6"
+              className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white rounded-xl h-11 px-6"
             >
               前往登录
             </Button>
@@ -89,7 +89,7 @@ function VerifyEmailContent() {
               </Button>
               <Button
                 onClick={() => router.push("/auth/login")}
-                className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-11 px-6"
+                className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white rounded-xl h-11 px-6"
               >
                 前往登录
               </Button>

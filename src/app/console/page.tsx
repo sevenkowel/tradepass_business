@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Building2, Package, CreditCard, Plus } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Building2, Package, CreditCard, Plus, Loader2 } from "lucide-react";
 
 interface Tenant {
   id: string;
@@ -48,7 +49,7 @@ export default function ConsoleDashboard() {
             </div>
             <div>
               <p className="text-sm text-slate-500">已订阅产品</p>
-              <p className="text-2xl font-bold text-slate-900">-</p>
+              <p className="text-2xl font-bold text-slate-900">0</p>
             </div>
           </CardContent>
         </Card>
@@ -59,7 +60,7 @@ export default function ConsoleDashboard() {
             </div>
             <div>
               <p className="text-sm text-slate-500">待支付账单</p>
-              <p className="text-2xl font-bold text-slate-900">-</p>
+              <p className="text-2xl font-bold text-slate-900">0</p>
             </div>
           </CardContent>
         </Card>
@@ -68,19 +69,30 @@ export default function ConsoleDashboard() {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-slate-900">我的租户</h2>
         <Link href="/console/tenants/new">
-          <Button className="bg-slate-900 hover:bg-slate-800 text-white">
+          <Button className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
             <Plus className="w-4 h-4 mr-2" /> 创建租户
           </Button>
         </Link>
       </div>
 
       {loading ? (
-        <p className="text-slate-500">加载中...</p>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-6 h-6 animate-spin text-slate-400 mr-2" />
+          <span className="text-sm text-slate-500">加载中...</span>
+        </div>
       ) : tenants.length === 0 ? (
         <Card>
-          <CardContent className="p-8 text-center text-slate-500">
-            还没有租户，<Link href="/console/tenants/new" className="text-blue-600 hover:underline">立即创建</Link>
-          </CardContent>
+          <EmptyState
+            title="暂无租户"
+            description="您还没有创建任何租户，创建后即可订阅产品和管理业务。"
+            action={
+              <Link href="/console/tenants/new">
+                <Button className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
+                  <Plus className="w-4 h-4 mr-2" /> 创建租户
+                </Button>
+              </Link>
+            }
+          />
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, Building2, KeyRound, CreditCard, TrendingUp, Loader2 } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface Metrics {
   users: { total: number; active: number };
@@ -35,8 +36,9 @@ export default function AdminDashboard() {
 
   if (loading || !metrics) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400 mr-2" />
+        <span className="text-sm text-slate-500">加载中...</span>
       </div>
     );
   }
@@ -93,7 +95,7 @@ export default function AdminDashboard() {
                 </div>
               ))}
               {metrics.recentUsers.length === 0 && (
-                <p className="text-sm text-slate-500">暂无数据</p>
+                <EmptyState title="暂无注册用户" description="还没有用户注册，推广后可在此查看。" />
               )}
             </div>
           </CardContent>
@@ -117,7 +119,7 @@ export default function AdminDashboard() {
                 </div>
               ))}
               {metrics.recentTenants.length === 0 && (
-                <p className="text-sm text-slate-500">暂无数据</p>
+                <EmptyState title="暂无租户" description="还没有租户被创建。" />
               )}
             </div>
           </CardContent>

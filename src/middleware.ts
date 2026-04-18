@@ -9,10 +9,12 @@ export function middleware(request: NextRequest) {
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
+  // Protected routes require authentication
   if (!isPublic && !token) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
+  // Redirect authenticated users away from auth pages
   if ((pathname === "/auth/login" || pathname === "/auth/register") && token) {
     return NextResponse.redirect(new URL("/console", request.url));
   }
@@ -21,5 +23,11 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/console/:path*", "/admin/:path*", "/auth/login", "/auth/register"],
+  matcher: [
+    "/console/:path*",
+    "/admin/:path*",
+    "/backoffice/:path*",
+    "/auth/login",
+    "/auth/register",
+  ],
 };

@@ -85,7 +85,7 @@ export default function SubscribePage() {
                     subscribe(p.id);
                   }}
                   disabled={submitting}
-                  className="shrink-0 bg-slate-900 hover:bg-slate-800 text-white"
+                  className="shrink-0 bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
                 >
                   {submitting && selected === p.id ? "开通中..." : "立即开通"}
                 </Button>

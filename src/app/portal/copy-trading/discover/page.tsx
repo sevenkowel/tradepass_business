@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/portal/widgets/PageHeader";
 import { formatPercent, cn } from "@/lib/utils";
 
 const mockTraders = [
-  { id: 1, name: "AlphaEdge Pro", avatar: "AE", color: "#00D4AA", roi: 142.8, monthlyRoi: 12.4, drawdown: 8.2, followers: 1240, aum: 4820000, winRate: 72, trades: 380, since: "2023-01", level: "Master", tag: "TOP" },
+  { id: 1, name: "AlphaEdge Pro", avatar: "AE", color: "#1E40AF", roi: 142.8, monthlyRoi: 12.4, drawdown: 8.2, followers: 1240, aum: 4820000, winRate: 72, trades: 380, since: "2023-01", level: "Master", tag: "TOP" },
   { id: 2, name: "Quantum Scalper", avatar: "QS", color: "#635BFF", roi: 98.4, monthlyRoi: 8.7, drawdown: 6.8, followers: 2100, aum: 7200000, winRate: 68, trades: 1420, since: "2022-08", level: "Master", tag: "POPULAR" },
   { id: 3, name: "FX Sentinel", avatar: "FS", color: "#FFB020", roi: 87.5, monthlyRoi: 7.2, drawdown: 12.1, followers: 680, aum: 2100000, winRate: 65, trades: 290, since: "2023-06", level: "Pro", tag: null },
   { id: 4, name: "TechWave FX", avatar: "TW", color: "#FF4D4F", roi: 76.3, monthlyRoi: 6.1, drawdown: 9.4, followers: 540, aum: 1680000, winRate: 70, trades: 410, since: "2023-03", level: "Pro", tag: null },

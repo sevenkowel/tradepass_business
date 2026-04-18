@@ -118,7 +118,7 @@ export default function InviteMemberPage() {
               <Button
                 type="submit"
                 disabled={loading || !email}
-                className="bg-slate-900 hover:bg-slate-800 text-white"
+                className="bg-[#1E40AF] hover:bg-[#1E3A8A] text-white"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

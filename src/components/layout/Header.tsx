@@ -109,6 +109,7 @@ function NavItem({ label, items, href }: NavItemProps) {
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { resolvedTheme, toggleTheme } = useTheme();
+  const [lang, setLang] = useState<"zh" | "en">("zh");
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass-dark">
@@ -132,7 +133,14 @@ export function Header() {
           </nav>
 
           {/* Right Actions */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-3">
+            <button
+              onClick={() => setLang(lang === "zh" ? "en" : "zh")}
+              className="px-2 py-1 rounded-md text-xs font-medium border border-foreground/20 text-foreground/60 hover:text-foreground hover:border-foreground/40 transition-colors"
+              title={lang === "zh" ? "Switch to English" : "切换到中文"}
+            >
+              {lang === "zh" ? "EN" : "中"}
+            </button>
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-white/5 transition-colors text-foreground/60 hover:text-foreground"

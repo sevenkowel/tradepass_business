@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { ArrowRight, Zap, Shield, Building2, Rocket, Globe } from "lucide-react";
+import Link from "next/link";
 
 const products = [
   {
@@ -87,10 +88,12 @@ export function CoreProductsSection() {
                   </li>
                 ))}
               </ul>
-              <Button variant="ghost" size="sm" className="group/btn">
-                Learn more
-                <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-              </Button>
+              <Link href="/auth/register">
+                <Button variant="ghost" size="sm" className="group/btn">
+                  Learn more
+                  <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
             </motion.div>
           ))}
         </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/Button";
 import { CreditCard, CheckCircle2, Clock, AlertCircle, Loader2 } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { cn } from "@/lib/utils";
 
 interface Invoice {
@@ -92,9 +93,10 @@ export default function BillingPage() {
         <h2 className="text-lg font-semibold text-slate-900 mb-4">账单列表</h2>
         {invoices.length === 0 ? (
           <Card>
-            <CardContent className="p-8 text-center text-slate-500">
-              暂无账单
-            </CardContent>
+            <EmptyState
+              title="暂无账单"
+              description="当前没有待处理的账单，系统会在产生费用时自动生成。"
+            />
           </Card>
         ) : (
           <div className="space-y-3">

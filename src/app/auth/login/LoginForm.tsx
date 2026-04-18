@@ -67,7 +67,7 @@ export default function LoginForm() {
 
             {error && <p className="text-sm text-red-500">{error}</p>}
 
-            <Button type="submit" disabled={loading} className="w-full bg-slate-900 hover:bg-slate-800 text-white">
+            <Button type="submit" disabled={loading} className="w-full bg-[#1E40AF] hover:bg-[#1E3A8A] text-white">
               {loading ? "登录中..." : "登录"}
             </Button>
           </form>

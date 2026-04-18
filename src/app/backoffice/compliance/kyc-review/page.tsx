@@ -25,6 +25,7 @@ import {
   ClipboardCheck,
   BarChart3,
   Download,
+  X,
 } from "lucide-react";
 import {
   Button,
@@ -407,30 +408,16 @@ function ReviewDrawer({
         {/* Document Images */}
         <section>
           <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">证件图片</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="aspect-video bg-slate-100 rounded-lg flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200">
-              <FileText className="w-8 h-8 text-slate-300" />
-              <span className="text-xs text-slate-400">正面</span>
-            </div>
-            {record.documentBackUrl && (
-              <div className="aspect-video bg-slate-100 rounded-lg flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200">
-                <FileText className="w-8 h-8 text-slate-300" />
-                <span className="text-xs text-slate-400">反面</span>
-              </div>
-            )}
-            {record.selfieUrl && (
-              <div className="aspect-video bg-slate-100 rounded-lg flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200">
-                <User className="w-8 h-8 text-slate-300" />
-                <span className="text-xs text-slate-400">自拍认证</span>
-              </div>
-            )}
-          </div>
+          <DocumentImages
+            frontUrl={record.documentFrontUrl}
+            backUrl={record.documentBackUrl}
+            selfieUrl={record.selfieUrl}
+          />
         </section>
 
         {/* AML Check */}
         <section>
           <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">AML 合规筛查</h3>
-          <div className="p-4 rounded-lg border ${record.amlPassed ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}">
             <div
               className={`p-4 rounded-lg border ${
                 record.amlPassed
@@ -471,7 +458,6 @@ function ReviewDrawer({
                 />
               </div>
             </div>
-          </div>
         </section>
 
         {/* Rejection Reason */}
@@ -832,5 +818,84 @@ export default function KYCReviewPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+// Document Images Component with preview
+function DocumentImages({
+  frontUrl,
+  backUrl,
+  selfieUrl,
+}: {
+  frontUrl?: string;
+  backUrl?: string;
+  selfieUrl?: string;
+}) {
+  const [preview, setPreview] = useState<string | null>(null);
+
+  const images = [
+    { url: frontUrl, label: "正面", icon: FileText },
+    { url: backUrl, label: "反面", icon: FileText },
+    { url: selfieUrl, label: "自拍认证", icon: User },
+  ].filter((i) => i.url) as { url: string; label: string; icon: typeof FileText }[];
+
+  if (images.length === 0) {
+    return (
+      <div className="aspect-video bg-slate-100 rounded-lg flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200">
+        <FileText className="w-8 h-8 text-slate-300" />
+        <span className="text-xs text-slate-400">暂无证件图片</span>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className={`grid gap-3 ${images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+        {images.map((img) => (
+          <button
+            key={img.label}
+            onClick={() => setPreview(img.url)}
+            className="aspect-video bg-slate-100 rounded-lg overflow-hidden border border-slate-200 hover:border-blue-400 transition-colors relative group"
+          >
+            <img
+              src={img.url}
+              alt={img.label}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-100 group-hover:bg-slate-50 transition-colors">
+              <img.icon className="w-8 h-8 text-slate-300" />
+              <span className="text-xs text-slate-400">{img.label}</span>
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors">
+              <Eye className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Image Preview Modal */}
+      {preview && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-8"
+          onClick={() => setPreview(null)}
+        >
+          <button
+            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+            onClick={() => setPreview(null)}
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img
+            src={preview}
+            alt="Preview"
+            className="max-w-full max-h-full rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+    </>
   );
 }

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { ArrowRight, Play } from "lucide-react";
+import Link from "next/link";
 
 export function HeroSection() {
   return (
@@ -63,9 +64,9 @@ export function HeroSection() {
             />
             <defs>
               <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#00D4AA" stopOpacity="0" />
-                <stop offset="50%" stopColor="#00D4AA" stopOpacity="0.5" />
-                <stop offset="100%" stopColor="#635BFF" stopOpacity="0.3" />
+                <stop offset="0%" stopColor="#1E40AF" stopOpacity="0" />
+                <stop offset="50%" stopColor="#1E40AF" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.3" />
               </linearGradient>
             </defs>
           </svg>
@@ -81,8 +82,8 @@ export function HeroSection() {
             />
             <defs>
               <linearGradient id="chartGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#00D4AA" stopOpacity="0" />
-                <stop offset="100%" stopColor="#635BFF" stopOpacity="0.2" />
+                <stop offset="0%" stopColor="#1E40AF" stopOpacity="0" />
+                <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.2" />
               </linearGradient>
             </defs>
           </svg>
@@ -141,14 +142,18 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Button size="lg" className="group">
-              Start Demo
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button variant="outline" size="lg" className="border-white/20 text-white hover:border-accent hover:text-accent">
-              <Play className="w-4 h-4 mr-2" />
-              Watch Demo
-            </Button>
+            <Link href="/auth/register">
+              <Button size="lg" className="group">
+                Start Demo
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <Link href="#products">
+              <Button variant="outline" size="lg" className="border-white/20 text-white hover:border-accent hover:text-accent">
+                <Play className="w-4 h-4 mr-2" />
+                Watch Demo
+              </Button>
+            </Link>
           </motion.div>
 
           {/* Stats */}

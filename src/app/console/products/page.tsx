@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Package, CheckCircle2, ArrowRight } from "lucide-react";
+import { Package, CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 interface Product {
   id: string;
@@ -33,8 +34,9 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400 mr-2" />
+        <span className="text-sm text-slate-500">加载中...</span>
       </div>
     );
   }
@@ -84,10 +86,11 @@ export default function ProductsPage() {
         <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">可订阅</h2>
         {available.length === 0 ? (
           <Card>
-            <CardContent className="p-8 text-center text-slate-500">
-              <Package className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-              <p>暂无可订阅产品</p>
-            </CardContent>
+            <EmptyState
+              icon={<Package className="w-5 h-5" />}
+              title="暂无可订阅产品"
+              description="您已订阅所有可用产品，如有需要请联系客服。"
+            />
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

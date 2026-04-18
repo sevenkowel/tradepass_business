@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { ArrowRight, Mail } from "lucide-react";
+import Link from "next/link";
 
 export function CTASection() {
   return (
@@ -42,14 +43,18 @@ export function CTASection() {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="group">
-              Request Demo
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button variant="outline" size="lg" className="border-white/20 text-white hover:border-accent hover:text-accent">
-              <Mail className="w-4 h-4 mr-2" />
-              Contact Sales
-            </Button>
+            <Link href="/auth/register">
+              <Button size="lg" className="group">
+                Request Demo
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <Link href="mailto:sales@tradepass.io">
+              <Button variant="outline" size="lg" className="border-white/20 text-white hover:border-accent hover:text-accent">
+                <Mail className="w-4 h-4 mr-2" />
+                Contact Sales
+              </Button>
+            </Link>
           </div>
         </motion.div>
       </div>

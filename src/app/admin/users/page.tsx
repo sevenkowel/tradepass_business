@@ -5,7 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Loader2, Ban, CheckCircle2 } from "lucide-react";
+import { Search, Loader2, Ban, CheckCircle2, Users } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { cn } from "@/lib/utils";
 
 interface UserItem {
@@ -56,8 +58,9 @@ export default function AdminUsersPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400 mr-2" />
+        <span className="text-sm text-slate-500">加载中...</span>
       </div>
     );
   }
@@ -111,33 +114,48 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-5 py-3 text-right">
                       {u.status === "active" ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateStatus(u.id, "suspended")}
-                          disabled={updatingId === u.id}
-                        >
-                          {updatingId === u.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Ban className="w-3.5 h-3.5 mr-1" />
-                          )}
-                          禁用
-                        </Button>
+                        <ConfirmDialog
+                          title="确认禁用用户"
+                          description={`确定要禁用用户 ${u.email} 吗？禁用后该用户将无法登录。`}
+                          confirmText="禁用"
+                          variant="danger"
+                          onConfirm={() => updateStatus(u.id, "suspended")}
+                          trigger={
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={updatingId === u.id}
+                            >
+                              {updatingId === u.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Ban className="w-3.5 h-3.5 mr-1" />
+                              )}
+                              禁用
+                            </Button>
+                          }
+                        />
                       ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateStatus(u.id, "active")}
-                          disabled={updatingId === u.id}
-                        >
-                          {updatingId === u.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                          )}
-                          恢复
-                        </Button>
+                        <ConfirmDialog
+                          title="确认恢复用户"
+                          description={`确定要恢复用户 ${u.email} 的访问权限吗？`}
+                          confirmText="恢复"
+                          onConfirm={() => updateStatus(u.id, "active")}
+                          trigger={
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={updatingId === u.id}
+                            >
+                              {updatingId === u.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                              )}
+                              恢复
+                            </Button>
+                          }
+                        />
                       )}
                     </td>
                   </tr>
@@ -145,7 +163,11 @@ export default function AdminUsersPage() {
               </tbody>
             </table>
             {filtered.length === 0 && (
-              <div className="p-8 text-center text-slate-500">未找到匹配用户</div>
+              <EmptyState
+                icon={<Users className="w-5 h-5" />}
+                title={search ? "未找到匹配用户" : "暂无用户"}
+                description={search ? "请尝试其他搜索关键词" : "还没有用户注册。"}
+              />
             )}
           </div>
         </CardContent>

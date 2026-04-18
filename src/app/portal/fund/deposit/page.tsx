@@ -208,6 +208,7 @@ export default function DepositPage() {
   const [copied, setCopied] = useState(false);
   const [showCryptoConfirm, setShowCryptoConfirm] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
   const userKyc = 1;
   const limits = KYC_LIMITS[userKyc] || KYC_LIMITS[0];
@@ -290,21 +291,7 @@ export default function DepositPage() {
 
   if (submitted) {
     return (
-      <div className="p-6 min-h-[60vh] flex items-center justify-center">
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-md">
-          <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-10 h-10" />
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">提交成功</h2>
-          <p className="text-slate-500 mb-6">您的存款订单已提交，系统将尽快处理。</p>
-          <div className="flex gap-3 justify-center">
-            <Button variant="outline" onClick={resetFlow}>再存一笔</Button>
-            <Link href="/portal/fund/history">
-              <Button className="bg-slate-900 hover:bg-slate-800 text-white">查看记录</Button>
-            </Link>
-          </div>
-        </motion.div>
-      </div>
+      <SubmittedSuccess onReset={resetFlow} />
     );
   }
 
@@ -852,11 +839,18 @@ export default function DepositPage() {
                 <div className="space-y-0">
                   {faqItems.map((item, i) => (
                     <div key={i} className="border-b border-slate-100 last:border-0">
-                      <button onClick={() => {}}
-                        className="w-full flex items-center justify-between py-3 text-sm text-slate-700 hover:text-slate-900 text-left">
+                      <button
+                        onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
+                        className="w-full flex items-center justify-between py-3 text-sm text-slate-700 hover:text-slate-900 text-left"
+                      >
                         {item.q}
-                        <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                        <ChevronDown className={cn("w-4 h-4 text-slate-400 shrink-0 transition-transform", expandedFaq === i && "rotate-180")} />
                       </button>
+                      {expandedFaq === i && (
+                        <div className="pb-3 text-sm text-slate-500 leading-relaxed">
+                          {item.a}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -892,6 +886,34 @@ export default function DepositPage() {
           </motion.div>
         </div>
       )}
+    </div>
+  );
+}
+
+function SubmittedSuccess({ onReset }: { onReset: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.location.href = "/portal/fund/history";
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="p-6 min-h-[60vh] flex items-center justify-center">
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-md">
+        <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle2 className="w-10 h-10" />
+        </div>
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">提交成功</h2>
+        <p className="text-slate-500 mb-2">您的存款订单已提交，系统将尽快处理。</p>
+        <p className="text-xs text-slate-400 mb-6">3 秒后自动跳转到交易记录...</p>
+        <div className="flex gap-3 justify-center">
+          <Button variant="outline" onClick={onReset}>再存一笔</Button>
+          <Link href="/portal/fund/history">
+            <Button className="bg-slate-900 hover:bg-slate-800 text-white">查看记录</Button>
+          </Link>
+        </div>
+      </motion.div>
     </div>
   );
 }

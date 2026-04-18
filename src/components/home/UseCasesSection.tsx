@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { ArrowRight, Rocket, TrendingUp, Building } from "lucide-react";
+import Link from "next/link";
 
 const useCases = [
   {
@@ -87,10 +88,12 @@ export function UseCasesSection() {
                     </li>
                   ))}
                 </ul>
-                <Button variant="outline" className="w-full group/btn">
-                  Learn more
-                  <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                </Button>
+                <Link href={useCase.href}>
+                  <Button variant="outline" className="w-full group/btn">
+                    Learn more
+                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
               </div>
             </motion.div>
           ))}
