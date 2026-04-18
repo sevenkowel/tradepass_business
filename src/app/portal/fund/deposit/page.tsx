@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowDownLeft, Wallet, CreditCard, Landmark, HelpCircle, ArrowUpRight,
   Clock, ChevronDown, ChevronUp, MessageCircle, Lock, AlertTriangle,
   Star, ChevronRight, CheckCircle2, Loader2, ArrowLeft, Copy,
 } from "lucide-react";
+import QRCode from "qrcode";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
@@ -202,6 +204,10 @@ export default function DepositPage() {
   const [submitted, setSubmitted] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [orderDetails, setOrderDetails] = useState<CalculationResult | null>(null);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [showCryptoConfirm, setShowCryptoConfirm] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   const userKyc = 1;
   const limits = KYC_LIMITS[userKyc] || KYC_LIMITS[0];
@@ -241,6 +247,37 @@ export default function DepositPage() {
     setSubmitted(true);
   }
 
+  async function copyText(text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {}
+  }
+
+  function getNetworkLabel(methodId: string) {
+    if (methodId.includes("trc20")) return "TRC20";
+    if (methodId.includes("erc20")) return "ERC20";
+    if (methodId === "btc") return "BTC";
+    if (methodId === "eth") return "ETH";
+    return methodId.toUpperCase();
+  }
+
+  useEffect(() => {
+    if (selectedMethod?.category === "crypto") {
+      const address = selectedMethod.id.includes("btc")
+        ? "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+        : selectedMethod.id.includes("eth")
+        ? "0xA1B2C3D4E5F6789012345678901234567890ABCD"
+        : "0xA1B2C3D4E5F6";
+      QRCode.toDataURL(address, { width: 160, margin: 1, color: { dark: "#0f172a", light: "#ffffff" } })
+        .then(setQrDataUrl)
+        .catch(() => setQrDataUrl(null));
+    } else {
+      setQrDataUrl(null);
+    }
+  }, [selectedMethod]);
+
   function resetFlow() {
     setStep(1);
     setTargetAccount(recommendedAccount.id);
@@ -262,7 +299,9 @@ export default function DepositPage() {
           <p className="text-slate-500 mb-6">您的存款订单已提交，系统将尽快处理。</p>
           <div className="flex gap-3 justify-center">
             <Button variant="outline" onClick={resetFlow}>再存一笔</Button>
-            <Button className="bg-slate-900 hover:bg-slate-800 text-white">查看记录</Button>
+            <Link href="/portal/fund/history">
+              <Button className="bg-slate-900 hover:bg-slate-800 text-white">查看记录</Button>
+            </Link>
           </div>
         </motion.div>
       </div>
@@ -610,32 +649,124 @@ export default function DepositPage() {
                       </div>
                     </div>
 
-                    {/* Integrated receiving info */}
-                    {(selectedMethod.category === "bank" || selectedMethod.category === "crypto") && (
-                      <div className="p-5 border border-dashed border-slate-300 rounded-xl bg-slate-50/50 space-y-3">
+                    {/* Crypto receiving info */}
+                    {selectedMethod.category === "crypto" && (
+                      <div className="p-5 border border-dashed border-slate-300 rounded-xl bg-slate-50/50 space-y-5">
+                        <div className="flex items-start gap-3">
+                          <span className="shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center mt-0.5">1</span>
+                          <div>
+                            <p className="text-base font-semibold text-slate-900">存款地址</p>
+                            <p className="text-sm text-slate-500 mt-0.5">
+                              复制 {selectedMethod.name} 钱包地址并将其粘贴到您的个人加密货币钱包中作为收件人地址。
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-center gap-4">
+                          <div className="w-36 h-36 bg-white rounded-xl border border-slate-200 p-2 flex items-center justify-center overflow-hidden">
+                            {qrDataUrl ? (
+                              <img src={qrDataUrl} alt="QR Code" className="w-full h-full object-contain rounded-lg" />
+                            ) : (
+                              <div className="w-full h-full bg-slate-100 rounded-lg animate-pulse" />
+                            )}
+                          </div>
+
+                          <div className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-slate-100 rounded-xl">
+                            <p className="font-medium text-slate-900 font-mono tracking-wide break-all text-sm leading-relaxed">
+                              {selectedMethod.id.includes("btc")
+                                ? "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+                                : selectedMethod.id.includes("eth")
+                                ? "0xA1B2C3D4E5F6789012345678901234567890ABCD"
+                                : "0xA1B2C3D4E5F6"}
+                            </p>
+                            <button
+                              onClick={() =>
+                                copyText(
+                                  selectedMethod.id.includes("btc")
+                                    ? "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+                                    : selectedMethod.id.includes("eth")
+                                    ? "0xA1B2C3D4E5F6789012345678901234567890ABCD"
+                                    : "0xA1B2C3D4E5F6"
+                                )
+                              }
+                              className="shrink-0 p-2 hover:bg-white rounded-lg text-slate-500 transition-colors"
+                              title="复制地址"
+                            >
+                              {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+                          <p className="text-sm font-semibold text-amber-800 flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4" />重要
+                          </p>
+                          <ol className="text-xs text-amber-700 space-y-1.5 list-decimal list-inside leading-relaxed">
+                            <li>请确保支付金额超过 5 USDT。低于此阈值的金额将不会被记入。</li>
+                            <li>USDT-BEP20 转账分为交易和内部交易。使用内部交易进行转账可能会导致交易丢失。请避免使用这种方法。</li>
+                            <li>请注意，我们无法通过 BUSDT 存款或取款，请确保地址和加密货币与我们接受的链和货币匹配，否则您可能会丢失资金。</li>
+                            <li>请注意支付区块链转账手续费，以免导致入金到账金额不同。</li>
+                          </ol>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bank receiving info */}
+                    {selectedMethod.category === "bank" && (
+                      <div className="p-5 border border-dashed border-slate-300 rounded-xl bg-slate-50/50 space-y-4">
                         <p className="text-sm font-medium text-slate-900 flex items-center gap-2">
-                          <Wallet className="w-4 h-4 text-slate-500" />收款账户信息
+                          <Landmark className="w-4 h-4 text-slate-500" />收款账户信息
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                           <div className="p-3 bg-white rounded-lg border border-slate-200">
                             <p className="text-xs text-slate-500">账户名称</p>
-                            <p className="font-medium text-slate-900">TradePass Global Ltd</p>
+                            <p className="font-medium text-slate-900 mt-1">TradePass Global Ltd</p>
                           </div>
                           <div className="p-3 bg-white rounded-lg border border-slate-200">
-                            <p className="text-xs text-slate-500">{selectedMethod.category === "crypto" ? "钱包地址" : "银行账号"}</p>
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="font-medium text-slate-900 truncate">{selectedMethod.category === "crypto" ? "0xA1B2C3...D4E5F6" : "8823-1100-4455-9921"}</p>
-                              <button className="p-1 hover:bg-slate-100 rounded text-slate-500"><Copy className="w-3.5 h-3.5" /></button>
+                            <p className="text-xs text-slate-500">银行账号</p>
+                            <div className="flex items-center justify-between gap-2 mt-1">
+                              <p className="font-medium text-slate-900 truncate">8823-1100-4455-9921</p>
+                              <button onClick={() => copyText("8823-1100-4455-9921")} className="p-1.5 hover:bg-slate-100 rounded text-slate-500">
+                                {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                              </button>
                             </div>
                           </div>
-                          {selectedMethod.category === "bank" && (
-                            <div className="p-3 bg-white rounded-lg border border-slate-200 sm:col-span-2">
-                              <p className="text-xs text-slate-500">开户银行 / SWIFT</p>
-                              <p className="font-medium text-slate-900">Standard Chartered Bank / SCBLUS33</p>
+                          <div className="p-3 bg-white rounded-lg border border-slate-200">
+                            <p className="text-xs text-slate-500">开户银行</p>
+                            <p className="font-medium text-slate-900 mt-1">Standard Chartered Bank</p>
+                          </div>
+                          <div className="p-3 bg-white rounded-lg border border-slate-200">
+                            <p className="text-xs text-slate-500">SWIFT</p>
+                            <div className="flex items-center justify-between gap-2 mt-1">
+                              <p className="font-medium text-slate-900 truncate">SCBLUS33</p>
+                              <button onClick={() => copyText("SCBLUS33")} className="p-1.5 hover:bg-slate-100 rounded text-slate-500">
+                                {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                              </button>
                             </div>
+                          </div>
+                        </div>
+
+                        <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-2">
+                          <p className="text-sm font-medium text-slate-900">转账截图 <span className="text-red-500">*</span></p>
+                          <p className="text-xs text-slate-500">请上传转账成功截图，完成后才可提交存款订单</p>
+                          <label className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg cursor-pointer transition-colors">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                            />
+                            选择文件
+                          </label>
+                          {receiptFile ? (
+                            <div className="flex items-center gap-2 text-sm text-emerald-700">
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span className="truncate max-w-[240px]">{receiptFile.name}</span>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-red-500">必须上传转账截图</p>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500">请准确复制以上信息完成转账，备注中注明您的交易账户号码。</p>
                       </div>
                     )}
 
@@ -653,8 +784,17 @@ export default function DepositPage() {
                       <Button variant="outline" onClick={() => setStep(2)} className="h-12 px-6 rounded-xl">
                         <ArrowLeft className="w-4 h-4 mr-2" /> 上一步
                       </Button>
-                      <Button onClick={handleSubmit}
-                        className="h-12 px-8 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl">
+                      <Button
+                        onClick={() => {
+                          if (selectedMethod.category === "crypto") {
+                            setShowCryptoConfirm(true);
+                          } else {
+                            handleSubmit();
+                          }
+                        }}
+                        disabled={selectedMethod.category === "bank" && !receiptFile}
+                        className="h-12 px-8 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl disabled:bg-slate-300 disabled:text-slate-500"
+                      >
                         {selectedMethod.category === "card" || selectedMethod.category === "ewallet"
                           ? <>前往支付 <ArrowUpRight className="w-4 h-4 ml-2" /></>
                           : <>确认存款 <ChevronRight className="w-4 h-4 ml-2" /></>}
@@ -725,6 +865,33 @@ export default function DepositPage() {
           </div>
         </div>
       </div>
+
+      {/* Crypto confirm dialog */}
+      {showCryptoConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4"
+          >
+            <h3 className="text-lg font-bold text-slate-900">确认已完成转账？</h3>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              加密货币转账需要您在钱包中手动完成链上支付。请确认您已向上述地址完成转账后再提交。
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button variant="outline" onClick={() => setShowCryptoConfirm(false)} className="h-11 px-5 rounded-xl">
+                还未转账，稍后再说
+              </Button>
+              <Button
+                onClick={() => { setShowCryptoConfirm(false); handleSubmit(); }}
+                className="h-11 px-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl"
+              >
+                已完成转账，确认提交
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

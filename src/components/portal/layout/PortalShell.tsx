@@ -10,15 +10,16 @@ import { FloatingDevToolbox } from "@/components/dev-tools";
 interface PortalShellProps {
   children: ReactNode;
   breadcrumbs?: Array<{ label: string; href: string }>;
+  tenant?: { id: string; name: string; slug: string };
 }
 
-export function PortalShell({ children, breadcrumbs }: PortalShellProps) {
+export function PortalShell({ children, breadcrumbs, tenant }: PortalShellProps) {
   const { sidebarCollapsed } = usePortalStore();
 
   return (
     <div className="min-h-screen bg-[var(--tp-bg)]">
       <PortalSidebar />
-      <PortalTopbar />
+      <PortalTopbar breadcrumbs={breadcrumbs} tenantName={tenant?.name} />
 
       <main
         className={cn(

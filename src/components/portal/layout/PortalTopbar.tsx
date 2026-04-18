@@ -13,9 +13,10 @@ function cn(...inputs: ClassValue[]) {
 
 interface PortalTopbarProps {
   breadcrumbs?: Array<{ label: string; href: string }>;
+  tenantName?: string;
 }
 
-export function PortalTopbar({ breadcrumbs }: PortalTopbarProps) {
+export function PortalTopbar({ breadcrumbs, tenantName }: PortalTopbarProps) {
   const { theme, setTheme } = useTheme();
   const { sidebarCollapsed } = usePortalStore();
   const [showThemeMenu, setShowThemeMenu] = useState(false);
@@ -28,8 +29,13 @@ export function PortalTopbar({ breadcrumbs }: PortalTopbarProps) {
         sidebarCollapsed ? "left-[72px]" : "left-[260px]"
       )}
     >
-      {/* Left: Search */}
-      <div className="flex items-center gap-3">
+      {/* Left: Search + Tenant */}
+      <div className="flex items-center gap-4">
+        {tenantName && (
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[var(--tp-accent)]/10 text-[var(--tp-accent)] rounded-lg text-sm font-medium">
+            {tenantName}
+          </div>
+        )}
         <div className="hidden sm:flex items-center gap-2 bg-[var(--tp-bg)] rounded-xl px-4 py-2.5 w-80 border border-[var(--tp-border)] focus-within:border-[var(--tp-accent)] focus-within:ring-2 focus-within:ring-[var(--tp-accent)]/10 transition-all">
           <Search size={18} className="text-[var(--tp-muted)]" />
           <input

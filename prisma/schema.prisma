@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ===================== Core SaaS Models =====================
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  passwordHash      String   @map("password_hash")
+  name              String?
+  phone             String?
+  status            String   @default("pending_verification")
+  emailVerifiedAt   DateTime? @map("email_verified_at")
+  kycStatus         String?   @default("not_started") @map("kyc_status")
+  lastLoginAt       DateTime? @map("last_login_at")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  ownedTenants      Tenant[]       @relation("TenantOwner")
+  memberships       TenantMember[]
+  paymentMethods    PaymentMethod[]
+  auditLogs         AuditLog[]
+
+  @@map("users")
+}
+
+model Tenant {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  logoUrl         String?  @map("logo_url")
+  status          String   @default("trial")
+  region          String   @default("ap-southeast-1")
+  timezone        String   @default("UTC")
+  locale          String   @default("zh-CN")
+  domainWhitelist String?  @map("domain_whitelist")
+  trialEndsAt     DateTime? @map("trial_ends_at")
+  ownerId         String   @map("owner_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  owner       User           @relation("TenantOwner", fields: [ownerId], references: [id])
+  members     TenantMember[]
+  subscriptions Subscription[]
+  licenses    License[]
+  invoices    Invoice[]
+  auditLogs   AuditLog[]
+
+  @@map("tenants")
+}
+
+model TenantMember {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  userId    String   @map("user_id")
+  role      String   @default("viewer")
+  invitedAt DateTime @default(now()) @map("invited_at")
+  joinedAt  DateTime? @map("joined_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@map("tenant_members")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  basePrice   Float    @map("base_price")
+  seatPrice   Float?   @map("seat_price")
+  currency    String   @default("USD")
+  isActive    Boolean  @default(true) @map("is_active")
+  features    String?  // JSON string
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  subscriptions Subscription[]
+
+  @@map("products")
+}
+
+model Subscription {
+  id              String   @id @default(cuid())
+  tenantId        String   @map("tenant_id")
+  productId       String   @map("product_id")
+  status          String   @default("active")
+  planName        String   @map("plan_name")
+  seatLimit       Int      @default(5) @map("seat_limit")
+  currentSeats    Int      @default(1) @map("current_seats")
+  startsAt        DateTime @default(now()) @map("starts_at")
+  endsAt          DateTime? @map("ends_at")
+  trialEndsAt     DateTime? @map("trial_ends_at")
+  autoRenew       Boolean  @default(true) @map("auto_renew")
+  features        String?  @map("features")
+  metadata        String?  @map("metadata")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+  licenses License[]
+
+  @@map("subscriptions")
+}
+
+model License {
+  id              String   @id @default(cuid())
+  key             String   @unique
+  tenantId        String   @map("tenant_id")
+  subscriptionId  String   @map("subscription_id")
+  productCode     String   @map("product_code")
+  status          String   @default("active")
+  features        String?  @map("features")
+  issuedAt        DateTime @default(now()) @map("issued_at")
+  expiresAt       DateTime? @map("expires_at")
+  revokedAt       DateTime? @map("revoked_at")
+  lastValidatedAt DateTime? @map("last_validated_at")
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@map("licenses")
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  invoiceNumber String   @unique @map("invoice_number")
+  periodStart   DateTime @map("period_start")
+  periodEnd     DateTime @map("period_end")
+  amount        Float
+  currency      String   @default("USD")
+  status        String   @default("pending")
+  paidAt        DateTime? @map("paid_at")
+  dueDate       DateTime @map("due_date")
+  pdfUrl        String?  @map("pdf_url")
+  metadata      String?  @map("metadata")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+}
+
+model PaymentMethod {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  type        String
+  provider    String
+  last4       String?
+  brand       String?
+  expiryMonth Int?     @map("expiry_month")
+  expiryYear  Int?     @map("expiry_year")
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payment_methods")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  tenantId   String?  @map("tenant_id")
+  userId     String?  @map("user_id")
+  action     String
+  resource   String
+  resourceId String?  @map("resource_id")
+  metadata   String?  @map("metadata")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("email_verifications")
+}
