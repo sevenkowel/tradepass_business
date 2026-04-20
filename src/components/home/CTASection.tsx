@@ -10,7 +10,7 @@ export function CTASection() {
     <section className="section bg-primary relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full bg-accent/10 blur-[150px]" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full bg-white/10 blur-[150px]" />
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full bg-secondary/10 blur-[120px]" />
         
         {/* Grid Pattern */}
@@ -50,7 +50,7 @@ export function CTASection() {
               </Button>
             </Link>
             <Link href="mailto:sales@tradepass.io">
-              <Button variant="outline" size="lg" className="border-white/20 text-white hover:border-accent hover:text-accent">
+              <Button variant="outline" size="lg" className="border-white/20 text-white hover:border-white hover:text-white hover:bg-white/10">
                 <Mail className="w-4 h-4 mr-2" />
                 Contact Sales
               </Button>

@@ -114,6 +114,13 @@ interface NavItemRendererProps {
   sidebarCollapsed: boolean;
   hoveredItem: string | null;
   setHoveredItem: (href: string | null) => void;
+  tenantId?: string;
+}
+
+function addTenantParam(href: string, tenantId?: string) {
+  if (!tenantId || href.startsWith("#")) return href;
+  const sep = href.includes("?") ? "&" : "?";
+  return `${href}${sep}tenant=${tenantId}`;
 }
 
 function NavItemRenderer({
@@ -124,6 +131,7 @@ function NavItemRenderer({
   sidebarCollapsed,
   hoveredItem,
   setHoveredItem,
+  tenantId,
 }: NavItemRendererProps) {
   // 渲染分割线
   if (item.href.startsWith("#divider")) {
@@ -159,7 +167,7 @@ function NavItemRenderer({
         onMouseLeave={() => setHoveredItem(null)}
       >
         {/* 图标容器 */}
-        <Link href={item.href} className="contents">
+        <Link href={addTenantParam(item.href, tenantId)} className="contents">
           <div
             className={cn(
               "flex items-center justify-center rounded-lg transition-all duration-200 shrink-0",
@@ -176,7 +184,7 @@ function NavItemRenderer({
         {/* 文字区域（展开时显示） */}
         {!sidebarCollapsed && (
           <>
-            <Link href={item.href} className="flex-1 min-w-0">
+            <Link href={addTenantParam(item.href, tenantId)} className="flex-1 min-w-0">
               <span
                 className={cn(
                   "text-sm font-medium transition-colors block truncate",
@@ -222,7 +230,7 @@ function NavItemRenderer({
           className="mt-0.5 ml-7 space-y-0.5"
         >
           {item.children!.map((child) => (
-            <Link key={child.href} href={child.href}>
+            <Link key={child.href} href={addTenantParam(child.href, tenantId)}>
               <div
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 group",
@@ -254,7 +262,7 @@ function NavItemRenderer({
             {item.label}
           </p>
           {item.children!.map((child) => (
-            <Link key={child.href} href={child.href}>
+            <Link key={child.href} href={addTenantParam(child.href, tenantId)}>
               <div
                 className={cn(
                   "flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors",
@@ -282,7 +290,7 @@ function NavItemRenderer({
   );
 }
 
-export function PortalSidebar() {
+export function PortalSidebar({ tenantId }: { tenantId?: string }) {
   const pathname = usePathname();
   const { sidebarCollapsed, toggleSidebar } = usePortalStore();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -353,6 +361,7 @@ export function PortalSidebar() {
               sidebarCollapsed={sidebarCollapsed}
               hoveredItem={hoveredItem}
               setHoveredItem={setHoveredItem}
+              tenantId={tenantId}
             />
           ))}
         </div>
@@ -361,7 +370,7 @@ export function PortalSidebar() {
       {/* Bottom Info - 更简洁 */}
       <div className="p-3 border-t border-[var(--tp-border)]">
         {!sidebarCollapsed ? (
-          <Link href="/portal/support">
+          <Link href={addTenantParam("/portal/support", tenantId)}>
             <div className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[var(--tp-bg)] transition-colors cursor-pointer">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-[var(--tp-accent)]/10 to-[var(--tp-accent)]/5 flex items-center justify-center border border-[var(--tp-accent)]/20">
                 <Sparkles size={14} className="text-[var(--tp-accent)]" />
@@ -373,7 +382,7 @@ export function PortalSidebar() {
             </div>
           </Link>
         ) : (
-          <Link href="/portal/support">
+          <Link href={addTenantParam("/portal/support", tenantId)}>
             <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[var(--tp-accent)]/10 to-[var(--tp-accent)]/5 flex items-center justify-center mx-auto border border-[var(--tp-accent)]/20 hover:scale-105 transition-transform cursor-pointer">
               <Sparkles size={16} className="text-[var(--tp-accent)]" />
             </div>

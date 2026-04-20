@@ -25,6 +25,8 @@
   --color-warning-light: #FBBF24; /* amber-400 */
   --color-info: #3B82F6;          /* blue-500 */
   --color-info-light: #60A5FA;    /* blue-400 */
+  --color-accent: #1E40AF;        /* brand blue - for light bg */
+  --color-accent-foreground: #FFFFFF;
 
   /* Neutral Palette - Clean gray scale */
   --color-gray-25: #FAFAFA;        /* very light gray */

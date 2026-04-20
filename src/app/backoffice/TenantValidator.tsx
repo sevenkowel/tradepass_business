@@ -3,13 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+function getCookie(name: string) {
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? match[2] : null;
+}
+
 export function TenantValidator({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [valid, setValid] = useState(false);
 
   useEffect(() => {
-    const tenantId = searchParams.get("tenant");
+    let tenantId = searchParams.get("tenant");
+    if (!tenantId) {
+      tenantId = getCookie("portal_tenant");
+    }
     if (!tenantId) {
       router.replace("/console");
       return;

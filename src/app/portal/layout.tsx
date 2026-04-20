@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { PortalShell } from "@/components/portal/layout/PortalShell";
+import { TenantCookieSetter } from "@/components/portal/layout/TenantCookieSetter";
 import { DevConfigProvider } from "@/lib/dev-config";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
@@ -43,13 +44,11 @@ async function validateTenant(tenantId: string) {
 
 export default async function PortalLayout({
   children,
-  searchParams,
 }: {
   children: React.ReactNode;
-  searchParams?: Promise<{ tenant?: string }>;
 }) {
-  const params = searchParams ? await searchParams : {};
-  const tenantId = params.tenant;
+  const cookieStore = await cookies();
+  const tenantId = cookieStore.get("portal_tenant")?.value;
 
   if (!tenantId) {
     redirect("/console");
@@ -61,8 +60,11 @@ export default async function PortalLayout({
   }
 
   return (
-    <DevConfigProvider>
-      <PortalShell tenant={access.tenant}>{children}</PortalShell>
-    </DevConfigProvider>
+    <>
+      <TenantCookieSetter />
+      <DevConfigProvider>
+        <PortalShell tenant={access.tenant}>{children}</PortalShell>
+      </DevConfigProvider>
+    </>
   );
 }

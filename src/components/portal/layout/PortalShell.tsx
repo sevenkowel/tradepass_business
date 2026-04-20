@@ -18,7 +18,7 @@ export function PortalShell({ children, breadcrumbs, tenant }: PortalShellProps)
 
   return (
     <div className="min-h-screen bg-[var(--tp-bg)]">
-      <PortalSidebar />
+      <PortalSidebar tenantId={tenant?.id} />
       <PortalTopbar breadcrumbs={breadcrumbs} tenantName={tenant?.name} />
 
       <main

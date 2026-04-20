@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 const PUBLIC_PATHS = ["/", "/auth/login", "/auth/register", "/auth/verify-email"];
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
   const token = request.cookies.get("token")?.value;
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
@@ -19,6 +19,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/console", request.url));
   }
 
+  // Persist tenant param from URL into cookie for portal/backoffice internal nav
+  const tenantId = searchParams.get("tenant");
+  if (tenantId && (pathname.startsWith("/portal") || pathname.startsWith("/backoffice"))) {
+    const response = NextResponse.next();
+    response.cookies.set("portal_tenant", tenantId, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+      sameSite: "lax",
+    });
+    return response;
+  }
+
   return NextResponse.next();
 }
 
@@ -27,6 +39,7 @@ export const config = {
     "/console/:path*",
     "/admin/:path*",
     "/backoffice/:path*",
+    "/portal/:path*",
     "/auth/login",
     "/auth/register",
   ],

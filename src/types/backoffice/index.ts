@@ -6,3 +6,5 @@ export * from './fund';
 export * from './common';
 export * from './ib';
 export * from './risk';
+export * from './copy-trading';
+export * from './ai-signals';

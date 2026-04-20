@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import {
   LayoutDashboard,
@@ -20,6 +22,23 @@ export default function ConsoleLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    // Skip onboarding check on onboarding page itself
+    if (pathname === "/console/onboarding") return;
+
+    fetch("/api/onboarding")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.onboarding && data.onboarding.status !== "completed") {
+          router.replace("/console/onboarding");
+        }
+      })
+      .catch(() => {});
+  }, [pathname, router]);
+
   return (
     <DashboardLayout navItems={navItems} title="Console" sidebarBg="bg-slate-900">
       {children}

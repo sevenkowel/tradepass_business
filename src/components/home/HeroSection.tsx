@@ -26,7 +26,7 @@ export function HeroSection() {
 
         {/* Animated Glows */}
         <motion.div 
-          className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-accent/5 blur-[120px]"
+          className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-white/5 blur-[120px]"
           animate={{
             x: [0, 50, 0],
             y: [0, 30, 0],
@@ -149,7 +149,7 @@ export function HeroSection() {
               </Button>
             </Link>
             <Link href="#products">
-              <Button variant="outline" size="lg" className="border-white/20 text-white hover:border-accent hover:text-accent">
+              <Button variant="outline" size="lg" className="border-white/20 text-white hover:border-white hover:text-white hover:bg-white/10">
                 <Play className="w-4 h-4 mr-2" />
                 Watch Demo
               </Button>

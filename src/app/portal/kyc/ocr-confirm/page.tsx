@@ -107,7 +107,7 @@ export default function OCRCConfirmPage() {
   return (
     <div className="min-h-screen bg-[rgb(var(--tp-bg-rgb))]">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[rgb(var(--tp-bg-rgb))] border-b border-[rgba(var(--tp-fg-rgb),0.1)]">
+      <header className="sticky top-[72px] z-10 bg-[rgb(var(--tp-bg-rgb))] border-b border-[rgba(var(--tp-fg-rgb),0.1)]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
             <Button

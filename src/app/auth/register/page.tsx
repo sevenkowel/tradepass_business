@@ -43,7 +43,7 @@ export default function RegisterPage() {
 
     if (data.autoLogin && data.token) {
       document.cookie = `token=${data.token}; path=/; max-age=604800`;
-      router.push("/console");
+      router.push("/console/onboarding");
       return;
     }
 

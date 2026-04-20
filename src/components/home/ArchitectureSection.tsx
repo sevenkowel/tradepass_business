@@ -76,14 +76,14 @@ export function ArchitectureSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.05 }}
-              className="group p-6 rounded-2xl glass border border-white/5 hover:border-accent/30 transition-all duration-300"
+              className="group p-6 rounded-2xl glass border border-white/5 hover:border-white/30 transition-all duration-300"
             >
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                  <item.icon className="w-5 h-5 text-accent" />
+                <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center group-hover:bg-white/25 transition-colors">
+                  <item.icon className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1">
-                  <div className="text-xs text-accent mb-1">Layer {index + 1}</div>
+                  <div className="text-xs text-white/70 mb-1">Layer {index + 1}</div>
                   <h3 className="text-base font-semibold text-white mb-1">
                     {item.layer}
                   </h3>

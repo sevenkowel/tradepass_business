@@ -51,6 +51,8 @@ model Tenant {
   licenses    License[]
   invoices    Invoice[]
   auditLogs   AuditLog[]
+  onboarding  TenantOnboarding?
+  apps        TenantApp[]
 
   @@map("tenants")
 }
@@ -192,4 +194,49 @@ model EmailVerification {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("email_verifications")
+}
+
+// ===================== Onboarding & Apps =====================
+
+model TenantOnboarding {
+  id        String   @id @default(cuid())
+  tenantId  String   @unique @map("tenant_id")
+  status    String   @default("in_progress") @map("status")
+  step      Int      @default(1) @map("step")
+  data      String   @default("{}") @map("data")
+  deadline  DateTime? @map("deadline")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_onboardings")
+}
+
+model TenantApp {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  appId         String   @map("app_id")
+  status        String   @default("installed") @map("status")
+  installedAt   DateTime @default(now()) @map("installed_at")
+  uninstalledAt DateTime? @map("uninstalled_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, appId])
+  @@map("tenant_apps")
+}
+
+model AppCatalog {
+  id           String   @id @default(cuid())
+  appId        String   @unique @map("app_id")
+  name         String   @map("name")
+  description  String   @map("description")
+  icon         String   @default("app") @map("icon")
+  category     String   @default("other") @map("category")
+  dependencies String   @default("[]") @map("dependencies")
+  isOfficial   Boolean  @default(true) @map("is_official")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("app_catalogs")
 }

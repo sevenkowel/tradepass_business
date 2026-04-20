@@ -26,18 +26,21 @@ import {
   Sparkles,
   Shield,
   UserCog,
+  Puzzle,
+  Monitor,
   type LucideIcon,
 } from "lucide-react";
 import { useBackofficeSidebarStore } from "@/store/backofficeSidebarStore";
 import { useAuthStore } from "@/store/backoffice";
 import type { PermissionModule } from "@/types/backoffice/role";
 
-// 菜单项类型 - 支持两级菜单
+// 菜单项类型 - 支持三级菜单
 interface MenuItem {
   label: string;
   href?: string;
   icon: LucideIcon;
   permission?: PermissionModule;
+  children?: MenuItem[];
 }
 
 interface MenuGroup {
@@ -45,7 +48,45 @@ interface MenuGroup {
   icon: LucideIcon;
   permission: PermissionModule;
   items: MenuItem[];
+  appId?: string; // 关联的应用ID，未安装时不显示
 }
+
+// 应用子页面配置
+const APP_SUB_PAGES: Record<string, { label: string; href: string }[]> = {
+  ai_signals: [
+    { label: "Signal List", href: "/backoffice/ai-signals" },
+    { label: "Usage Control", href: "/backoffice/ai-signals/usage" },
+    { label: "Signal Pool", href: "/backoffice/ai-signals/pool" },
+  ],
+  copy_trading: [
+    { label: "Traders", href: "/backoffice/copy-trading/traders" },
+    { label: "Followers", href: "/backoffice/copy-trading/followers" },
+    { label: "Settings", href: "/backoffice/copy-trading/settings" },
+    { label: "Profit Sharing", href: "/backoffice/copy-trading/profits" },
+  ],
+  ib_referral: [
+    { label: "IB List", href: "/backoffice/ib" },
+    { label: "Referral Tree", href: "/backoffice/ib/tree" },
+    { label: "Commission Records", href: "/backoffice/ib/commissions" },
+    { label: "Commission Settings", href: "/backoffice/ib/settings" },
+  ],
+  advanced_reports: [
+    { label: "Financial Reports", href: "/backoffice/reports/financial" },
+    { label: "Trading Reports", href: "/backoffice/reports/trading" },
+    { label: "User Reports", href: "/backoffice/reports/users" },
+  ],
+  risk_enhanced: [
+    { label: "Risk Dashboard", href: "/backoffice/risk" },
+    { label: "Risk Rules", href: "/backoffice/risk/rules" },
+    { label: "Margin Alerts", href: "/backoffice/risk/margin" },
+    { label: "NBP Protection", href: "/backoffice/risk/nbp" },
+  ],
+  multi_terminal: [
+    { label: "MT Accounts", href: "/backoffice/accounts" },
+    { label: "Account Groups", href: "/backoffice/accounts/groups" },
+    { label: "Leverage Settings", href: "/backoffice/accounts/leverage" },
+  ],
+};
 
 // 菜单配置 - 所有菜单项
 const menuGroups: MenuGroup[] = [
@@ -113,38 +154,7 @@ const menuGroups: MenuGroup[] = [
       { label: "Trading Settings", href: "/backoffice/trading/settings", icon: TrendingUp, permission: "trading" },
     ],
   },
-  {
-    group: "IB / Referral",
-    icon: Network,
-    permission: "ib",
-    items: [
-      { label: "IB List", href: "/backoffice/ib", icon: Network, permission: "ib" },
-      { label: "Referral Tree", href: "/backoffice/ib/tree", icon: Network, permission: "ib" },
-      { label: "Commission Records", href: "/backoffice/ib/commissions", icon: Network, permission: "ib" },
-      { label: "Commission Settings", href: "/backoffice/ib/settings", icon: Network, permission: "ib" },
-    ],
-  },
-  {
-    group: "Copy Trading",
-    icon: Copy,
-    permission: "copy_trading",
-    items: [
-      { label: "Traders", href: "/backoffice/copy-trading/traders", icon: Copy, permission: "copy_trading" },
-      { label: "Followers", href: "/backoffice/copy-trading/followers", icon: Copy, permission: "copy_trading" },
-      { label: "Copy Settings", href: "/backoffice/copy-trading/settings", icon: Copy, permission: "copy_trading" },
-      { label: "Profit Sharing", href: "/backoffice/copy-trading/profits", icon: Copy, permission: "copy_trading" },
-    ],
-  },
-  {
-    group: "AI Signals",
-    icon: Brain,
-    permission: "ai_signals",
-    items: [
-      { label: "Signal List", href: "/backoffice/ai-signals", icon: Brain, permission: "ai_signals" },
-      { label: "Usage Control", href: "/backoffice/ai-signals/usage", icon: Brain, permission: "ai_signals" },
-      { label: "Signal Pool", href: "/backoffice/ai-signals/pool", icon: Brain, permission: "ai_signals" },
-    ],
-  },
+
   {
     group: "Risk",
     icon: AlertTriangle,
@@ -195,10 +205,18 @@ const menuGroups: MenuGroup[] = [
       { label: "Roles & Permissions", href: "/backoffice/system/roles", icon: Settings, permission: "system" },
       { label: "Staff Management", href: "/backoffice/system/staff", icon: UserCog, permission: "system" },
       { label: "Security Settings", href: "/backoffice/system/security", icon: Shield, permission: "system" },
-      { label: "KYC Config", href: "/backoffice/system/kyc", icon: Settings, permission: "system" },
+      { label: "KYC Config", href: "/backoffice/system/kyc-config", icon: Settings, permission: "system" },
       { label: "Config Center", href: "/backoffice/system/config", icon: Settings, permission: "system" },
       { label: "API Management", href: "/backoffice/system/api", icon: Settings, permission: "system" },
       { label: "Operation Logs", href: "/backoffice/system/logs", icon: Settings, permission: "system" },
+    ],
+  },
+  {
+    group: "Apps",
+    icon: Puzzle,
+    permission: "system",
+    items: [
+      { label: "App Center", href: "/backoffice/apps", icon: Puzzle, permission: "system" },
     ],
   },
 ];
@@ -230,24 +248,90 @@ function SubMenuItem({ item, isActive }: SubMenuItemProps) {
   );
 }
 
+// 三级菜单分组组件（可展开的应用项）
+interface SubMenuGroupProps {
+  item: MenuItem;
+  isActive: (href?: string) => boolean;
+  pathname: string;
+  expanded: boolean;
+  onToggle: () => void;
+}
+
+function SubMenuGroup({ item, isActive, pathname, expanded, onToggle }: SubMenuGroupProps) {
+  return (
+    <div>
+      {/* 应用入口 - 可展开 */}
+      <div
+        onClick={onToggle}
+        className={cn(
+          "flex items-center py-2.5 pl-[48px] pr-3 rounded-lg transition-all duration-200 cursor-pointer group",
+          isActive(item.href)
+            ? "bg-blue-50 text-blue-700"
+            : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+        )}
+      >
+        <span className={cn("text-sm font-medium flex-1", isActive(item.href) && "font-semibold")}>
+          {item.label}
+        </span>
+        <ChevronDown
+          size={14}
+          className={cn(
+            "transition-transform duration-200 flex-shrink-0",
+            isActive(item.href) ? "text-blue-500" : "text-slate-400",
+            expanded ? "rotate-180" : ""
+          )}
+        />
+      </div>
+      {/* 子页面列表 */}
+      {expanded && (
+        <div className="mt-0.5 space-y-0.5">
+          {item.children?.map((child) => (
+            <Link key={child.href || child.label} href={child.href || "#"}>
+              <div
+                className={cn(
+                  "flex items-center py-2 pl-[64px] pr-3 rounded-lg transition-all duration-200",
+                  pathname === child.href
+                    ? "bg-blue-50 text-blue-700"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                )}
+              >
+                <span className={cn("text-sm font-medium", pathname === child.href && "font-semibold")}>
+                  {child.label}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // 一级菜单项组件
 interface MenuItemProps {
   group: MenuGroup;
   isExpanded: boolean;
   onToggle: () => void;
   isActive: (href?: string) => boolean;
+  pathname: string;
   collapsed: boolean;
 }
 
-function MenuItem({ group, isExpanded, onToggle, isActive, collapsed }: MenuItemProps) {
+function MenuItem({ group, isExpanded, onToggle, isActive, pathname, collapsed }: MenuItemProps) {
   const [hovered, setHovered] = useState(false);
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const iconRef = useRef<HTMLDivElement>(null);
+  // 管理 Apps 分组中各应用的展开状态
+  const [expandedAppItems, setExpandedAppItems] = useState<Set<string>>(new Set());
   // 检查是否有子菜单被选中
   const hasActiveChild = group.items.some(item => isActive(item.href));
+  // 检查是否有三级菜单被选中（用于 Apps 分组）
+  const hasActiveGrandChild = group.items.some(item =>
+    item.children?.some(child => pathname === child.href)
+  );
 
   // 判断是否为选中状态（优先级最高）
-  const isSelected = hasActiveChild;
+  const isSelected = hasActiveChild || hasActiveGrandChild;
   // 判断是否为 hover 状态（选中状态下不应用 hover 样式）
   const isHovered = hovered && !isSelected;
 
@@ -261,6 +345,18 @@ function MenuItem({ group, isExpanded, onToggle, isActive, collapsed }: MenuItem
       });
     }
   }, [collapsed, hovered]);
+
+  const toggleAppItem = (label: string) => {
+    setExpandedAppItems(prev => {
+      const next = new Set(prev);
+      if (next.has(label)) {
+        next.delete(label);
+      } else {
+        next.add(label);
+      }
+      return next;
+    });
+  };
 
   return (
     <div className="relative">
@@ -346,9 +442,21 @@ function MenuItem({ group, isExpanded, onToggle, isActive, collapsed }: MenuItem
       {/* 二级菜单 - 展开时显示，二级菜单文字与一级菜单文字对齐 */}
       {isExpanded && !collapsed && (
         <div className="mt-1 space-y-0.5">
-          {group.items.map((item) => (
-            <SubMenuItem key={item.href || item.label} item={item} isActive={isActive} />
-          ))}
+          {group.items.map((item) => {
+            if (item.children && item.children.length > 0) {
+              return (
+                <SubMenuGroup
+                  key={item.href || item.label}
+                  item={item}
+                  isActive={isActive}
+                  pathname={pathname}
+                  expanded={expandedAppItems.has(item.label)}
+                  onToggle={() => toggleAppItem(item.label)}
+                />
+              );
+            }
+            return <SubMenuItem key={item.href || item.label} item={item} isActive={isActive} />;
+          })}
         </div>
       )}
     </div>
@@ -361,11 +469,54 @@ export function Sidebar() {
   const { hasPermission } = useAuthStore();
   const [expandedGroup, setExpandedGroup] = useState<string | null>("Dashboard");
   const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false);
+  const [installedApps, setInstalledApps] = useState<string[]>([]);
 
-  // Filter menu groups based on permissions
+  // Fetch installed apps
+  useEffect(() => {
+    fetch("/api/tenant/apps")
+      .then((r) => r.json())
+      .then((data) => {
+        setInstalledApps(data.installedApps || []);
+      })
+      .catch(() => {});
+  }, []);
+
+  const APP_ICON_MAP: Record<string, LucideIcon> = {
+    copy_trading: Copy,
+    ai_signals: Brain,
+    ib_referral: Network,
+    advanced_reports: BarChart3,
+    risk_enhanced: Shield,
+    multi_terminal: Monitor,
+  };
+
+  const APP_ROUTE_MAP: Record<string, string> = {
+    copy_trading: "/backoffice/copy-trading/traders",
+    ai_signals: "/backoffice/ai-signals",
+    ib_referral: "/backoffice/ib",
+    advanced_reports: "/backoffice/reports/financial",
+    risk_enhanced: "/backoffice/risk",
+    multi_terminal: "/backoffice/accounts",
+  };
+
+  const APP_LABEL_MAP: Record<string, string> = {
+    copy_trading: "Copy Trading",
+    ai_signals: "AI Signals",
+    ib_referral: "IB / Referral",
+    advanced_reports: "Advanced Reports",
+    risk_enhanced: "Risk Enhanced",
+    multi_terminal: "Multi Terminal",
+  };
+
+  // Filter menu groups based on permissions and installed apps
   const filteredMenuGroups = useMemo(() => {
-    return menuGroups
+    const groups = menuGroups
       .map((group) => {
+        // Hide groups that require an app not installed
+        if (group.appId && !installedApps.includes(group.appId)) {
+          return null;
+        }
+
         // Filter items based on permissions
         const filteredItems = group.items.filter((item) => {
           if (!item.permission) return true;
@@ -381,7 +532,40 @@ export function Sidebar() {
         };
       })
       .filter(Boolean) as MenuGroup[];
-  }, [hasPermission]);
+
+    // Inject installed apps into Apps group as expandable sub-menu items
+    const appsGroupIndex = groups.findIndex((g) => g.group === "Apps");
+    if (appsGroupIndex >= 0 && installedApps.length > 0) {
+      const appItems = installedApps
+        .map((appId) => {
+          const icon = APP_ICON_MAP[appId] || Puzzle;
+          const route = APP_ROUTE_MAP[appId] || "#";
+          const label = APP_LABEL_MAP[appId] || appId;
+          const subPages = APP_SUB_PAGES[appId] || [];
+          const children = subPages.map((sub) => ({
+            label: sub.label,
+            href: sub.href,
+            icon,
+            permission: undefined as PermissionModule | undefined,
+          }));
+          return {
+            label,
+            href: route,
+            icon,
+            permission: undefined as PermissionModule | undefined,
+            children,
+          };
+        })
+        .filter((item) => item.href !== "#");
+
+      groups[appsGroupIndex] = {
+        ...groups[appsGroupIndex],
+        items: [...groups[appsGroupIndex].items, ...appItems],
+      };
+    }
+
+    return groups;
+  }, [hasPermission, installedApps]);
 
   const toggleGroup = (group: string) => {
     setExpandedGroup((prev) => (prev === group ? null : group));
@@ -464,6 +648,7 @@ export function Sidebar() {
                 isExpanded={expandedGroup === group.group}
                 onToggle={() => toggleGroup(group.group)}
                 isActive={isActive}
+                pathname={pathname}
                 collapsed={sidebarCollapsed}
               />
             </div>

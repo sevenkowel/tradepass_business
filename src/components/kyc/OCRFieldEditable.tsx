@@ -34,7 +34,7 @@ function SimilarityIndicator({ similarity, fieldKey }: SimilarityIndicatorProps)
       className={cn(
         "flex items-center gap-1.5 text-xs mt-1.5",
         isGood && "text-green-600",
-        isWarning && "text-amber-600",
+        isWarning && "text-[#d97706]",
         !isGood && !isWarning && "text-red-600"
       )}
     >
@@ -62,7 +62,7 @@ function ChangeIndicator({ hasChanged, originalValue }: ChangeIndicatorProps) {
   if (!hasChanged) return null;
 
   return (
-    <div className="flex items-center gap-1.5 text-xs text-amber-600 mt-1.5">
+    <div className="flex items-center gap-1.5 text-xs text-[#d97706] mt-1.5">
       <Edit2 className="w-3 h-3" />
       <span>已修改 (原值: {originalValue || "-"})</span>
     </div>
@@ -118,10 +118,8 @@ export function OCRFieldEditable({
             className={cn(
               "min-h-[80px] resize-none transition-all duration-200",
               error
-                ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                : hasChanged
-                ? "border-amber-400 focus:border-amber-400 focus:ring-amber-400/20"
-                : "border-[rgba(var(--tp-fg-rgb),0.2)] focus:border-[rgb(var(--tp-accent-rgb))]"
+                ? "border-red-500 focus:border-red-500 focus-visible:border-red-500 focus:ring-red-500/20 focus-visible:ring-red-500/20"
+                : "border-[#fbbf24] focus:border-[#fbbf24] focus-visible:border-[#fbbf24] focus:ring-[#fbbf24]/20 focus-visible:ring-[#fbbf24]/20"
             )}
           />
         ) : (
@@ -136,10 +134,8 @@ export function OCRFieldEditable({
             className={cn(
               "transition-all duration-200",
               error
-                ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                : hasChanged
-                ? "border-amber-400 focus:border-amber-400 focus:ring-amber-400/20"
-                : "border-[rgba(var(--tp-fg-rgb),0.2)] focus:border-[rgb(var(--tp-accent-rgb))]"
+                ? "border-red-500 focus:border-red-500 focus-visible:border-red-500 focus:ring-red-500/20 focus-visible:ring-red-500/20"
+                : "border-[#fbbf24] focus:border-[#fbbf24] focus-visible:border-[#fbbf24] focus:ring-[#fbbf24]/20 focus-visible:ring-[#fbbf24]/20"
             )}
           />
         )}
@@ -147,7 +143,7 @@ export function OCRFieldEditable({
         {/* 修改指示点 */}
         {hasChanged && !error && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <div className="w-2 h-2 rounded-full bg-amber-400" />
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#fbbf24' }} />
           </div>
         )}
       </div>

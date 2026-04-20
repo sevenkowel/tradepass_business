@@ -122,8 +122,8 @@ export function OCRResultEditor({
     }
     if (result.confidence >= 0.8) {
       return {
-        color: "text-amber-600",
-        bg: "bg-amber-50 border-amber-200",
+        color: "text-[#d97706]",
+        bg: "bg-[#fffbeb] border-[#fde68a]",
         icon: AlertCircle,
         title: "请核对信息",
         message: "中等置信度 - 请仔细核对识别结果",
@@ -190,7 +190,7 @@ export function OCRResultEditor({
                 锁定
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#fbbf24' }} />
                 可编辑
               </span>
             </div>
@@ -225,8 +225,8 @@ export function OCRResultEditor({
 
           {/* 底部提示 */}
           {editedFields.length > 0 && (
-            <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-              <p className="text-sm text-amber-700">
+            <div className="p-3 rounded-lg bg-[#fffbeb] border border-[#fde68a]">
+              <p className="text-sm text-[#b45309]">
                 您已修改 {editedFields.length} 个字段，请确保信息准确无误
               </p>
             </div>

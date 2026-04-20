@@ -17,7 +17,7 @@ export function ProblemSection() {
     <section className="section bg-primary relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full bg-accent/5 blur-[150px]" />
+        <div className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full bg-white/5 blur-[150px]" />
         <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-secondary/5 blur-[120px]" />
       </div>
 
@@ -51,8 +51,8 @@ export function ProblemSection() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="flex gap-4 p-6 rounded-2xl glass"
             >
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-warning/20 flex items-center justify-center">
-                <problem.icon className="w-5 h-5 text-warning" />
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-white/15 flex items-center justify-center">
+                <problem.icon className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-white mb-2">{problem.title}</h3>
@@ -68,10 +68,10 @@ export function ProblemSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="flex items-center justify-center gap-4 p-6 rounded-2xl bg-accent/10 border border-accent/20"
+          className="flex items-center justify-center gap-4 p-6 rounded-2xl bg-white/10 border border-white/20"
         >
-          <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
-            <CheckCircle className="w-5 h-5 text-accent" />
+          <div className="w-10 h-10 rounded-lg bg-white/15 flex items-center justify-center">
+            <CheckCircle className="w-5 h-5 text-white" />
           </div>
           <p className="text-lg font-semibold text-white">{solution}</p>
         </motion.div>
