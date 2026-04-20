@@ -299,7 +299,7 @@ export function getCurrentCTA(user: TestUser): {
   if (!onboardingStatus.hasDeposited) {
     return { 
       text: "去入金", 
-      href: "/portal/wallet/deposit",
+      href: "/portal/fund/deposit",
       priority: "deposit"
     };
   }
@@ -314,7 +314,7 @@ export function getCurrentCTA(user: TestUser): {
   
   return { 
     text: "去入金", 
-    href: "/portal/wallet/deposit",
+    href: "/portal/fund/deposit",
     priority: "default"
   };
 }
@@ -355,7 +355,7 @@ export function getOnboardingSteps(user: TestUser) {
         ? (onboardingStatus.hasDeposited ? 'completed' : 'current')
         : 'pending',
       actionText: '去入金', 
-      href: '/portal/wallet/deposit' 
+      href: '/portal/fund/deposit' 
     },
     { 
       id: 'trade', 

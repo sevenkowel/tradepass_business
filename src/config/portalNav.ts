@@ -70,7 +70,7 @@ export const navItems: NavItem[] = [
     icon: Wallet,
     children: [
       { label: "Overview", href: "/portal/wallet", icon: Wallet },
-      { label: "Deposit", href: "/portal/wallet/deposit", icon: ArrowDownToLine },
+      { label: "Deposit", href: "/portal/fund/deposit", icon: ArrowDownToLine },
       { label: "Withdraw", href: "/portal/wallet/withdraw", icon: ArrowUpFromLine },
       { label: "Transfer", href: "/portal/wallet/transfer", icon: ArrowLeftRight },
       { label: "Transactions", href: "/portal/wallet/transactions", icon: FileText },

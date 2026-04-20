@@ -250,7 +250,7 @@ export function getOnboardingSteps(perspective: UserPerspective) {
       label: "入金",
       completed: perspective.hasDeposit,
       current: currentStepId === "deposit",
-      action: !perspective.hasDeposit ? "/portal/wallet/deposit" : null,
+      action: !perspective.hasDeposit ? "/portal/fund/deposit" : null,
       cta: "Deposit Now",
     },
     {
@@ -322,7 +322,7 @@ export function getPrimaryCTA(perspective: UserPerspective) {
   if (stage === "account_opened") {
     return {
       text: "Deposit Now",
-      href: "/portal/wallet/deposit",
+      href: "/portal/fund/deposit",
       variant: "primary" as const,
     };
   }
