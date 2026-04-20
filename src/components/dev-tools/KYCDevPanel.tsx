@@ -45,7 +45,6 @@ import {
 } from "lucide-react";
 import { useDevConfig } from "@/lib/dev-config";
 import { useKYCSystemConfig } from "@/lib/kyc/use-kyc-system-config";
-import { usePortalStore } from "@/store/portalStore";
 import { cn } from "@/lib/utils";
 import { useCallback, useState } from "react";
 
@@ -142,7 +141,6 @@ export function KYCDevPanel() {
   const kycStore = useKYCStore();
   const mockConfig = useKYCMockConfig();
   const devConfig = useDevConfig();
-  const portalStore = usePortalStore();
   const { config: unifiedConfig, loading: configLoading } = useKYCSystemConfig();
   const [activeTab, setActiveTab] = useState<"snapshots" | "tiers" | "config">("snapshots");
 
@@ -796,59 +794,7 @@ export function KYCDevPanel() {
             </div>
           </div>
 
-          {/* ── Section 4: 资金权限 KYC 等级 ── */}
-          <div>
-            <SectionTitle icon={<Layers size={14} />} label="资金权限 KYC 等级" />
-            <p className="text-[10px] text-gray-400 mt-1 mb-2">切换后存款/提款页面的支付方式和额度会实时变化</p>
-            <div className="flex gap-1">
-              {(["basic", "standard", "enhanced"] as const).map((level) => (
-                <button
-                  key={level}
-                  onClick={() => {
-                    if (portalStore.user) {
-                      portalStore.setUser({ ...portalStore.user, kycLevel: level });
-                    }
-                  }}
-                  className={cn(
-                    "flex-1 text-xs px-2 py-1.5 rounded-md transition-colors font-medium",
-                    portalStore.user?.kycLevel === level
-                      ? level === "basic"
-                        ? "bg-gray-800 text-white"
-                        : level === "standard"
-                        ? "bg-blue-600 text-white"
-                        : "bg-purple-600 text-white"
-                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                  )}
-                >
-                  {level === "basic" ? "基础" : level === "standard" ? "标准" : "高级"}
-                </button>
-              ))}
-            </div>
-
-            {/* 当前额度预览 */}
-            {portalStore.user && (
-              <div className="mt-2 p-2.5 bg-gray-50 rounded-lg space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">当前等级</span>
-                  <span className={cn(
-                    "font-medium px-2 py-0.5 rounded-full text-[10px]",
-                    portalStore.user.kycLevel === "basic" && "bg-gray-200 text-gray-700",
-                    portalStore.user.kycLevel === "standard" && "bg-blue-100 text-blue-700",
-                    portalStore.user.kycLevel === "enhanced" && "bg-purple-100 text-purple-700"
-                  )}>
-                    {portalStore.user.kycLevel}
-                  </span>
-                </div>
-                <div className="text-[10px] text-gray-400">
-                  {portalStore.user.kycLevel === "basic" && "仅 Bank Wire，限额较低"}
-                  {portalStore.user.kycLevel === "standard" && "USDT + Bank Wire，中等限额"}
-                  {portalStore.user.kycLevel === "enhanced" && "全部方式，无限额"}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* ── Section 5: OTP 验证控制 ── */}
+          {/* ── Section 4: OTP 验证控制 ── */}
           <div>
             <SectionTitle icon={<Shield size={14} />} label="OTP 验证" />
             <div className="mt-2 space-y-3">
