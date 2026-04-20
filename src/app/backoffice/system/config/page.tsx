@@ -8,7 +8,7 @@ import {
   CheckCircle2, History, Loader2, Smartphone, Mail, Lock, Unlock,
 } from "lucide-react";
 import { PageHeader, Card, Button } from "@/components/backoffice/ui";
-import type { AccountOpeningConfig, RegionAccountConfig, ConfigVersion } from "@/lib/config/types";
+import type { AccountOpeningConfig, RegionAccountConfig, ConfigVersion, FundLimitsConfig, FundMethod } from "@/lib/config/types";
 import type { RegionCode } from "@/lib/kyc/region-config";
 
 const REGION_NAMES: Record<string, { name: string; flag: string }> = {
@@ -291,10 +291,15 @@ function RegionCard({
             </div>
           </div>
 
-          {/* Fund Limits by KYC Level */}
+          {/* Fund Limits by KYC Level (default currency) */}
           <FundLimitsPanel
-            fundLimits={config.fundLimits}
-            onChange={(newLimits) => onFieldChange("fundLimits", newLimits)}
+            fundLimits={config.fundLimits?.["default"]}
+            onChange={(newLimits) =>
+              onFieldChange("fundLimits", {
+                ...config.fundLimits,
+                default: newLimits,
+              })
+            }
           />
         </div>
       )}
@@ -305,7 +310,7 @@ function RegionCard({
 // ============================================================
 // Fund Limits Panel
 // ============================================================
-const ALL_METHODS: { id: string; label: string }[] = [
+const ALL_METHODS: { id: FundMethod; label: string }[] = [
   { id: "bank", label: "Bank" },
   { id: "usdt_trc20", label: "USDT TRC20" },
   { id: "usdt_erc20", label: "USDT ERC20" },
@@ -319,21 +324,21 @@ function FundLimitsPanel({
   fundLimits,
   onChange,
 }: {
-  fundLimits?: Record<string, { deposit: { perTransactionMin: number; perTransactionMax: number; dailyLimit: number; dailyThreshold: number; allowedMethods: string[] }; withdrawal: { perTransactionMin: number; perTransactionMax: number; dailyLimit: number; dailyThreshold: number; allowedMethods: string[]; eWalletRequiresAddressProof: boolean } }>;
-  onChange: (v: typeof fundLimits) => void;
+  fundLimits?: Record<string, FundLimitsConfig>;
+  onChange: (v: Record<string, FundLimitsConfig>) => void;
 }) {
-  const defaultLimits = {
+  const defaultLimits: Record<string, FundLimitsConfig> = {
     basic: {
-      deposit: { perTransactionMin: 10, perTransactionMax: 1000, dailyLimit: 5000, dailyThreshold: 1000, allowedMethods: ["bank"] as string[] },
-      withdrawal: { perTransactionMin: 10, perTransactionMax: 500, dailyLimit: 2000, dailyThreshold: 500, allowedMethods: ["bank"] as string[], eWalletRequiresAddressProof: true },
+      deposit: { perTransactionMin: 10, perTransactionMax: 1000, dailyLimit: 5000, dailyThreshold: 1000, allowedMethods: ["bank"] },
+      withdrawal: { perTransactionMin: 10, perTransactionMax: 500, dailyLimit: 2000, dailyThreshold: 500, allowedMethods: ["bank"], eWalletRequiresAddressProof: true },
     },
     standard: {
-      deposit: { perTransactionMin: 50, perTransactionMax: 50000, dailyLimit: 200000, dailyThreshold: 10000, allowedMethods: ["bank", "usdt_trc20", "usdt_erc20"] as string[] },
-      withdrawal: { perTransactionMin: 50, perTransactionMax: 20000, dailyLimit: 100000, dailyThreshold: 10000, allowedMethods: ["bank", "usdt_trc20"] as string[], eWalletRequiresAddressProof: true },
+      deposit: { perTransactionMin: 50, perTransactionMax: 50000, dailyLimit: 200000, dailyThreshold: 10000, allowedMethods: ["bank", "usdt_trc20", "usdt_erc20"] },
+      withdrawal: { perTransactionMin: 50, perTransactionMax: 20000, dailyLimit: 100000, dailyThreshold: 10000, allowedMethods: ["bank", "usdt_trc20"], eWalletRequiresAddressProof: true },
     },
     enhanced: {
-      deposit: { perTransactionMin: 100, perTransactionMax: 999999999, dailyLimit: 999999999, dailyThreshold: 50000, allowedMethods: ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] as string[] },
-      withdrawal: { perTransactionMin: 100, perTransactionMax: 999999999, dailyLimit: 999999999, dailyThreshold: 50000, allowedMethods: ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] as string[], eWalletRequiresAddressProof: false },
+      deposit: { perTransactionMin: 100, perTransactionMax: 999999999, dailyLimit: 999999999, dailyThreshold: 50000, allowedMethods: ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] },
+      withdrawal: { perTransactionMin: 100, perTransactionMax: 999999999, dailyLimit: 999999999, dailyThreshold: 50000, allowedMethods: ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"], eWalletRequiresAddressProof: false },
     },
   };
 
@@ -351,7 +356,7 @@ function FundLimitsPanel({
     onChange(next);
   };
 
-  const toggleMethod = (level: "basic" | "standard" | "enhanced", type: "deposit" | "withdrawal", methodId: string) => {
+  const toggleMethod = (level: "basic" | "standard" | "enhanced", type: "deposit" | "withdrawal", methodId: FundMethod) => {
     const current = limits[level][type].allowedMethods;
     const nextMethods = current.includes(methodId)
       ? current.filter((m) => m !== methodId)

@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import type { AccountOpeningConfig, RegionAccountConfig, ContactVerificationConfig } from "./types";
 import type { RegionCode } from "@/lib/kyc/region-config";
 
@@ -140,12 +140,22 @@ export function useContactVerificationConfig(regionCode: RegionCode | null) {
 }
 
 /**
- * 获取资金限额配置（按 KYC 等级）
+ * 获取资金限额配置（按币种 → KYC 等级）
+ * @param regionCode 地区代码
+ * @param currency 交易账户币种（如 USD/JPY/EUR/USC），不传则使用 default
  */
-export function useFundLimitsConfig(regionCode: RegionCode | null) {
+export function useFundLimitsConfig(regionCode: RegionCode | null, currency?: string) {
   const { regionConfig, isLoading, error } = useRegionKYCConfig(regionCode);
 
-  const fundLimits = regionConfig?.fundLimits ?? null;
+  const fundLimits = useMemo(() => {
+    const all = regionConfig?.fundLimits;
+    if (!all) return null;
+    // 优先查指定币种，没有则回退 default
+    if (currency && all[currency]) {
+      return all[currency];
+    }
+    return all["default"] ?? null;
+  }, [regionConfig, currency]);
 
   return {
     fundLimits,

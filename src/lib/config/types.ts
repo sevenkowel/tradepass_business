@@ -18,6 +18,11 @@ export interface FundLimitLevel {
   dailyLimit: number;
   dailyThreshold: number;
   allowedMethods: FundMethod[];
+  /** 首次存款特殊限额（可选） */
+  firstDeposit?: {
+    min: number;
+    max: number;
+  };
 }
 
 export interface FundLimitsConfig {
@@ -97,8 +102,8 @@ export interface RegionAccountConfig {
   /** ID 号码验证 */
   idNumberPattern?: string;
   idNumberExample?: string;
-  /** 资金限额配置（按 KYC 等级） */
-  fundLimits?: Record<KYCLevel, FundLimitsConfig>;
+  /** 资金限额配置（按币种 → KYC 等级） */
+  fundLimits?: Record<string, Record<KYCLevel, FundLimitsConfig>>;
 }
 
 // ============================================================
