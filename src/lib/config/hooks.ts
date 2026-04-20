@@ -141,11 +141,39 @@ export function useContactVerificationConfig(regionCode: RegionCode | null) {
 
 /**
  * 获取资金限额配置（按币种 → KYC 等级）
+ * 直接从静态 JSON 读取，不经过兼容层 API
  * @param regionCode 地区代码
  * @param currency 交易账户币种（如 USD/JPY/EUR/USC），不传则使用 default
  */
 export function useFundLimitsConfig(regionCode: RegionCode | null, currency?: string) {
-  const { regionConfig, isLoading, error } = useRegionKYCConfig(regionCode);
+  const [regionConfig, setRegionConfig] = useState<RegionAccountConfig | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchConfig = useCallback(async () => {
+    if (!regionCode) {
+      setRegionConfig(null);
+      setIsLoading(false);
+      return;
+    }
+    try {
+      const res = await fetch("/data/kyc-config.json?t=" + Date.now());
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: AccountOpeningConfig = await res.json();
+      const rc = data.regions[regionCode];
+      setRegionConfig(rc ?? null);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch fund limits config:", err);
+      setError(err instanceof Error ? err.message : "Failed to load configuration");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [regionCode]);
+
+  useEffect(() => {
+    fetchConfig();
+  }, [fetchConfig]);
 
   const fundLimits = useMemo(() => {
     const all = regionConfig?.fundLimits;
