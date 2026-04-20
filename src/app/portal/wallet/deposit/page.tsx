@@ -6,6 +6,7 @@ import {
   ArrowDownToLine, Copy, CheckCircle2, AlertCircle,
   QrCode, ChevronRight, ChevronDown, Wallet, TrendingUp,
   ShieldCheck, Clock, HelpCircle, CircleDollarSign,
+  Zap, Info, HeadphonesIcon,
 } from "lucide-react";
 import { PageHeader } from "@/components/portal/widgets/PageHeader";
 import { usePortalStore } from "@/store/portalStore";
@@ -370,28 +371,70 @@ export default function DepositPage() {
                     />
                   </div>
 
-                  {/* 限额提示 */}
-                  <div className="flex items-center justify-between mt-3">
-                    <p className="text-xs text-gray-500">
-                      单笔限额: {formatAmount(perTransactionMin, selectedAccount?.currency ?? "USD")} -{" "}
-                      {formatAmount(perTransactionMax, selectedAccount?.currency ?? "USD")}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      每日剩余:{" "}
-                      <span className={cn(isLowBalance ? "text-amber-600 font-semibold" : "text-gray-600")}>
-                        {formatAmount(dailyRemaining, selectedAccount?.currency ?? "USD")}
-                      </span>
-                    </p>
-                  </div>
-
-                  {/* 首次存款提示 */}
-                  {isFirstDeposit && depositLimits?.firstDeposit && (
-                    <div className="mt-2 flex items-center gap-1.5 text-xs text-emerald-600">
-                      <CheckCircle2 size={12} />
-                      首次存款限额: {formatAmount(depositLimits.firstDeposit.min, selectedAccount?.currency ?? "USD")} -{" "}
-                      {formatAmount(depositLimits.firstDeposit.max, selectedAccount?.currency ?? "USD")}
+                  {/* 今日额度卡片（紧邻输入框） */}
+                  <div className="mt-4 rounded-2xl bg-white border-2 border-gray-200 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Clock size={16} className="text-blue-600" />
+                        <span className="text-sm font-bold text-gray-800">今日额度</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400">
+                          单笔 {formatAmount(perTransactionMin, selectedAccount?.currency ?? "USD")} - {formatAmount(perTransactionMax, selectedAccount?.currency ?? "USD")}
+                        </span>
+                        {user?.kycLevel !== "enhanced" && (
+                          <button className="text-xs text-blue-600 font-semibold hover:underline">提升</button>
+                        )}
+                      </div>
                     </div>
-                  )}
+
+                    {/* 进度条 */}
+                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
+                      <div
+                        className={cn(
+                          "h-full rounded-full transition-all",
+                          MOCK_DAILY_USED / dailyLimit > 0.8 ? "bg-red-400" : "bg-blue-500"
+                        )}
+                        style={{ width: `${Math.min(100, (MOCK_DAILY_USED / dailyLimit) * 100)}%` }}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">已用</p>
+                        <p className="font-bold text-gray-700">{formatAmount(MOCK_DAILY_USED, selectedAccount?.currency ?? "USD")}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400 mb-0.5">限额</p>
+                        <p className="font-bold text-gray-700">{formatAmount(dailyLimit, selectedAccount?.currency ?? "USD")}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-400 mb-0.5">剩余</p>
+                        <p className={cn("font-bold", isLowBalance ? "text-amber-600" : "text-emerald-600")}>
+                          {formatAmount(dailyRemaining, selectedAccount?.currency ?? "USD")}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 首次存款提示 */}
+                    {isFirstDeposit && depositLimits?.firstDeposit && (
+                      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-1.5 text-xs text-emerald-600">
+                        <CheckCircle2 size={12} />
+                        首次存款限额: {formatAmount(depositLimits.firstDeposit.min, selectedAccount?.currency ?? "USD")} -{" "}
+                        {formatAmount(depositLimits.firstDeposit.max, selectedAccount?.currency ?? "USD")}
+                      </div>
+                    )}
+
+                    {/* 限额紧张提示 */}
+                    {isLowBalance && (
+                      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
+                        <AlertCircle size={14} className="text-amber-600 shrink-0" />
+                        <p className="text-xs text-amber-700">
+                          剩余额度紧张，{user?.kycLevel !== "enhanced" && <button className="underline font-medium">升级认证可提升额度</button>}
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
                   {/* 校验错误 */}
                   <div className="mt-2 space-y-1">
@@ -415,18 +458,6 @@ export default function DepositPage() {
                     )}
                   </div>
                 </div>
-
-                {/* 限额紧张提示 */}
-                {isLowBalance && (
-                  <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 flex items-center gap-2">
-                    <AlertCircle size={16} className="text-amber-600 shrink-0" />
-                    <p className="text-sm text-amber-700">
-                      每日剩余额度仅剩{" "}
-                      <span className="font-semibold">{formatAmount(dailyRemaining, selectedAccount?.currency ?? "USD")}</span>
-                      <button className="ml-1 underline font-medium">申请提升额度</button>
-                    </p>
-                  </div>
-                )}
 
                 <motion.button
                   whileHover={{ scale: 1.01 }}
@@ -674,85 +705,208 @@ export default function DepositPage() {
           </AnimatePresence>
         </div>
 
-        {/* Right: Info panel */}
+        {/* Right: 步骤动态辅助信息 */}
         <div className="space-y-4">
-          {/* 钱包余额卡片 */}
-          <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-5 text-white">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Wallet size={18} />
-                <span className="text-sm font-medium opacity-90">钱包余额</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <HelpCircle size={14} className="opacity-60" />
-                <span className="text-xs opacity-60">{wallet.currency}</span>
-              </div>
-            </div>
-            <p className="text-2xl font-bold mb-1">
-              {CURRENCY_SYMBOLS[wallet.currency] || "$"}
-              {wallet.available.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </p>
-            <p className="text-xs opacity-70 mb-3">可用余额</p>
-            <button className="text-xs font-semibold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
-              转账至交易账户 <ChevronRight size={12} />
-            </button>
-          </div>
+          <AnimatePresence mode="wait">
+            {/* Step 1 右侧：安全提示 + 到账时间概览 */}
+            {step === "account" && (
+              <motion.div
+                key="right-account"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-4"
+              >
+                {/* 安全提示 */}
+                <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-gray-50 border-2 border-gray-200 p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <ShieldCheck size={18} className="text-emerald-600" />
+                    <h3 className="font-bold text-gray-800 text-sm">安全提醒</h3>
+                  </div>
+                  <ul className="space-y-2 text-xs text-gray-600">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 size={12} className="text-emerald-500 shrink-0 mt-0.5" />
+                      请确保转账地址与所选支付方式一致
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 size={12} className="text-emerald-500 shrink-0 mt-0.5" />
+                      加密货币转账不可逆，请仔细核对地址
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 size={12} className="text-emerald-500 shrink-0 mt-0.5" />
+                      大额转账建议先进行小额测试
+                    </li>
+                  </ul>
+                </div>
 
-          {/* 今日额度卡片 */}
-          <div className="rounded-2xl bg-white border-2 border-gray-200 p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Clock size={16} className="text-blue-600" />
-                <span className="text-sm font-bold text-gray-800">今日额度</span>
-              </div>
-              <button className="text-xs text-blue-600 font-semibold hover:underline">提升</button>
-            </div>
-
-            {/* 进度条 */}
-            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
-              <div
-                className={cn(
-                  "h-full rounded-full transition-all",
-                  MOCK_DAILY_USED / dailyLimit > 0.8 ? "bg-red-400" : "bg-blue-500"
-                )}
-                style={{ width: `${Math.min(100, (MOCK_DAILY_USED / dailyLimit) * 100)}%` }}
-              />
-            </div>
-
-            <div className="flex items-center justify-between text-sm mb-1">
-              <span className="text-gray-500">已用</span>
-              <span className="font-bold text-gray-900">
-                {formatAmount(MOCK_DAILY_USED, selectedAccount?.currency ?? "USD")}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-sm mb-1">
-              <span className="text-gray-500">限额</span>
-              <span className="font-bold text-gray-900">
-                {formatAmount(dailyLimit, selectedAccount?.currency ?? "USD")}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-sm mb-3">
-              <span className="text-gray-500">剩余</span>
-              <span className={cn("font-bold", isLowBalance ? "text-amber-600" : "text-emerald-600")}>
-                {formatAmount(dailyRemaining, selectedAccount?.currency ?? "USD")}
-              </span>
-            </div>
-
-            {user?.kycLevel !== "enhanced" && (
-              <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 mb-3">
-                <p className="text-xs text-amber-700 flex items-center gap-1">
-                  <TrendingUp size={12} />
-                  提升 KYC 等级可获得更高额度
-                </p>
-              </div>
+                {/* 到账时间概览 */}
+                <div className="rounded-2xl bg-white border-2 border-gray-200 p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap size={16} className="text-amber-500" />
+                    <h3 className="font-bold text-gray-800 text-sm">预计到账时间</h3>
+                  </div>
+                  <div className="space-y-2">
+                    {[
+                      { name: "USDT TRC20", time: "1-5 分钟", fast: true },
+                      { name: "USDT ERC20", time: "5-15 分钟", fast: true },
+                      { name: "Bitcoin", time: "10-30 分钟", fast: false },
+                      { name: "Bank Wire", time: "1-3 工作日", fast: false },
+                      { name: "SWIFT", time: "2-5 工作日", fast: false },
+                    ].map((m) => (
+                      <div key={m.name} className="flex items-center justify-between text-xs">
+                        <span className="text-gray-600">{m.name}</span>
+                        <span className={cn("font-semibold", m.fast ? "text-emerald-600" : "text-gray-500")}>
+                          {m.time}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
             )}
 
-            <button className="w-full text-xs font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
-              申请提升 <ChevronRight size={12} />
-            </button>
-          </div>
+            {/* Step 2 右侧：支付方式详情 */}
+            {step === "method" && (
+              <motion.div
+                key="right-method"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-4"
+              >
+                {selectedMethod ? (
+                  <div className="rounded-2xl bg-blue-50 border-2 border-blue-200 p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold border-2",
+                        selectedMethod.color === "emerald" && "bg-emerald-50 text-emerald-600 border-emerald-200",
+                        selectedMethod.color === "blue" && "bg-blue-50 text-blue-600 border-blue-200",
+                        selectedMethod.color === "orange" && "bg-orange-50 text-orange-600 border-orange-200",
+                        selectedMethod.color === "indigo" && "bg-indigo-50 text-indigo-600 border-indigo-200",
+                        selectedMethod.color === "gray" && "bg-gray-100 text-gray-600 border-gray-200",
+                        selectedMethod.color === "slate" && "bg-slate-100 text-slate-600 border-slate-200",
+                        selectedMethod.color === "cyan" && "bg-cyan-50 text-cyan-600 border-cyan-200"
+                      )}>
+                        {selectedMethod.icon}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900 text-sm">{selectedMethod.name}</h3>
+                        <p className="text-xs text-blue-600">已选择</p>
+                      </div>
+                    </div>
 
-          {/* 常见问题 FAQ */}
+                    <div className="space-y-3 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">处理时间</span>
+                        <span className="font-semibold text-gray-800">{selectedMethod.time}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">手续费</span>
+                        <span className="font-semibold text-gray-800">
+                          {selectedMethod.fee === 0 ? "免费" : `${currencySymbol}${selectedMethod.fee}`}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">最低金额</span>
+                        <span className="font-semibold text-gray-800">{currencySymbol}{selectedMethod.min.toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-blue-200">
+                      <div className="flex items-start gap-2">
+                        <Info size={14} className="text-blue-500 shrink-0 mt-0.5" />
+                        <p className="text-xs text-blue-700">
+                          {selectedMethod.id === "bank" && "请使用与实名认证一致的银行账户进行转账。"}
+                          {selectedMethod.id === "swift" && "SWIFT 转账可能产生中间行费用，请以实际到账金额为准。"}
+                          {selectedMethod.id === "usdt_trc20" && "请确保使用 TRC20 网络，其他网络可能导致资产丢失。"}
+                          {selectedMethod.id === "usdt_erc20" && "ERC20 网络 Gas 费波动较大，请预留足够手续费。"}
+                          {selectedMethod.id === "btc" && "Bitcoin 网络确认时间较长，请耐心等待。"}
+                          {selectedMethod.id === "eth" && "Ethereum 网络 Gas 费波动较大，请预留足够手续费。"}
+                          {selectedMethod.id === "sepa" && "SEPA 转账仅限欧元区银行账户。"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl bg-gray-50 border-2 border-gray-200 p-5 text-center">
+                    <Info size={24} className="text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">请选择一种支付方式查看详情</p>
+                  </div>
+                )}
+
+                {/* 方式对比提示 */}
+                <div className="rounded-2xl bg-white border-2 border-gray-200 p-5">
+                  <h3 className="font-bold text-gray-800 text-sm mb-3">为什么推荐 {availableMethods[0]?.name || "USDT TRC20"}？</h3>
+                  <ul className="space-y-2 text-xs text-gray-600">
+                    <li className="flex items-start gap-2">
+                      <Zap size={12} className="text-amber-500 shrink-0 mt-0.5" />
+                      到账最快（通常 1-5 分钟）
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 size={12} className="text-emerald-500 shrink-0 mt-0.5" />
+                      手续费最低（多数情况免费）
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <ShieldCheck size={12} className="text-blue-500 shrink-0 mt-0.5" />
+                      7×24 小时全天候处理
+                    </li>
+                  </ul>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 3 右侧：核对清单 + 客服 */}
+            {step === "confirm" && (
+              <motion.div
+                key="right-confirm"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-4"
+              >
+                {/* 核对清单 */}
+                <div className="rounded-2xl bg-white border-2 border-gray-200 p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <CheckCircle2 size={16} className="text-emerald-600" />
+                    <h3 className="font-bold text-gray-800 text-sm">核对清单</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {[
+                      { label: "存入账户", value: `${selectedAccount?.accountNumber} · ${getAccountTypeLabel(selectedAccount!)}`, ok: true },
+                      { label: "存款金额", value: `${currencySymbol}${Number(amount).toLocaleString()}`, ok: true },
+                      { label: "支付方式", value: selectedMethod?.name ?? "", ok: true },
+                      { label: "手续费", value: selectedMethod?.fee === 0 ? "免费" : `${currencySymbol}${selectedMethod?.fee}`, ok: true },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 size={14} className="text-emerald-500" />
+                          <span className="text-gray-500">{item.label}</span>
+                        </div>
+                        <span className="font-semibold text-gray-800">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 客服入口 */}
+                <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <HeadphonesIcon size={16} className="text-blue-600" />
+                    <h3 className="font-bold text-gray-800 text-sm">遇到问题？</h3>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-3">
+                    存款未到账或地址有疑问？我们的客服团队 24/7 在线为您服务。
+                  </p>
+                  <button className="w-full text-xs font-semibold text-blue-700 bg-white border border-blue-200 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+                    <HeadphonesIcon size={12} />
+                    联系客服
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* 常见问题 FAQ（所有步骤共享） */}
           <div className="rounded-2xl bg-white border-2 border-gray-200 p-5">
             <div className="flex items-center gap-2 mb-4">
               <HelpCircle size={16} className="text-gray-500" />
