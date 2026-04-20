@@ -290,8 +290,159 @@ function RegionCard({
               })}
             </div>
           </div>
+
+          {/* Fund Limits by KYC Level */}
+          <FundLimitsPanel
+            fundLimits={config.fundLimits}
+            onChange={(newLimits) => onFieldChange("fundLimits", newLimits)}
+          />
         </div>
       )}
+    </div>
+  );
+}
+
+// ============================================================
+// Fund Limits Panel
+// ============================================================
+const ALL_METHODS: { id: string; label: string }[] = [
+  { id: "bank", label: "Bank" },
+  { id: "usdt_trc20", label: "USDT TRC20" },
+  { id: "usdt_erc20", label: "USDT ERC20" },
+  { id: "btc", label: "BTC" },
+  { id: "eth", label: "ETH" },
+  { id: "swift", label: "SWIFT" },
+  { id: "sepa", label: "SEPA" },
+];
+
+function FundLimitsPanel({
+  fundLimits,
+  onChange,
+}: {
+  fundLimits?: Record<string, { deposit: { perTransactionMin: number; perTransactionMax: number; dailyLimit: number; dailyThreshold: number; allowedMethods: string[] }; withdrawal: { perTransactionMin: number; perTransactionMax: number; dailyLimit: number; dailyThreshold: number; allowedMethods: string[]; eWalletRequiresAddressProof: boolean } }>;
+  onChange: (v: typeof fundLimits) => void;
+}) {
+  const defaultLimits = {
+    basic: {
+      deposit: { perTransactionMin: 10, perTransactionMax: 1000, dailyLimit: 5000, dailyThreshold: 1000, allowedMethods: ["bank"] as string[] },
+      withdrawal: { perTransactionMin: 10, perTransactionMax: 500, dailyLimit: 2000, dailyThreshold: 500, allowedMethods: ["bank"] as string[], eWalletRequiresAddressProof: true },
+    },
+    standard: {
+      deposit: { perTransactionMin: 50, perTransactionMax: 50000, dailyLimit: 200000, dailyThreshold: 10000, allowedMethods: ["bank", "usdt_trc20", "usdt_erc20"] as string[] },
+      withdrawal: { perTransactionMin: 50, perTransactionMax: 20000, dailyLimit: 100000, dailyThreshold: 10000, allowedMethods: ["bank", "usdt_trc20"] as string[], eWalletRequiresAddressProof: true },
+    },
+    enhanced: {
+      deposit: { perTransactionMin: 100, perTransactionMax: 999999999, dailyLimit: 999999999, dailyThreshold: 50000, allowedMethods: ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] as string[] },
+      withdrawal: { perTransactionMin: 100, perTransactionMax: 999999999, dailyLimit: 999999999, dailyThreshold: 50000, allowedMethods: ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] as string[], eWalletRequiresAddressProof: false },
+    },
+  };
+
+  const limits = fundLimits ?? defaultLimits;
+
+  const updateLevel = (level: "basic" | "standard" | "enhanced", type: "deposit" | "withdrawal", field: string, value: unknown) => {
+    const lvl = limits[level];
+    const next = {
+      ...limits,
+      [level]: {
+        ...lvl,
+        [type]: { ...lvl[type], [field]: value },
+      },
+    };
+    onChange(next);
+  };
+
+  const toggleMethod = (level: "basic" | "standard" | "enhanced", type: "deposit" | "withdrawal", methodId: string) => {
+    const current = limits[level][type].allowedMethods;
+    const nextMethods = current.includes(methodId)
+      ? current.filter((m) => m !== methodId)
+      : [...current, methodId];
+    updateLevel(level, type, "allowedMethods", nextMethods);
+  };
+
+  return (
+    <div className="border-t border-gray-100 pt-4">
+      <span className="text-sm text-gray-600 block mb-3">Fund Limits (by KYC Level)</span>
+      <div className="space-y-3">
+        {(["basic", "standard", "enhanced"] as const).map((level) => (
+          <div key={level} className="bg-white rounded-lg border border-gray-100 p-3">
+            <span className="text-xs font-semibold text-gray-700 uppercase mb-2 block">{level}</span>
+
+            {/* Deposit */}
+            <div className="mb-3">
+              <span className="text-xs text-gray-500 block mb-1">Deposit</span>
+              <div className="grid grid-cols-4 gap-2 mb-2">
+                {(["perTransactionMin", "perTransactionMax", "dailyLimit", "dailyThreshold"] as const).map((field) => (
+                  <div key={field}>
+                    <span className="text-[10px] text-gray-400 block mb-0.5 capitalize">{field.replace(/([A-Z])/g, " $1")}</span>
+                    <input
+                      type="number"
+                      value={limits[level].deposit[field]}
+                      onChange={(e) => updateLevel(level, "deposit", field, Number(e.target.value))}
+                      className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {ALL_METHODS.map((m) => {
+                  const selected = limits[level].deposit.allowedMethods.includes(m.id);
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => toggleMethod(level, "deposit", m.id)}
+                      className={`text-[10px] px-2 py-1 rounded border transition-colors ${selected ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-500 border-gray-200 hover:border-blue-300"}`}
+                    >
+                      {m.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Withdrawal */}
+            <div>
+              <span className="text-xs text-gray-500 block mb-1">Withdrawal</span>
+              <div className="grid grid-cols-4 gap-2 mb-2">
+                {(["perTransactionMin", "perTransactionMax", "dailyLimit", "dailyThreshold"] as const).map((field) => (
+                  <div key={field}>
+                    <span className="text-[10px] text-gray-400 block mb-0.5 capitalize">{field.replace(/([A-Z])/g, " $1")}</span>
+                    <input
+                      type="number"
+                      value={limits[level].withdrawal[field]}
+                      onChange={(e) => updateLevel(level, "withdrawal", field, Number(e.target.value))}
+                      className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex flex-wrap gap-1.5">
+                  {ALL_METHODS.map((m) => {
+                    const selected = limits[level].withdrawal.allowedMethods.includes(m.id);
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => toggleMethod(level, "withdrawal", m.id)}
+                        className={`text-[10px] px-2 py-1 rounded border transition-colors ${selected ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-500 border-gray-200 hover:border-blue-300"}`}
+                      >
+                        {m.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-gray-500">eWallet needs address proof</span>
+                  <Toggle
+                    checked={limits[level].withdrawal.eWalletRequiresAddressProof}
+                    size="sm"
+                    onChange={(v) => updateLevel(level, "withdrawal", "eWalletRequiresAddressProof", v)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

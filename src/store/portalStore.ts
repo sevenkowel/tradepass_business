@@ -6,7 +6,10 @@ interface User {
   email: string;
   avatar?: string;
   kycStatus: "unverified" | "pending" | "verified";
+  kycLevel: "basic" | "standard" | "enhanced";
+  region: "VN" | "TH" | "IN" | "AE" | "KR" | "JP" | "FR" | "ES" | "BR";
   level: "standard" | "vip" | "platinum";
+  addressProof?: boolean;
 }
 
 interface WalletBalance {
@@ -49,7 +52,10 @@ export const usePortalStore = create<PortalState>((set) => ({
     name: "Alex Chen",
     email: "alex@tradepass.io",
     kycStatus: "verified",
+    kycLevel: "standard" as const,
+    region: "VN" as const,
     level: "vip",
+    addressProof: true,
   },
   setUser: (user) => set({ user }),
 

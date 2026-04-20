@@ -97,7 +97,21 @@
         "militaryDeclaration": true
       },
       "idNumberPattern": "^\\d{9}$|^\\d{12}$",
-      "idNumberExample": "012345678901"
+      "idNumberExample": "012345678901",
+      "fundLimits": {
+        "basic": {
+          "deposit": { "perTransactionMin": 10, "perTransactionMax": 1000, "dailyLimit": 5000, "dailyThreshold": 1000, "allowedMethods": ["bank"] },
+          "withdrawal": { "perTransactionMin": 10, "perTransactionMax": 500, "dailyLimit": 2000, "dailyThreshold": 500, "allowedMethods": ["bank"], "eWalletRequiresAddressProof": true }
+        },
+        "standard": {
+          "deposit": { "perTransactionMin": 50, "perTransactionMax": 50000, "dailyLimit": 200000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20"] },
+          "withdrawal": { "perTransactionMin": 50, "perTransactionMax": 20000, "dailyLimit": 100000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20"], "eWalletRequiresAddressProof": true }
+        },
+        "enhanced": {
+          "deposit": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] },
+          "withdrawal": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"], "eWalletRequiresAddressProof": false }
+        }
+      }
     },
     "TH": {
       "enabled": true,
@@ -173,7 +187,12 @@
         "militaryDeclaration": false
       },
       "idNumberPattern": "^\\d{13}$",
-      "idNumberExample": "1234567890123"
+      "idNumberExample": "1234567890123",
+      "fundLimits": {
+        "basic": { "deposit": { "perTransactionMin": 10, "perTransactionMax": 1000, "dailyLimit": 5000, "dailyThreshold": 1000, "allowedMethods": ["bank"] }, "withdrawal": { "perTransactionMin": 10, "perTransactionMax": 500, "dailyLimit": 2000, "dailyThreshold": 500, "allowedMethods": ["bank"], "eWalletRequiresAddressProof": true } },
+        "standard": { "deposit": { "perTransactionMin": 50, "perTransactionMax": 50000, "dailyLimit": 200000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20"] }, "withdrawal": { "perTransactionMin": 50, "perTransactionMax": 20000, "dailyLimit": 100000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20"], "eWalletRequiresAddressProof": true } },
+        "enhanced": { "deposit": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] }, "withdrawal": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"], "eWalletRequiresAddressProof": false } }
+      }
     },
     "IN": {
       "enabled": true,
@@ -251,7 +270,12 @@
         "militaryDeclaration": false
       },
       "idNumberPattern": "^[A-Z]{5}[0-9]{4}[A-Z]{1}$",
-      "idNumberExample": "ABCDE1234F"
+      "idNumberExample": "ABCDE1234F",
+      "fundLimits": {
+        "basic": { "deposit": { "perTransactionMin": 10, "perTransactionMax": 1000, "dailyLimit": 5000, "dailyThreshold": 1000, "allowedMethods": ["bank"] }, "withdrawal": { "perTransactionMin": 10, "perTransactionMax": 500, "dailyLimit": 2000, "dailyThreshold": 500, "allowedMethods": ["bank"], "eWalletRequiresAddressProof": true } },
+        "standard": { "deposit": { "perTransactionMin": 50, "perTransactionMax": 50000, "dailyLimit": 200000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20"] }, "withdrawal": { "perTransactionMin": 50, "perTransactionMax": 20000, "dailyLimit": 100000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20"], "eWalletRequiresAddressProof": true } },
+        "enhanced": { "deposit": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] }, "withdrawal": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"], "eWalletRequiresAddressProof": false } }
+      }
     },
     "AE": {
       "enabled": true,
@@ -321,7 +345,12 @@
         "militaryDeclaration": false
       },
       "idNumberPattern": "^784-\\d{4}-\\d{7}-\\d{1}$",
-      "idNumberExample": "784-1234-1234567-1"
+      "idNumberExample": "784-1234-1234567-1",
+      "fundLimits": {
+        "basic": { "deposit": { "perTransactionMin": 10, "perTransactionMax": 1000, "dailyLimit": 5000, "dailyThreshold": 1000, "allowedMethods": ["bank"] }, "withdrawal": { "perTransactionMin": 10, "perTransactionMax": 500, "dailyLimit": 2000, "dailyThreshold": 500, "allowedMethods": ["bank"], "eWalletRequiresAddressProof": true } },
+        "standard": { "deposit": { "perTransactionMin": 50, "perTransactionMax": 50000, "dailyLimit": 200000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20"] }, "withdrawal": { "perTransactionMin": 50, "perTransactionMax": 20000, "dailyLimit": 100000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20"], "eWalletRequiresAddressProof": true } },
+        "enhanced": { "deposit": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] }, "withdrawal": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"], "eWalletRequiresAddressProof": false } }
+      }
     },
     "KR": {
       "enabled": true,
@@ -392,7 +421,12 @@
         "militaryDeclaration": true
       },
       "idNumberPattern": "^\\d{6}-\\d{7}$",
-      "idNumberExample": "901010-1234567"
+      "idNumberExample": "901010-1234567",
+      "fundLimits": {
+        "basic": { "deposit": { "perTransactionMin": 10, "perTransactionMax": 1000, "dailyLimit": 5000, "dailyThreshold": 1000, "allowedMethods": ["bank"] }, "withdrawal": { "perTransactionMin": 10, "perTransactionMax": 500, "dailyLimit": 2000, "dailyThreshold": 500, "allowedMethods": ["bank"], "eWalletRequiresAddressProof": true } },
+        "standard": { "deposit": { "perTransactionMin": 50, "perTransactionMax": 50000, "dailyLimit": 200000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20"] }, "withdrawal": { "perTransactionMin": 50, "perTransactionMax": 20000, "dailyLimit": 100000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20"], "eWalletRequiresAddressProof": true } },
+        "enhanced": { "deposit": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] }, "withdrawal": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"], "eWalletRequiresAddressProof": false } }
+      }
     },
     "JP": {
       "enabled": true,
@@ -469,7 +503,12 @@
         "militaryDeclaration": false
       },
       "idNumberPattern": "^[A-Z]{2}\\d{8}$",
-      "idNumberExample": "AB12345678"
+      "idNumberExample": "AB12345678",
+      "fundLimits": {
+        "basic": { "deposit": { "perTransactionMin": 10, "perTransactionMax": 1000, "dailyLimit": 5000, "dailyThreshold": 1000, "allowedMethods": ["bank"] }, "withdrawal": { "perTransactionMin": 10, "perTransactionMax": 500, "dailyLimit": 2000, "dailyThreshold": 500, "allowedMethods": ["bank"], "eWalletRequiresAddressProof": true } },
+        "standard": { "deposit": { "perTransactionMin": 50, "perTransactionMax": 50000, "dailyLimit": 200000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20"] }, "withdrawal": { "perTransactionMin": 50, "perTransactionMax": 20000, "dailyLimit": 100000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20"], "eWalletRequiresAddressProof": true } },
+        "enhanced": { "deposit": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] }, "withdrawal": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"], "eWalletRequiresAddressProof": false } }
+      }
     },
     "FR": {
       "enabled": true,
@@ -549,6 +588,11 @@
         "usPersonDeclaration": true,
         "professionalDeclaration": true,
         "militaryDeclaration": false
+      },
+      "fundLimits": {
+        "basic": { "deposit": { "perTransactionMin": 10, "perTransactionMax": 1000, "dailyLimit": 5000, "dailyThreshold": 1000, "allowedMethods": ["bank"] }, "withdrawal": { "perTransactionMin": 10, "perTransactionMax": 500, "dailyLimit": 2000, "dailyThreshold": 500, "allowedMethods": ["bank"], "eWalletRequiresAddressProof": true } },
+        "standard": { "deposit": { "perTransactionMin": 50, "perTransactionMax": 50000, "dailyLimit": 200000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20"] }, "withdrawal": { "perTransactionMin": 50, "perTransactionMax": 20000, "dailyLimit": 100000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20"], "eWalletRequiresAddressProof": true } },
+        "enhanced": { "deposit": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] }, "withdrawal": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"], "eWalletRequiresAddressProof": false } }
       }
     },
     "ES": {
@@ -620,7 +664,12 @@
         "militaryDeclaration": false
       },
       "idNumberPattern": "^\\d{8}[A-Z]$|^[XYZ]\\d{7}[A-Z]$",
-      "idNumberExample": "12345678A"
+      "idNumberExample": "12345678A",
+      "fundLimits": {
+        "basic": { "deposit": { "perTransactionMin": 10, "perTransactionMax": 1000, "dailyLimit": 5000, "dailyThreshold": 1000, "allowedMethods": ["bank"] }, "withdrawal": { "perTransactionMin": 10, "perTransactionMax": 500, "dailyLimit": 2000, "dailyThreshold": 500, "allowedMethods": ["bank"], "eWalletRequiresAddressProof": true } },
+        "standard": { "deposit": { "perTransactionMin": 50, "perTransactionMax": 50000, "dailyLimit": 200000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20"] }, "withdrawal": { "perTransactionMin": 50, "perTransactionMax": 20000, "dailyLimit": 100000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20"], "eWalletRequiresAddressProof": true } },
+        "enhanced": { "deposit": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] }, "withdrawal": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"], "eWalletRequiresAddressProof": false } }
+      }
     },
     "BR": {
       "enabled": true,
@@ -697,7 +746,12 @@
         "militaryDeclaration": false
       },
       "idNumberPattern": "^\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}$",
-      "idNumberExample": "123.456.789-09"
+      "idNumberExample": "123.456.789-09",
+      "fundLimits": {
+        "basic": { "deposit": { "perTransactionMin": 10, "perTransactionMax": 1000, "dailyLimit": 5000, "dailyThreshold": 1000, "allowedMethods": ["bank"] }, "withdrawal": { "perTransactionMin": 10, "perTransactionMax": 500, "dailyLimit": 2000, "dailyThreshold": 500, "allowedMethods": ["bank"], "eWalletRequiresAddressProof": true } },
+        "standard": { "deposit": { "perTransactionMin": 50, "perTransactionMax": 50000, "dailyLimit": 200000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20"] }, "withdrawal": { "perTransactionMin": 50, "perTransactionMax": 20000, "dailyLimit": 100000, "dailyThreshold": 10000, "allowedMethods": ["bank", "usdt_trc20"], "eWalletRequiresAddressProof": true } },
+        "enhanced": { "deposit": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"] }, "withdrawal": { "perTransactionMin": 100, "perTransactionMax": 999999999, "dailyLimit": 999999999, "dailyThreshold": 50000, "allowedMethods": ["bank", "usdt_trc20", "usdt_erc20", "btc", "eth"], "eWalletRequiresAddressProof": false } }
+      }
     }
   },
   "steps": {

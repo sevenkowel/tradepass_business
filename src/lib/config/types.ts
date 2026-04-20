@@ -7,6 +7,27 @@ import type { RegionCode, KYCLevel, DocumentType } from "@/lib/kyc/region-config
 import type { FieldConfig } from "@/lib/kyc/region-config";
 
 // ============================================================
+// 资金限额配置（按 KYC 等级）
+// ============================================================
+
+export type FundMethod = "bank" | "usdt_trc20" | "usdt_erc20" | "btc" | "eth" | "swift" | "sepa";
+
+export interface FundLimitLevel {
+  perTransactionMin: number;
+  perTransactionMax: number;
+  dailyLimit: number;
+  dailyThreshold: number;
+  allowedMethods: FundMethod[];
+}
+
+export interface FundLimitsConfig {
+  deposit: FundLimitLevel;
+  withdrawal: FundLimitLevel & {
+    eWalletRequiresAddressProof: boolean;
+  };
+}
+
+// ============================================================
 // 开户全局配置
 // ============================================================
 
@@ -76,6 +97,8 @@ export interface RegionAccountConfig {
   /** ID 号码验证 */
   idNumberPattern?: string;
   idNumberExample?: string;
+  /** 资金限额配置（按 KYC 等级） */
+  fundLimits?: Record<KYCLevel, FundLimitsConfig>;
 }
 
 // ============================================================

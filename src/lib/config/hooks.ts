@@ -138,3 +138,18 @@ export function useContactVerificationConfig(regionCode: RegionCode | null) {
     error,
   };
 }
+
+/**
+ * 获取资金限额配置（按 KYC 等级）
+ */
+export function useFundLimitsConfig(regionCode: RegionCode | null) {
+  const { regionConfig, isLoading, error } = useRegionKYCConfig(regionCode);
+
+  const fundLimits = regionConfig?.fundLimits ?? null;
+
+  return {
+    fundLimits,
+    isLoading,
+    error,
+  };
+}
