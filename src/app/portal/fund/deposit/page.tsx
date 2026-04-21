@@ -7,6 +7,7 @@ import {
   ArrowDownLeft, CreditCard, Landmark, HelpCircle, ArrowUpRight,
   ChevronDown, ChevronUp, MessageCircle, Lock, AlertTriangle,
   Star, ChevronRight, CheckCircle2, Loader2, ArrowLeft, Copy,
+  ShieldCheck, Clock,
 } from "lucide-react";
 import QRCode from "qrcode";
 import { Card, CardContent } from "@/components/ui/card";
@@ -337,10 +338,12 @@ export default function DepositPage() {
         })}
       </div>
 
-      {/* Main content - single column centered */}
-      <div className="max-w-2xl mx-auto space-y-6">
+      {/* Main content: left form + right sidebar */}
+      <div className="flex gap-8 items-start">
+        {/* Left: main form */}
+        <div className="flex-1 min-w-0">
           <AnimatePresence mode="wait">
-            {/* ===== Step 1: Account + Amount ===== */}
+            {/* ===== Step 1: Account + Amount (合并为一个 Card) ===== */}
             {step === 1 && (
               <motion.div
                 key="step1"
@@ -348,164 +351,178 @@ export default function DepositPage() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
                 transition={{ duration: 0.2 }}
-                className="space-y-6"
               >
-                <Card>
-                  <CardContent className="p-6 space-y-5">
-                    <h2 className="text-lg font-semibold text-slate-900">选择存入账户</h2>
-                    <Select value={targetAccount} onValueChange={(v) => { setTargetAccount(v); }}>
-                      <SelectTrigger className="h-12"><SelectValue placeholder="选择账户" /></SelectTrigger>
-                      <SelectContent className="max-h-[320px] w-[520px]">
-                        {recommendedAccount && (
-                          <>
-                            <div className="px-2 py-1.5 text-xs font-medium text-amber-600 flex items-center gap-1">
-                              <Star className="w-3 h-3 fill-amber-500 text-amber-500" /> 推荐账户
-                            </div>
-                            <SelectItem value={recommendedAccount.id}>
-                              <span className="font-mono text-sm text-slate-900">{formatAccountLabel(recommendedAccount)}</span>
-                            </SelectItem>
-                            <div className="h-px bg-slate-100 mx-2 my-1" />
-                            <div className="px-2 py-1.5 text-xs font-medium text-slate-500">其他账户</div>
-                          </>
-                        )}
-                        {walletAccounts.length > 0 && (
-                          <>
-                            <div className="px-2 py-1.5 text-xs font-medium text-slate-500">钱包</div>
-                            {walletAccounts.map(acc => (
-                              <SelectItem key={acc.id} value={acc.id}>
-                                <span className="font-mono text-sm text-slate-700">{formatAccountLabel(acc)}</span>
-                              </SelectItem>
-                            ))}
-                          </>
-                        )}
-                        {mt4Accounts.filter(a => a.id !== recommendedAccount?.id).length > 0 && (
-                          <>
-                            <div className="h-px bg-slate-100 mx-2 my-1" />
-                            <div className="px-2 py-1.5 text-xs font-medium text-slate-500 flex justify-between">
-                              MT4 <span className="font-normal text-slate-400">({mt4Accounts.filter(a => a.id !== recommendedAccount?.id).length})</span>
-                            </div>
-                            {mt4Accounts.filter(a => a.id !== recommendedAccount?.id).map(acc => (
-                              <SelectItem key={acc.id} value={acc.id}>
-                                <span className="font-mono text-sm text-slate-700">{formatAccountLabel(acc)}</span>
-                              </SelectItem>
-                            ))}
-                          </>
-                        )}
-                        {mt5Accounts.filter(a => a.id !== recommendedAccount?.id).length > 0 && (
-                          <>
-                            <div className="h-px bg-slate-100 mx-2 my-1" />
-                            <div className="px-2 py-1.5 text-xs font-medium text-slate-500 flex justify-between">
-                              MT5 <span className="font-normal text-slate-400">({mt5Accounts.filter(a => a.id !== recommendedAccount?.id).length})</span>
-                            </div>
-                            {mt5Accounts.filter(a => a.id !== recommendedAccount?.id).map(acc => (
-                              <SelectItem key={acc.id} value={acc.id}>
-                                <span className="font-mono text-sm text-slate-700">{formatAccountLabel(acc)}</span>
-                              </SelectItem>
-                            ))}
-                          </>
-                        )}
-                        {tpAccounts.length > 0 && (
-                          <>
-                            <div className="h-px bg-slate-100 mx-2 my-1" />
-                            <div className="px-2 py-1.5 text-xs font-medium text-slate-500 flex justify-between">
-                              TP <span className="font-normal text-slate-400">({tpAccounts.length})</span>
-                            </div>
-                            {tpAccounts.map(acc => (
-                              <SelectItem key={acc.id} value={acc.id}>
-                                <span className="font-mono text-sm text-slate-700">{formatAccountLabel(acc)}</span>
-                              </SelectItem>
-                            ))}
-                          </>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6 space-y-5">
-                    <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                      <CreditCard className="w-5 h-5 text-slate-600" />
-                      输入存款金额
-                    </h2>
-
-                    <div className="flex flex-wrap gap-2">
-                      {quickAmounts.map(preset => (
-                        <button key={preset} onClick={() => setAmount(preset)}
-                          className="px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 transition-colors">
-                          {accountSymbolStr}{parseInt(preset).toLocaleString()}
-                        </button>
-                      ))}
+                <Card className="overflow-hidden">
+                  <CardContent className="p-0">
+                    {/* Header */}
+                    <div className="px-6 py-4 bg-slate-50/50 border-b border-slate-100">
+                      <h2 className="text-lg font-semibold text-slate-900">充值</h2>
                     </div>
 
-                    <div className="relative">
-                      <span className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-3xl font-bold text-slate-500">
-                        {accountSymbolStr}
-                      </span>
-                      <Input type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)}
-                        className="pl-14 h-16 text-3xl font-bold font-variant-numeric tabular-nums" />
-                    </div>
+                    <div className="p-6 space-y-6">
+                      {/* ① 选择存入账户 */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                          <span className="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-xs flex items-center justify-center">1</span>
+                          选择存入账户
+                        </div>
+                        <Select value={targetAccount} onValueChange={(v) => { setTargetAccount(v); }}>
+                          <SelectTrigger className="h-12"><SelectValue placeholder="选择账户" /></SelectTrigger>
+                          <SelectContent className="max-h-[320px] w-[520px]">
+                            {recommendedAccount && (
+                              <>
+                                <div className="px-2 py-1.5 text-xs font-medium text-amber-600 flex items-center gap-1">
+                                  <Star className="w-3 h-3 fill-amber-500 text-amber-500" /> 推荐账户
+                                </div>
+                                <SelectItem value={recommendedAccount.id}>
+                                  <span className="font-mono text-sm text-slate-900">{formatAccountLabel(recommendedAccount)}</span>
+                                </SelectItem>
+                                <div className="h-px bg-slate-100 mx-2 my-1" />
+                                <div className="px-2 py-1.5 text-xs font-medium text-slate-500">其他账户</div>
+                              </>
+                            )}
+                            {walletAccounts.length > 0 && (
+                              <>
+                                <div className="px-2 py-1.5 text-xs font-medium text-slate-500">钱包</div>
+                                {walletAccounts.map(acc => (
+                                  <SelectItem key={acc.id} value={acc.id}>
+                                    <span className="font-mono text-sm text-slate-700">{formatAccountLabel(acc)}</span>
+                                  </SelectItem>
+                                ))}
+                              </>
+                            )}
+                            {mt4Accounts.filter(a => a.id !== recommendedAccount?.id).length > 0 && (
+                              <>
+                                <div className="h-px bg-slate-100 mx-2 my-1" />
+                                <div className="px-2 py-1.5 text-xs font-medium text-slate-500 flex justify-between">
+                                  MT4 <span className="font-normal text-slate-400">({mt4Accounts.filter(a => a.id !== recommendedAccount?.id).length})</span>
+                                </div>
+                                {mt4Accounts.filter(a => a.id !== recommendedAccount?.id).map(acc => (
+                                  <SelectItem key={acc.id} value={acc.id}>
+                                    <span className="font-mono text-sm text-slate-700">{formatAccountLabel(acc)}</span>
+                                  </SelectItem>
+                                ))}
+                              </>
+                            )}
+                            {mt5Accounts.filter(a => a.id !== recommendedAccount?.id).length > 0 && (
+                              <>
+                                <div className="h-px bg-slate-100 mx-2 my-1" />
+                                <div className="px-2 py-1.5 text-xs font-medium text-slate-500 flex justify-between">
+                                  MT5 <span className="font-normal text-slate-400">({mt5Accounts.filter(a => a.id !== recommendedAccount?.id).length})</span>
+                                </div>
+                                {mt5Accounts.filter(a => a.id !== recommendedAccount?.id).map(acc => (
+                                  <SelectItem key={acc.id} value={acc.id}>
+                                    <span className="font-mono text-sm text-slate-700">{formatAccountLabel(acc)}</span>
+                                  </SelectItem>
+                                ))}
+                              </>
+                            )}
+                            {tpAccounts.length > 0 && (
+                              <>
+                                <div className="h-px bg-slate-100 mx-2 my-1" />
+                                <div className="px-2 py-1.5 text-xs font-medium text-slate-500 flex justify-between">
+                                  TP <span className="font-normal text-slate-400">({tpAccounts.length})</span>
+                                </div>
+                                {tpAccounts.map(acc => (
+                                  <SelectItem key={acc.id} value={acc.id}>
+                                    <span className="font-mono text-sm text-slate-700">{formatAccountLabel(acc)}</span>
+                                  </SelectItem>
+                                ))}
+                              </>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                    {/* 限额提示 - 条件触发 */}
-                    {(() => {
-                      const usageRatio = todayUsed / limits.daily;
-                      const remaining = limits.daily - todayUsed;
-                      if (usageRatio >= 0.85) {
-                        return (
-                          <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
-                            <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-red-800">今日额度紧张</p>
-                              <p className="text-xs text-red-600 mt-0.5">
-                                已用 {accountSymbolStr}{todayUsed.toLocaleString()} / 限额 {accountSymbolStr}{limits.daily.toLocaleString()}，剩余 {accountSymbolStr}{remaining.toLocaleString()}
-                              </p>
-                              <button className="mt-2 text-xs font-medium text-red-700 hover:underline">申请提升额度 →</button>
+                      <div className="h-px bg-slate-100" />
+
+                      {/* ② 输入存款金额 */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                          <span className="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-xs flex items-center justify-center">2</span>
+                          输入存款金额
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          {quickAmounts.map(preset => (
+                            <button key={preset} onClick={() => setAmount(preset)}
+                              className="px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 transition-colors">
+                              {accountSymbolStr}{parseInt(preset).toLocaleString()}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="relative">
+                          <span className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-3xl font-bold text-slate-500">
+                            {accountSymbolStr}
+                          </span>
+                          <Input type="number" placeholder="0.00" value={amount} onChange={e => setAmount(e.target.value)}
+                            className="pl-14 h-16 text-3xl font-bold font-variant-numeric tabular-nums" />
+                        </div>
+
+                        {/* 限额提示 - 条件触发 */}
+                        {(() => {
+                          const usageRatio = todayUsed / limits.daily;
+                          const remaining = limits.daily - todayUsed;
+                          if (usageRatio >= 0.85) {
+                            return (
+                              <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                                <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-red-800">今日额度紧张</p>
+                                  <p className="text-xs text-red-600 mt-0.5">
+                                    已用 {accountSymbolStr}{todayUsed.toLocaleString()} / 限额 {accountSymbolStr}{limits.daily.toLocaleString()}，剩余 {accountSymbolStr}{remaining.toLocaleString()}
+                                  </p>
+                                  <button className="mt-2 text-xs font-medium text-red-700 hover:underline">申请提升额度 →</button>
+                                </div>
+                              </div>
+                            );
+                          }
+                          if (usageRatio >= 0.6) {
+                            return (
+                              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+                                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-amber-800">今日额度已用 {Math.round(usageRatio * 100)}%</p>
+                                  <p className="text-xs text-amber-600 mt-0.5">
+                                    剩余 {accountSymbolStr}{remaining.toLocaleString()}，单笔限额 {accountSymbolStr}{limits.min.toLocaleString()} - {accountSymbolStr}{limits.max.toLocaleString()}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return (
+                            <div className="flex items-center justify-between text-xs text-slate-400">
+                              <span>单笔 {accountSymbolStr}{limits.min.toLocaleString()} - {accountSymbolStr}{limits.max.toLocaleString()}</span>
+                              <span>今日剩余 {accountSymbolStr}{remaining.toLocaleString()}</span>
                             </div>
-                          </div>
-                        );
-                      }
-                      if (usageRatio >= 0.6) {
-                        return (
+                          );
+                        })()}
+
+                        {isSuspicious && (
                           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
                             <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-amber-800">今日额度已用 {Math.round(usageRatio * 100)}%</p>
-                              <p className="text-xs text-amber-600 mt-0.5">
-                                剩余 {accountSymbolStr}{remaining.toLocaleString()}，单笔限额 {accountSymbolStr}{limits.min.toLocaleString()} - {accountSymbolStr}{limits.max.toLocaleString()}
-                              </p>
+                            <div>
+                              <p className="text-sm font-medium text-amber-800">小额充值频繁</p>
+                              <p className="text-xs text-amber-600 mt-0.5">检测到连续小额充值，请确认是否本人操作</p>
                             </div>
                           </div>
-                        );
-                      }
-                      return (
-                        <div className="flex items-center justify-between text-xs text-slate-400">
-                          <span>单笔 {accountSymbolStr}{limits.min.toLocaleString()} - {accountSymbolStr}{limits.max.toLocaleString()}</span>
-                          <span>今日剩余 {accountSymbolStr}{remaining.toLocaleString()}</span>
-                        </div>
-                      );
-                    })()}
-
-                    {isSuspicious && (
-                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
-                        <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-amber-800">小额充值频繁</p>
-                          <p className="text-xs text-amber-600 mt-0.5">检测到连续小额充值，请确认是否本人操作</p>
-                        </div>
+                        )}
                       </div>
-                    )}
+                    </div>
+
+                    {/* Footer with full-width button */}
+                    <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100">
+                      <Button
+                        onClick={() => setStep(2)}
+                        disabled={!selectedAccount || !isAmountValid}
+                        className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl disabled:bg-slate-300 disabled:text-slate-500"
+                      >
+                        下一步 <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
-
-                <div className="flex justify-end">
-                  <Button
-                    onClick={() => setStep(2)}
-                    disabled={!selectedAccount || !isAmountValid}
-                    className="h-12 px-8 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl"
-                  >
-                    下一步 <ChevronRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
               </motion.div>
             )}
 
@@ -827,8 +844,149 @@ export default function DepositPage() {
           </AnimatePresence>
         </div>
 
+        {/* Right: step helper sidebar */}
+        <div className="w-80 shrink-0 space-y-4">
+          <AnimatePresence mode="wait">
+            {/* Step 1 helper */}
+            {step === 1 && (
+              <motion.div
+                key="helper-step1"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-4"
+              >
+                <Card className="bg-slate-50/50 border-slate-200">
+                  <CardContent className="p-5 space-y-4">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />安全提醒
+                    </h3>
+                    <ul className="space-y-2 text-xs text-slate-600">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                        请确保转账地址与所选支付方式一致
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                        加密货币转账不可逆，请仔细核对
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                        大额转账建议先小额测试
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-5 space-y-3">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-blue-600" />预计到账时间
+                    </h3>
+                    <div className="space-y-2">
+                      {[
+                        { name: "USDT TRC20", time: "1-5 分钟", fast: true },
+                        { name: "USDT ERC20", time: "5-15 分钟", fast: true },
+                        { name: "Bitcoin", time: "10-30 分钟", fast: false },
+                        { name: "Bank Wire", time: "1-3 工作日", fast: false },
+                        { name: "SWIFT", time: "2-5 工作日", fast: false },
+                      ].map((m) => (
+                        <div key={m.name} className="flex items-center justify-between text-xs">
+                          <span className="text-slate-500">{m.name}</span>
+                          <span className={cn("font-medium", m.fast ? "text-emerald-600" : "text-slate-500")}>{m.time}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Step 2 helper */}
+            {step === 2 && selectedMethod && (
+              <motion.div
+                key="helper-step2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-4"
+              >
+                <Card className="bg-blue-50/50 border-blue-200">
+                  <CardContent className="p-5 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold border",
+                        selectedMethod.category === "crypto" && "bg-emerald-100 text-emerald-600 border-emerald-200",
+                        selectedMethod.category === "card" && "bg-blue-100 text-blue-600 border-blue-200",
+                        selectedMethod.category === "bank" && "bg-slate-100 text-slate-600 border-slate-200",
+                        selectedMethod.category === "ewallet" && "bg-purple-100 text-purple-600 border-purple-200"
+                      )}>
+                        {selectedMethod.category === "crypto" ? "₿" : selectedMethod.category === "card" ? "💳" : selectedMethod.category === "bank" ? "🏦" : "📱"}
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900">{selectedMethod.name}</h3>
+                        <p className="text-xs text-blue-600">已选择</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between"><span className="text-slate-500">处理时间</span><span className="font-medium text-slate-900">{selectedMethod.estimatedTime}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500">手续费</span><span className="font-medium text-slate-900">{selectedMethod.feeValue === 0 ? "免费" : selectedMethod.feeType === "percentage" ? `${selectedMethod.feeValue}%` : `$${selectedMethod.feeValue}`}</span></div>
+                      <div className="flex justify-between"><span className="text-slate-500">支持币种</span><span className="font-medium text-slate-900">{selectedMethod.supportedCurrencies.join(", ")}</span></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Step 3 helper */}
+            {step === 3 && (
+              <motion.div
+                key="helper-step3"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-4"
+              >
+                <Card>
+                  <CardContent className="p-5 space-y-3">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />核对清单
+                    </h3>
+                    <div className="space-y-2">
+                      {[
+                        { label: "存入账户", value: selectedAccount ? formatAccountLabel(selectedAccount) : "-", ok: true },
+                        { label: "存款金额", value: amount ? `${accountSymbolStr}${Number(amount).toLocaleString()}` : "-", ok: true },
+                        { label: "支付方式", value: selectedMethod?.name ?? "-", ok: true },
+                      ].map((item) => (
+                        <div key={item.label} className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                            <span className="text-slate-500">{item.label}</span>
+                          </div>
+                          <span className="font-medium text-slate-900 truncate max-w-[120px]">{item.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-blue-50/50 border-blue-200">
+                  <CardContent className="p-5 space-y-3">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <MessageCircle className="w-4 h-4 text-blue-600" />遇到问题？
+                    </h3>
+                    <p className="text-xs text-slate-600">存款未到账或地址有疑问？客服团队 24/7 在线为您服务。</p>
+                    <button className="w-full text-xs font-semibold text-blue-700 bg-white border border-blue-200 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors">联系客服</button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
       {/* FAQ - collapsed at bottom */}
-      <div className="max-w-2xl mx-auto pt-8 border-t border-slate-200">
+      <div className="max-w-6xl mx-auto pt-8 border-t border-slate-200">
         <div className="space-y-0">
           <button
             onClick={() => setExpandedFaq(expandedFaq === -1 ? null : -1)}
