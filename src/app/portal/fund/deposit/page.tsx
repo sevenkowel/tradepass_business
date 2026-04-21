@@ -4,8 +4,8 @@ import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowDownLeft, Wallet, CreditCard, Landmark, HelpCircle, ArrowUpRight,
-  Clock, ChevronDown, ChevronUp, MessageCircle, Lock, AlertTriangle,
+  ArrowDownLeft, CreditCard, Landmark, HelpCircle, ArrowUpRight,
+  ChevronDown, ChevronUp, MessageCircle, Lock, AlertTriangle,
   Star, ChevronRight, CheckCircle2, Loader2, ArrowLeft, Copy,
 } from "lucide-react";
 import QRCode from "qrcode";
@@ -337,9 +337,8 @@ export default function DepositPage() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* Left content */}
-        <div className="lg:col-span-2 space-y-6">
+      {/* Main content - single column centered */}
+      <div className="max-w-2xl mx-auto space-y-6">
           <AnimatePresence mode="wait">
             {/* ===== Step 1: Account + Amount ===== */}
             {step === 1 && (
@@ -447,10 +446,44 @@ export default function DepositPage() {
                         className="pl-14 h-16 text-3xl font-bold font-variant-numeric tabular-nums" />
                     </div>
 
-                    <div className="flex items-center justify-between text-sm text-slate-500">
-                      <span>单笔限额: {accountSymbolStr}{limits.min.toLocaleString()} - {accountSymbolStr}{limits.max.toLocaleString()}</span>
-                      <span>每日剩余: {accountSymbolStr}{(limits.daily - todayUsed).toLocaleString()}</span>
-                    </div>
+                    {/* 限额提示 - 条件触发 */}
+                    {(() => {
+                      const usageRatio = todayUsed / limits.daily;
+                      const remaining = limits.daily - todayUsed;
+                      if (usageRatio >= 0.85) {
+                        return (
+                          <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                            <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-red-800">今日额度紧张</p>
+                              <p className="text-xs text-red-600 mt-0.5">
+                                已用 {accountSymbolStr}{todayUsed.toLocaleString()} / 限额 {accountSymbolStr}{limits.daily.toLocaleString()}，剩余 {accountSymbolStr}{remaining.toLocaleString()}
+                              </p>
+                              <button className="mt-2 text-xs font-medium text-red-700 hover:underline">申请提升额度 →</button>
+                            </div>
+                          </div>
+                        );
+                      }
+                      if (usageRatio >= 0.6) {
+                        return (
+                          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+                            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-amber-800">今日额度已用 {Math.round(usageRatio * 100)}%</p>
+                              <p className="text-xs text-amber-600 mt-0.5">
+                                剩余 {accountSymbolStr}{remaining.toLocaleString()}，单笔限额 {accountSymbolStr}{limits.min.toLocaleString()} - {accountSymbolStr}{limits.max.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="flex items-center justify-between text-xs text-slate-400">
+                          <span>单笔 {accountSymbolStr}{limits.min.toLocaleString()} - {accountSymbolStr}{limits.max.toLocaleString()}</span>
+                          <span>今日剩余 {accountSymbolStr}{remaining.toLocaleString()}</span>
+                        </div>
+                      );
+                    })()}
 
                     {isSuspicious && (
                       <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
@@ -794,69 +827,50 @@ export default function DepositPage() {
           </AnimatePresence>
         </div>
 
-        {/* Right sidebar */}
-        <div className="lg:col-span-1">
-          <div className="sticky top-6 space-y-6">
-            <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white overflow-hidden">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2"><Wallet className="w-5 h-5" /><h3 className="font-bold text-white/90 text-sm">钱包余额</h3></div>
-                  <div className="flex items-center gap-1">
-                    <button className="p-1.5 rounded-lg hover:bg-white/10 text-white/70"><HelpCircle className="w-4 h-4" /></button>
-                    <button className="p-1.5 rounded-lg hover:bg-white/10 text-white/70"><ArrowUpRight className="w-4 h-4" /></button>
-                  </div>
-                </div>
-                <p className="text-3xl font-bold">$12,500.00</p>
-                <p className="text-xs text-white/60 mt-1">可用余额</p>
-                <button className="mt-3 text-xs text-white/80 hover:text-white flex items-center gap-1">
-                  转账至交易账户 <ChevronRight className="w-3 h-3" />
-                </button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-5 space-y-3">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2"><Clock className="w-5 h-5 text-blue-600" /><h3 className="font-bold text-slate-900 text-sm">今日额度</h3></div>
-                  <div className="flex items-center gap-1">
-                    <button className="text-xs text-blue-600 hover:underline">提升</button>
-                    <button className="p-1 rounded-lg hover:bg-slate-100 text-slate-400"><HelpCircle className="w-4 h-4" /></button>
-                  </div>
-                </div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(todayUsed / limits.daily) * 100}%` }} />
-                </div>
-                <div className="flex justify-between text-sm"><span className="text-slate-500">已用</span><span className="font-medium">${todayUsed.toLocaleString()}</span></div>
-                <div className="flex justify-between text-xs text-slate-400"><span>限额 ${limits.daily.toLocaleString()}</span><span>剩余 ${limits.daily - todayUsed}</span></div>
-                <p className="text-xs text-slate-500">💡 提升 KYC 等级可获得更高额度</p>
-                <Button variant="outline" size="sm" className="w-full h-8 text-xs">申请提升 →</Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-5">
-                <div className="flex items-center gap-2 mb-3"><MessageCircle className="w-5 h-5 text-slate-600" /><h3 className="font-bold text-slate-900 text-sm">常见问题</h3></div>
-                <div className="space-y-0">
+      {/* FAQ - collapsed at bottom */}
+      <div className="max-w-2xl mx-auto pt-8 border-t border-slate-200">
+        <div className="space-y-0">
+          <button
+            onClick={() => setExpandedFaq(expandedFaq === -1 ? null : -1)}
+            className="w-full flex items-center justify-between py-3 text-sm font-semibold text-slate-700 hover:text-slate-900"
+          >
+            <span className="flex items-center gap-2"><MessageCircle className="w-4 h-4 text-slate-500" />常见问题</span>
+            <ChevronDown className={cn("w-4 h-4 text-slate-400 shrink-0 transition-transform", expandedFaq === -1 && "rotate-180")} />
+          </button>
+          <AnimatePresence>
+            {expandedFaq === -1 && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="space-y-0 pb-4">
                   {faqItems.map((item, i) => (
                     <div key={i} className="border-b border-slate-100 last:border-0">
                       <button
-                        onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
-                        className="w-full flex items-center justify-between py-3 text-sm text-slate-700 hover:text-slate-900 text-left"
+                        onClick={(e) => { e.stopPropagation(); setExpandedFaq(expandedFaq === i ? null : i); }}
+                        className="w-full flex items-center justify-between py-3 text-sm text-slate-600 hover:text-slate-900 text-left"
                       >
                         {item.q}
                         <ChevronDown className={cn("w-4 h-4 text-slate-400 shrink-0 transition-transform", expandedFaq === i && "rotate-180")} />
                       </button>
                       {expandedFaq === i && (
-                        <div className="pb-3 text-sm text-slate-500 leading-relaxed">
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden pb-3 text-sm text-slate-500 leading-relaxed"
+                        >
                           {item.a}
-                        </div>
+                        </motion.div>
                       )}
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
