@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, generateVerificationToken } from "@/lib/auth";
+import { checkBlacklist } from "@/lib/risk/engine";
 import { z } from "zod";
 
 const registerSchema = z.object({
@@ -19,6 +20,12 @@ export async function POST(req: NextRequest) {
     }
 
     const { email, password, name } = parsed.data;
+
+    // Check blacklist
+    const blacklist = await checkBlacklist({ email });
+    if (blacklist.blocked) {
+      return NextResponse.json({ error: "Registration not allowed" }, { status: 403 });
+    }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {

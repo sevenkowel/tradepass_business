@@ -1,234 +1,15 @@
 /**
- * Backoffice KYC 审核 API
+ * Backoffice KYC 审核 API (真实化)
  * GET  /api/backoffice/kyc/review  - 获取 KYC 审核列表
  * POST /api/backoffice/kyc/review  - 执行审核操作（approve/reject/request_info）
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/permissions";
 import { getCurrentUser } from "@/lib/session";
 import { requireCsrf } from "@/lib/security";
-
-// ─── 模拟数据库 ─────────────────────────────────────────────────────────────────
-
-export interface KYCReviewRecord {
-  id: string;
-  userId: string;
-  userName: string;
-  email: string;
-  phone: string;
-  regionCode: string;
-  country: string;
-  kycLevel: "basic" | "standard" | "enhanced";
-  status: "submitted" | "under_review" | "approved" | "rejected";
-  riskLevel: "low" | "medium" | "high";
-  documentType: string;
-  documentFrontUrl: string;
-  documentBackUrl?: string;
-  selfieUrl?: string;
-  ocrConfidence: number;
-  livenessPassed: boolean;
-  submittedAt: string;
-  reviewedAt?: string;
-  reviewedBy?: string;
-  rejectionReason?: string;
-  personalInfo?: {
-    fullName: string;
-    dateOfBirth: string;
-    nationality: string;
-    address: string;
-    city: string;
-    country: string;
-  };
-  amlPassed: boolean;
-  amlRiskScore: number;
-  flags: string[];
-}
-
-// 模拟数据 - 真实项目中应接数据库
-const mockKYCQueue: KYCReviewRecord[] = [
-  {
-    id: "KYC-2024-001",
-    userId: "USR-001",
-    userName: "Nguyen Van An",
-    email: "nguyen.van.an@gmail.com",
-    phone: "+84 90 123 4567",
-    regionCode: "VN",
-    country: "Vietnam",
-    kycLevel: "standard",
-    status: "submitted",
-    riskLevel: "low",
-    documentType: "id_card",
-    documentFrontUrl: "/mock/id-front.jpg",
-    documentBackUrl: "/mock/id-back.jpg",
-    selfieUrl: "/mock/selfie.jpg",
-    ocrConfidence: 0.96,
-    livenessPassed: true,
-    submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    amlPassed: true,
-    amlRiskScore: 12,
-    flags: [],
-    personalInfo: {
-      fullName: "Nguyen Van An",
-      dateOfBirth: "1992-05-15",
-      nationality: "Vietnamese",
-      address: "123 Nguyen Hue Blvd",
-      city: "Ho Chi Minh City",
-      country: "Vietnam",
-    },
-  },
-  {
-    id: "KYC-2024-002",
-    userId: "USR-002",
-    userName: "Maria Elena Garcia",
-    email: "maria.garcia@hotmail.es",
-    phone: "+34 612 345 678",
-    regionCode: "ES",
-    country: "Spain",
-    kycLevel: "enhanced",
-    status: "under_review",
-    riskLevel: "medium",
-    documentType: "passport",
-    documentFrontUrl: "/mock/passport.jpg",
-    selfieUrl: "/mock/selfie2.jpg",
-    ocrConfidence: 0.88,
-    livenessPassed: true,
-    submittedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    amlPassed: true,
-    amlRiskScore: 35,
-    flags: ["Low OCR confidence", "Large deposit history"],
-    personalInfo: {
-      fullName: "Maria Elena Garcia",
-      dateOfBirth: "1985-11-22",
-      nationality: "Spanish",
-      address: "Calle Mayor 45, 2B",
-      city: "Madrid",
-      country: "Spain",
-    },
-  },
-  {
-    id: "KYC-2024-003",
-    userId: "USR-003",
-    userName: "Priya Sharma",
-    email: "priya.sharma@outlook.in",
-    phone: "+91 98765 43210",
-    regionCode: "IN",
-    country: "India",
-    kycLevel: "standard",
-    status: "submitted",
-    riskLevel: "high",
-    documentType: "driving_license",
-    documentFrontUrl: "/mock/dl-front.jpg",
-    documentBackUrl: "/mock/dl-back.jpg",
-    ocrConfidence: 0.79,
-    livenessPassed: false,
-    submittedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-    amlPassed: false,
-    amlRiskScore: 72,
-    flags: ["Liveness check failed", "AML hit: PEP match 78%", "Low OCR confidence"],
-    personalInfo: {
-      fullName: "Priya Sharma",
-      dateOfBirth: "1990-03-08",
-      nationality: "Indian",
-      address: "B-204 Andheri West",
-      city: "Mumbai",
-      country: "India",
-    },
-  },
-  {
-    id: "KYC-2024-004",
-    userId: "USR-004",
-    userName: "Tanaka Hiroshi",
-    email: "tanaka.hiroshi@yahoo.co.jp",
-    phone: "+81 90 8765 4321",
-    regionCode: "JP",
-    country: "Japan",
-    kycLevel: "basic",
-    status: "submitted",
-    riskLevel: "low",
-    documentType: "id_card",
-    documentFrontUrl: "/mock/id-front4.jpg",
-    documentBackUrl: "/mock/id-back4.jpg",
-    selfieUrl: "/mock/selfie4.jpg",
-    ocrConfidence: 0.98,
-    livenessPassed: true,
-    submittedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    amlPassed: true,
-    amlRiskScore: 8,
-    flags: [],
-    personalInfo: {
-      fullName: "Tanaka Hiroshi",
-      dateOfBirth: "1988-07-30",
-      nationality: "Japanese",
-      address: "2-1-1 Shibuya",
-      city: "Tokyo",
-      country: "Japan",
-    },
-  },
-  {
-    id: "KYC-2024-005",
-    userId: "USR-005",
-    userName: "Ahmed Al-Rashid",
-    email: "ahmed.rashid@gmail.ae",
-    phone: "+971 50 234 5678",
-    regionCode: "AE",
-    country: "United Arab Emirates",
-    kycLevel: "enhanced",
-    status: "approved",
-    riskLevel: "low",
-    documentType: "passport",
-    documentFrontUrl: "/mock/passport5.jpg",
-    selfieUrl: "/mock/selfie5.jpg",
-    ocrConfidence: 0.97,
-    livenessPassed: true,
-    submittedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    reviewedAt: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(),
-    reviewedBy: "admin_sarah",
-    amlPassed: true,
-    amlRiskScore: 5,
-    flags: [],
-    personalInfo: {
-      fullName: "Ahmed Al-Rashid",
-      dateOfBirth: "1980-12-01",
-      nationality: "Emirati",
-      address: "Palm Jumeirah, Villa 12",
-      city: "Dubai",
-      country: "UAE",
-    },
-  },
-  {
-    id: "KYC-2024-006",
-    userId: "USR-006",
-    userName: "Jin-ho Kim",
-    email: "jinho.kim@naver.com",
-    phone: "+82 10 1234 5678",
-    regionCode: "KR",
-    country: "South Korea",
-    kycLevel: "standard",
-    status: "rejected",
-    riskLevel: "medium",
-    documentType: "id_card",
-    documentFrontUrl: "/mock/id-front6.jpg",
-    documentBackUrl: "/mock/id-back6.jpg",
-    ocrConfidence: 0.71,
-    livenessPassed: true,
-    submittedAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-    reviewedAt: new Date(Date.now() - 46 * 60 * 60 * 1000).toISOString(),
-    reviewedBy: "admin_lee",
-    rejectionReason: "Document image quality is too low to verify. Please resubmit with a clearer photo.",
-    amlPassed: true,
-    amlRiskScore: 28,
-    flags: ["Very low OCR confidence"],
-    personalInfo: {
-      fullName: "Kim Jin-ho",
-      dateOfBirth: "1995-09-14",
-      nationality: "South Korean",
-      address: "Gangnam-gu, Teheran-ro 123",
-      city: "Seoul",
-      country: "South Korea",
-    },
-  },
-];
+import { transitionKYCStatus } from "@/lib/kyc/state-machine";
 
 // ─── GET 获取审核列表 ────────────────────────────────────────────────────────────
 
@@ -241,15 +22,59 @@ export const GET = requireRole(["admin", "compliance_officer"], async (request: 
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = parseInt(searchParams.get("limit") || "20", 10);
 
-  let records = [...mockKYCQueue];
+  const where: Record<string, unknown> = {};
 
-  // 过滤
   if (status && status !== "all") {
-    records = records.filter((r) => r.status === status);
+    where.status = status;
   }
   if (regionCode && regionCode !== "all") {
-    records = records.filter((r) => r.regionCode === regionCode);
+    where.regionCode = regionCode;
   }
+
+  // Risk level filtering is computed from amlRiskScore since schema stores score not level string
+  // We'll fetch all matching records and filter in-memory for riskLevel
+  const allRecords = await prisma.kYCRecord.findMany({
+    where,
+    include: { user: { select: { id: true, email: true, name: true, phone: true } } },
+    orderBy: { submittedAt: "desc" },
+  });
+
+  let records = allRecords.map((r) => {
+    const score = r.amlRiskScore ?? 0;
+    const riskLevel = score >= 60 ? "high" : score >= 30 ? "medium" : "low";
+    const flags: string[] = [];
+    if (r.ocrConfidence !== null && r.ocrConfidence < 0.85) flags.push("Low OCR confidence");
+    if (!r.livenessPassed) flags.push("Liveness check failed");
+    if (!r.amlPassed) flags.push("AML screening failed");
+
+    return {
+      id: r.id,
+      userId: r.userId,
+      userName: r.user?.name ?? "Unknown",
+      email: r.user?.email ?? "",
+      phone: r.user?.phone ?? "",
+      regionCode: r.regionCode,
+      country: r.regionCode,
+      kycLevel: r.kycLevel,
+      status: r.status,
+      riskLevel,
+      documentType: r.documentType ?? "",
+      documentFrontUrl: r.documentFrontUrl ?? "",
+      documentBackUrl: r.documentBackUrl ?? undefined,
+      selfieUrl: r.selfieUrl ?? undefined,
+      ocrConfidence: r.ocrConfidence ?? 0,
+      livenessPassed: r.livenessPassed ?? false,
+      submittedAt: r.submittedAt?.toISOString() ?? r.createdAt.toISOString(),
+      reviewedAt: r.reviewedAt?.toISOString() ?? undefined,
+      reviewedBy: r.reviewedBy ?? undefined,
+      rejectionReason: r.rejectionReason ?? undefined,
+      amlPassed: r.amlPassed ?? false,
+      amlRiskScore: r.amlRiskScore ?? 0,
+      flags,
+      personalInfo: r.personalInfo ? (JSON.parse(r.personalInfo) as Record<string, string>) : undefined,
+    };
+  });
+
   if (riskLevel && riskLevel !== "all") {
     records = records.filter((r) => r.riskLevel === riskLevel);
   }
@@ -267,14 +92,13 @@ export const GET = requireRole(["admin", "compliance_officer"], async (request: 
   const start = (page - 1) * limit;
   const items = records.slice(start, start + limit);
 
-  // 统计
   const stats = {
-    total: mockKYCQueue.length,
-    submitted: mockKYCQueue.filter((r) => r.status === "submitted").length,
-    under_review: mockKYCQueue.filter((r) => r.status === "under_review").length,
-    approved: mockKYCQueue.filter((r) => r.status === "approved").length,
-    rejected: mockKYCQueue.filter((r) => r.status === "rejected").length,
-    high_risk: mockKYCQueue.filter((r) => r.riskLevel === "high").length,
+    total,
+    submitted: records.filter((r) => r.status === "submitted").length,
+    under_review: records.filter((r) => r.status === "under_review").length,
+    approved: records.filter((r) => r.status === "approved").length,
+    rejected: records.filter((r) => r.status === "rejected").length,
+    high_risk: records.filter((r) => r.riskLevel === "high").length,
   };
 
   return NextResponse.json({
@@ -309,7 +133,10 @@ export const POST = requireRole(["admin", "compliance_officer"], async (request:
       );
     }
 
-    const record = mockKYCQueue.find((r) => r.id === id);
+    const record = await prisma.kYCRecord.findUnique({
+      where: { id },
+      include: { user: { select: { id: true, email: true, name: true } } },
+    });
     if (!record) {
       return NextResponse.json(
         { success: false, error: "KYC record not found" },
@@ -317,35 +144,42 @@ export const POST = requireRole(["admin", "compliance_officer"], async (request:
       );
     }
 
-    const now = new Date().toISOString();
     const currentUser = await getCurrentUser(request);
     const adminId = currentUser?.id ?? "unknown";
 
     switch (action) {
-      case "start_review":
+      case "start_review": {
         if (record.status !== "submitted") {
           return NextResponse.json(
             { success: false, error: "Can only start review for submitted applications" },
             { status: 400 }
           );
         }
-        record.status = "under_review";
-        record.reviewedBy = adminId;
+        const result = await transitionKYCStatus(record.userId, "under_review", { reviewedBy: adminId });
+        if (!result.success) {
+          return NextResponse.json({ success: false, error: result.error }, { status: 400 });
+        }
         break;
+      }
 
-      case "approve":
+      case "approve": {
         if (!["submitted", "under_review"].includes(record.status)) {
           return NextResponse.json(
             { success: false, error: "Can only approve submitted or under-review applications" },
             { status: 400 }
           );
         }
-        record.status = "approved";
-        record.reviewedAt = now;
-        record.reviewedBy = adminId;
-        break;
+        const result = await transitionKYCStatus(record.userId, "approved", { reviewedBy: adminId });
+        if (!result.success) {
+          return NextResponse.json({ success: false, error: result.error }, { status: 400 });
+        }
 
-      case "reject":
+        // Create MT account on approval
+        await createMTAccount(record.userId, record.kycLevel);
+        break;
+      }
+
+      case "reject": {
         if (!reason) {
           return NextResponse.json(
             { success: false, error: "Rejection reason is required" },
@@ -358,22 +192,33 @@ export const POST = requireRole(["admin", "compliance_officer"], async (request:
             { status: 400 }
           );
         }
-        record.status = "rejected";
-        record.reviewedAt = now;
-        record.reviewedBy = adminId;
-        record.rejectionReason = reason;
+        const result = await transitionKYCStatus(record.userId, "rejected", {
+          reviewedBy: adminId,
+          rejectionReason: reason,
+          notes,
+        });
+        if (!result.success) {
+          return NextResponse.json({ success: false, error: result.error }, { status: 400 });
+        }
         break;
+      }
 
-      case "request_info":
+      case "request_info": {
         if (!reason) {
           return NextResponse.json(
             { success: false, error: "Request information reason is required" },
             { status: 400 }
           );
         }
-        // 状态保持 under_review，标注需要补充材料
-        record.flags = [...record.flags, `Info requested: ${reason}`];
+        const result = await transitionKYCStatus(record.userId, "supplemental_required", {
+          reviewedBy: adminId,
+          notes: reason,
+        });
+        if (!result.success) {
+          return NextResponse.json({ success: false, error: result.error }, { status: 400 });
+        }
         break;
+      }
 
       default:
         return NextResponse.json(
@@ -384,7 +229,6 @@ export const POST = requireRole(["admin", "compliance_officer"], async (request:
 
     return NextResponse.json({
       success: true,
-      record,
       message: `KYC application ${action === "approve" ? "approved" : action === "reject" ? "rejected" : action === "start_review" ? "moved to review" : "flagged for more info"} successfully`,
     });
   } catch (error) {
@@ -395,3 +239,37 @@ export const POST = requireRole(["admin", "compliance_officer"], async (request:
     );
   }
 });
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
+async function createMTAccount(userId: string, kycLevel: string) {
+  const existing = await prisma.mTAccount.findFirst({ where: { userId } });
+  if (existing) return; // already has account
+
+  const leverage = kycLevel === "enhanced" ? 500 : kycLevel === "standard" ? 200 : 100;
+  const mtLogin = `MT${Date.now().toString(36).toUpperCase()}`;
+
+  await prisma.mTAccount.create({
+    data: {
+      userId,
+      mtLogin,
+      mtPassword: generateRandomPassword(),
+      group: "standard",
+      leverage,
+      currency: "USD",
+      status: "active",
+    },
+  });
+
+  // Create default wallet
+  await prisma.wallet.upsert({
+    where: { userId_currency: { userId, currency: "USD" } },
+    create: { userId, currency: "USD", balance: 0, frozen: 0, available: 0 },
+    update: {},
+  });
+}
+
+function generateRandomPassword(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
+  return Array.from({ length: 16 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+}

@@ -28,6 +28,11 @@ model User {
   memberships       TenantMember[]
   paymentMethods    PaymentMethod[]
   auditLogs         AuditLog[]
+  kycRecord         KYCRecord?
+  mtAccounts        MTAccount[]
+  wallets           Wallet[]
+  transactions      Transaction[]
+  ibPartner         IBPartner?
 
   @@map("users")
 }
@@ -241,4 +246,249 @@ model AppCatalog {
   createdAt    DateTime @default(now()) @map("created_at")
 
   @@map("app_catalogs")
+}
+
+// ===================== Broker Core Models =====================
+
+model KYCRecord {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  regionCode      String   @map("region_code")
+  kycLevel        String   @map("kyc_level")
+  status          String   @default("not_started") @map("status")
+  documentType    String?  @map("document_type")
+  documentFrontUrl String? @map("document_front_url")
+  documentBackUrl String?  @map("document_back_url")
+  selfieUrl       String?  @map("selfie_url")
+  ocrConfidence   Float?   @map("ocr_confidence")
+  livenessPassed  Boolean? @map("liveness_passed")
+  amlPassed       Boolean? @default(false) @map("aml_passed")
+  amlRiskScore    Float?   @map("aml_risk_score")
+  personalInfo    String?  @map("personal_info") // JSON
+  flags           String   @default("[]") @map("flags") // JSON array
+  submittedAt     DateTime? @map("submitted_at")
+  reviewedAt      DateTime? @map("reviewed_at")
+  reviewedBy      String?  @map("reviewed_by")
+  rejectionReason String?  @map("rejection_reason")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewLogs  KYCReviewLog[]
+
+  @@map("kyc_records")
+}
+
+model KYCReviewLog {
+  id         String   @id @default(cuid())
+  kycId      String   @map("kyc_id")
+  adminId    String   @map("admin_id")
+  action     String
+  fromStatus String?  @map("from_status")
+  toStatus   String   @map("to_status")
+  reason     String?
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  kycRecord KYCRecord @relation(fields: [kycId], references: [id], onDelete: Cascade)
+
+  @@map("kyc_review_logs")
+}
+
+model KYCSubmission {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  type        String   // supplemental, document_update, etc.
+  status      String   @default("pending") @map("status")
+  payload     String   @map("payload") // JSON
+  response    String?  @map("response") // JSON
+  reviewedBy  String?  @map("reviewed_by")
+  reviewedAt  DateTime? @map("reviewed_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("kyc_submissions")
+}
+
+model MTAccount {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  mtLogin     String   @unique @map("mt_login")
+  mtPassword  String   @map("mt_password")
+  group       String
+  leverage    Int      @default(100)
+  balance     Float    @default(0)
+  equity      Float    @default(0)
+  margin      Float    @default(0)
+  freeMargin  Float    @default(0) @map("free_margin")
+  currency    String   @default("USD")
+  status      String   @default("active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders    Order[]
+  positions Position[]
+
+  @@map("mt_accounts")
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  currency  String
+  balance   Float    @default(0)
+  frozen    Float    @default(0)
+  available Float    @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([userId, currency])
+  @@map("wallets")
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  walletId    String   @map("wallet_id")
+  type        String   // deposit, withdrawal, transfer, commission
+  amount      Float
+  fee         Float    @default(0)
+  currency    String
+  status      String   @default("pending") // pending, processing, completed, failed, cancelled
+  method      String?  // usdt_trc20, bank_transfer, stripe, etc.
+  txHash      String?  @map("tx_hash")
+  address     String?
+  description String?
+  metadata    String?  @map("metadata") // JSON
+  processedAt DateTime? @map("processed_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+model Order {
+  id          String   @id @default(cuid())
+  accountId   String   @map("account_id")
+  mtTicket    String?  @unique @map("mt_ticket")
+  symbol      String
+  type        String   // buy, sell
+  volume      Float
+  openPrice   Float    @map("open_price")
+  closePrice  Float?   @map("close_price")
+  profit      Float?   @default(0)
+  swap        Float?   @default(0)
+  commission  Float?   @default(0)
+  status      String   @default("open") // open, closed, cancelled
+  openTime    DateTime @map("open_time")
+  closeTime   DateTime? @map("close_time")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  account MTAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("orders")
+}
+
+model Position {
+  id          String   @id @default(cuid())
+  accountId   String   @map("account_id")
+  symbol      String
+  type        String   // buy, sell
+  volume      Float
+  openPrice   Float    @map("open_price")
+  currentPrice Float?  @map("current_price")
+  profit      Float?   @default(0)
+  swap        Float?   @default(0)
+  openTime    DateTime @map("open_time")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  account MTAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("positions")
+}
+
+model IBPartner {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  parentId        String?  @map("parent_id")
+  level           Int      @default(1)
+  code            String   @unique
+  commissionRate  Float    @default(0) @map("commission_rate")
+  totalCommission Float    @default(0) @map("total_commission")
+  totalClients    Int      @default(0) @map("total_clients")
+  status          String   @default("active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commissions  CommissionRecord[]
+
+  @@map("ib_partners")
+}
+
+model CommissionRecord {
+  id          String   @id @default(cuid())
+  ibId        String   @map("ib_id")
+  clientId    String   @map("client_id")
+  orderId     String?  @map("order_id")
+  amount      Float
+  currency    String   @default("USD")
+  status      String   @default("pending") // pending, paid, cancelled
+  period      String
+  paidAt      DateTime? @map("paid_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  ibPartner IBPartner @relation(fields: [ibId], references: [id], onDelete: Cascade)
+
+  @@map("commission_records")
+}
+
+model RiskEvent {
+  id          String   @id @default(cuid())
+  type        String   // margin_call, stop_out, nbp, large_deposit, etc.
+  severity    String   @default("medium") // low, medium, high, critical
+  userId      String   @map("user_id")
+  accountId   String?  @map("account_id")
+  description String?
+  metadata    String?  @map("metadata") // JSON
+  resolved    Boolean  @default(false)
+  resolvedAt  DateTime? @map("resolved_at")
+  resolvedBy  String?  @map("resolved_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("risk_events")
+}
+
+model BlacklistEntry {
+  id        String   @id @default(cuid())
+  type      String   // email, phone, ip, document, name
+  value     String
+  reason    String?
+  source    String   @default("manual") // manual, system, external
+  createdBy String?  @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime? @map("expires_at")
+
+  @@unique([type, value])
+  @@map("blacklist_entries")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  type      String   // kyc, deposit, withdrawal, trade, system
+  title     String
+  content   String
+  read      Boolean  @default(false)
+  actionUrl String?  @map("action_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("notifications")
 }

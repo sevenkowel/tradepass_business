@@ -1,82 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
-import { mockKYCReview } from "@/lib/kyc/mock-service";
-import type { RegionCode } from "@/lib/kyc/types";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/session";
+import { transitionKYCStatus, createKYCRecord } from "@/lib/kyc/state-machine";
 
-/**
- * POST /api/kyc/submit
- * 提交 KYC 审核
- * 
- * 支持通过 header 控制行为（仅开发环境）：
- * - X-Mock-Review-Force: "approved" | "manual_review" | "rejected" | "auto"
- */
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json();
-    const { region, ocrConfidence, livenessPassed } = body;
-
-    if (!region) {
-      return NextResponse.json(
-        { error: "Missing required field: region" },
-        { status: 400 }
-      );
+    const user = await getCurrentUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const forceResult = request.headers.get("X-Mock-Review-Force") || "auto";
+    const body = await req.json();
+    const { regionCode, kycLevel, documents, personalInfo, ocrResult, livenessResult } = body;
 
-    let reviewResult;
-
-    if (forceResult !== "auto" && ["approved", "manual_review", "rejected"].includes(forceResult)) {
-      // 强制结果模式
-      reviewResult = {
-        result: forceResult as "approved" | "manual_review" | "rejected",
-        confidence: 0.9,
-        riskScore: forceResult === "approved" ? 10 : forceResult === "rejected" ? 75 : 45,
-        flags: forceResult === "manual_review" ? ["Requires manual verification"] : undefined,
-        rejectionReason: forceResult === "rejected" ? "Document verification failed" : undefined,
-      };
-    } else {
-      // 正常 Mock
-      reviewResult = await mockKYCReview(
-        region as RegionCode,
-        ocrConfidence || 0.9,
-        livenessPassed !== false
-      );
+    if (!regionCode || !kycLevel) {
+      return NextResponse.json({ error: "Missing regionCode or kycLevel" }, { status: 400 });
     }
 
-    // 映射审核结果到状态
-    let status: string;
-    switch (reviewResult.result) {
-      case "approved":
-        status = "approved";
-        break;
-      case "manual_review":
-        status = "under_review";
-        break;
-      case "rejected":
-        status = "rejected";
-        break;
-      default:
-        status = "under_review";
+    // Ensure KYC record exists
+    let record = await prisma.kYCRecord.findUnique({ where: { userId: user.id } });
+    if (!record) {
+      record = await createKYCRecord(user.id, regionCode, kycLevel);
     }
 
-    return NextResponse.json({
-      success: true,
+    // Update record with submitted data
+    await prisma.kYCRecord.update({
+      where: { userId: user.id },
       data: {
-        status,
-        confidence: reviewResult.confidence,
-        riskScore: reviewResult.riskScore,
-        flags: reviewResult.flags,
-        rejectionReason: reviewResult.rejectionReason,
-        estimatedReviewTime: reviewResult.result === "manual_review" 
-          ? "1-2 business days" 
-          : undefined,
+        regionCode,
+        kycLevel,
+        documentType: documents?.type,
+        documentFrontUrl: documents?.frontUrl,
+        documentBackUrl: documents?.backUrl,
+        selfieUrl: documents?.selfieUrl,
+        ocrConfidence: ocrResult?.confidence,
+        livenessPassed: livenessResult?.passed ?? false,
+        personalInfo: personalInfo ? JSON.stringify(personalInfo) : undefined,
       },
     });
-  } catch (error) {
-    console.error("KYC submission error:", error);
-    return NextResponse.json(
-      { error: "KYC submission failed" },
-      { status: 500 }
-    );
+
+    // Transition to submitted
+    const result = await transitionKYCStatus(user.id, "submitted");
+    if (!result.success) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true, message: "KYC submitted successfully" });
+  } catch (err) {
+    console.error("KYC submit error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
