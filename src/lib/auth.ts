@@ -1,10 +1,19 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "tradepass-dev-secret-change-in-production";
+const JWT_SECRET_RAW = process.env.JWT_SECRET;
+
+if (!JWT_SECRET_RAW) {
+  throw new Error(
+    "FATAL: JWT_SECRET environment variable is not set. " +
+    "The application cannot start without a secure JWT secret."
+  );
+}
+
+const JWT_SECRET: string = JWT_SECRET_RAW;
 
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 10);
+  return bcrypt.hash(password, 12);
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
@@ -20,5 +29,5 @@ export function verifyToken(token: string): { userId: string; email: string } {
 }
 
 export function generateVerificationToken(): string {
-  return `${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
+  return crypto.randomUUID();
 }

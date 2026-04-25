@@ -5,6 +5,9 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { requireRole } from "@/lib/permissions";
+import { getCurrentUser } from "@/lib/session";
+import { requireCsrf } from "@/lib/security";
 
 // ─── 模拟数据库 ─────────────────────────────────────────────────────────────────
 
@@ -229,7 +232,7 @@ const mockKYCQueue: KYCReviewRecord[] = [
 
 // ─── GET 获取审核列表 ────────────────────────────────────────────────────────────
 
-export async function GET(request: NextRequest) {
+export const GET = requireRole(["admin", "compliance_officer"], async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
   const regionCode = searchParams.get("region");
@@ -282,11 +285,14 @@ export async function GET(request: NextRequest) {
     limit,
     stats,
   });
-}
+});
 
 // ─── POST 执行审核操作 ──────────────────────────────────────────────────────────
 
-export async function POST(request: NextRequest) {
+export const POST = requireRole(["admin", "compliance_officer"], async (request: NextRequest) => {
+  const csrfError = requireCsrf(request);
+  if (csrfError) return csrfError;
+
   try {
     const body = await request.json();
     const { id, action, reason, notes } = body as {
@@ -312,7 +318,8 @@ export async function POST(request: NextRequest) {
     }
 
     const now = new Date().toISOString();
-    const adminId = "admin_current"; // 真实项目从 session 获取
+    const currentUser = await getCurrentUser(request);
+    const adminId = currentUser?.id ?? "unknown";
 
     switch (action) {
       case "start_review":
@@ -387,4 +394,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

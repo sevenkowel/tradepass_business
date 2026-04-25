@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, generateVerificationToken, signToken } from "@/lib/auth";
+import { hashPassword, generateVerificationToken } from "@/lib/auth";
 import { z } from "zod";
 
 const registerSchema = z.object({
@@ -8,7 +8,6 @@ const registerSchema = z.object({
   password: z.string().min(8),
   name: z.string().min(1),
   company: z.string().optional(),
-  skipVerification: z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -19,7 +18,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
-    const { email, password, name, skipVerification } = parsed.data;
+    const { email, password, name } = parsed.data;
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -33,19 +32,9 @@ export async function POST(req: NextRequest) {
         email,
         passwordHash,
         name,
-        status: skipVerification ? "active" : "pending_verification",
+        status: "pending_verification",
       },
     });
-
-    if (skipVerification) {
-      const token = signToken({ userId: user.id, email: user.email });
-      return NextResponse.json({
-        success: true,
-        message: "Registration successful.",
-        token,
-        autoLogin: true,
-      });
-    }
 
     const verifyToken = generateVerificationToken();
     await prisma.emailVerification.create({

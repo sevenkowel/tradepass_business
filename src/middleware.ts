@@ -3,9 +3,31 @@ import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/", "/auth/login", "/auth/register", "/auth/verify-email"];
 
+/**
+ * Security: Strip any X-Mock-* headers at the edge before they reach API routes.
+ * These headers are used for development testing and must never be honored in production.
+ */
+function hasMockHeaders(request: NextRequest): boolean {
+  const headers = request.headers;
+  for (const key of headers.keys()) {
+    if (key.toLowerCase().startsWith("x-mock-")) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
   const token = request.cookies.get("token")?.value;
+
+  // S3: Reject requests carrying X-Mock-* headers globally
+  if (hasMockHeaders(request)) {
+    return new NextResponse(
+      JSON.stringify({ success: false, error: "Mock headers are not allowed" }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
+    );
+  }
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 

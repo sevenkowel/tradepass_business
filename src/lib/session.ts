@@ -1,10 +1,14 @@
 import { NextRequest } from "next/server";
 import { verifyToken } from "@/lib/auth";
+import { isTokenRevoked } from "@/lib/security";
 import { prisma } from "@/lib/prisma";
 
 export async function getCurrentUser(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
   if (!token) return null;
+
+  // S9: Check if token has been revoked (e.g. after password change / logout)
+  if (isTokenRevoked(token)) return null;
 
   try {
     const payload = verifyToken(token);
