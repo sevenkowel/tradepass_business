@@ -47,6 +47,9 @@ export async function POST(req: NextRequest) {
     const tenantSlug = `tenant-${user.id.slice(0, 8)}`;
     const subdomain = `${name.toLowerCase().replace(/[^a-z0-9]/g, "")}-${user.id.slice(0, 6)}`;
 
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 days
+    const gracePeriodEndsAt = new Date(trialEndsAt.getTime() + 7 * 24 * 60 * 60 * 1000); // +7 days grace
+
     const tenant = await prisma.tenant.create({
       data: {
         name: name,
@@ -58,7 +61,8 @@ export async function POST(req: NextRequest) {
         maxAccounts: 5,
         brandName: name,
         subdomain: subdomain,
-        trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
+        trialEndsAt,
+        gracePeriodEndsAt,
         onboardingLocked: true,
       },
     });
@@ -102,7 +106,8 @@ export async function POST(req: NextRequest) {
           planName: "mvp",
           seatLimit: 10,
           currentSeats: 1,
-          trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+          trialEndsAt,
+          gracePeriodEndsAt,
           features: JSON.stringify({ plan: "mvp", modules: ["portal", "kyc_basic", "funds_usdt"] }),
         },
       });

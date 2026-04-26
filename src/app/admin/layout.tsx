@@ -7,11 +7,13 @@ import {
   KeyRound,
   CreditCard,
   ClipboardList,
+  Building2,
 } from "lucide-react";
 
 const navItems = [
   { href: "/admin", label: "仪表盘", icon: LayoutDashboard },
   { href: "/admin/users", label: "用户管理", icon: Users },
+  { href: "/admin/tenants", label: "租户管理", icon: Building2 },
   { href: "/admin/licenses", label: "License 管理", icon: KeyRound },
   { href: "/admin/billing", label: "计费管理", icon: CreditCard },
   { href: "/admin/audit-logs", label: "审计日志", icon: ClipboardList },

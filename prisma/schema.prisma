@@ -69,6 +69,11 @@ model Tenant {
   maxUsers        Int      @default(10) @map("max_users")
   maxAccounts     Int      @default(5) @map("max_accounts")
 
+  // === Trial & Lifecycle ===
+  gracePeriodEndsAt DateTime? @map("grace_period_ends_at")
+  retentionExpiresAt DateTime? @map("retention_expires_at")
+  downgradeReason   String?   @map("downgrade_reason") // trial_expired, manual, admin
+
   // === Onboarding Control ===
   onboardingLocked Boolean @default(false) @map("onboarding_locked")
   onboardingCompletedAt DateTime? @map("onboarding_completed_at")
@@ -87,6 +92,8 @@ model Tenant {
   config      TenantConfig?
   features    TenantFeature[]
   domains     TenantDomain[]
+  notifications TenantNotification[]
+  dataRetention TenantDataRetention?
 
   @@map("tenants")
 }
@@ -134,6 +141,7 @@ model Subscription {
   startsAt        DateTime @default(now()) @map("starts_at")
   endsAt          DateTime? @map("ends_at")
   trialEndsAt     DateTime? @map("trial_ends_at")
+  gracePeriodEndsAt DateTime? @map("grace_period_ends_at")
   autoRenew       Boolean  @default(true) @map("auto_renew")
   features        String?  @map("features")
   metadata        String?  @map("metadata")
@@ -350,6 +358,40 @@ model TenantDomain {
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("tenant_domains")
+}
+
+model TenantNotification {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  type      String   // trial_reminder_7d, trial_reminder_3d, trial_reminder_1d, trial_expired, grace_period_started, grace_period_ending, retention_warning
+  title     String
+  content   String
+  sentAt    DateTime @default(now()) @map("sent_at")
+  readAt    DateTime? @map("read_at")
+  channel   String   @default("in_app") // in_app, email, both
+  metadata  String?  @map("metadata") // JSON: { daysLeft, plan, upgradeUrl }
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_notifications")
+}
+
+model TenantDataRetention {
+  id              String   @id @default(cuid())
+  tenantId        String   @unique @map("tenant_id")
+  status          String   @default("active") // active, warning, expired, archived, purged
+  retentionDays   Int      @default(90) @map("retention_days")
+  retentionEndsAt DateTime @map("retention_ends_at")
+  dataExported    Boolean  @default(false) @map("data_exported")
+  exportUrl       String?  @map("export_url")
+  exportRequestedAt DateTime? @map("export_requested_at")
+  purgedAt        DateTime? @map("purged_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_data_retentions")
 }
 
 // ===================== Broker Core Models =====================

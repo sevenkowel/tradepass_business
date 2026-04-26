@@ -17,6 +17,9 @@ import {
   TrendingUp,
   Sparkles,
   Crown,
+  Ban,
+  Database,
+  Download,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { cn } from "@/lib/utils";
@@ -41,6 +44,20 @@ interface SubscriptionInfo {
   maxUsers: number;
   maxAccounts: number;
   currentUsers: number;
+}
+
+interface LifecycleState {
+  status: "active_trial" | "grace_period" | "expired" | "active_paid" | "unknown";
+  plan: string;
+  trialEndsAt: string | null;
+  gracePeriodEndsAt: string | null;
+  retentionExpiresAt: string | null;
+  daysLeftInTrial: number;
+  daysLeftInGrace: number;
+  daysLeftInRetention: number;
+  isExpired: boolean;
+  isGracePeriod: boolean;
+  canAccessFeatures: boolean;
 }
 
 const PLANS = [
@@ -156,21 +173,35 @@ const PLANS = [
 export default function BillingPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
+  const [lifecycle, setLifecycle] = useState<LifecycleState | null>(null);
   const [loading, setLoading] = useState(true);
   const [payingId, setPayingId] = useState<string | null>(null);
   const [yearly, setYearly] = useState(false);
   const [upgrading, setUpgrading] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     Promise.all([
       fetch("/api/console/billing").then((r) => r.json()),
       fetch("/api/console/subscription").then((r) => r.json()),
-    ]).then(([billingData, subData]) => {
+      fetch("/api/console/billing/trial-status").then((r) => r.json()),
+    ]).then(([billingData, subData, lifeData]) => {
       setInvoices(billingData.invoices || []);
       setSubscription(subData.subscription || null);
+      setLifecycle(lifeData.state || null);
       setLoading(false);
     });
   }, []);
+
+  async function exportData() {
+    setExporting(true);
+    const res = await fetch("/api/console/billing/export-data", { method: "POST" });
+    const data = await res.json();
+    if (data.downloadUrl) {
+      window.open(data.downloadUrl, "_blank");
+    }
+    setExporting(false);
+  }
 
   async function payInvoice(invoiceId: string) {
     setPayingId(invoiceId);
@@ -207,10 +238,12 @@ export default function BillingPage() {
     .reduce((sum, i) => sum + i.amount, 0);
 
   const currentPlan = PLANS.find((p) => p.id === subscription?.plan) || PLANS[0];
-  const isTrial = subscription?.status === "trialing";
-  const trialDaysLeft = subscription?.trialEndsAt
-    ? Math.max(0, Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : 0;
+  const isTrial = lifecycle?.status === "active_trial";
+  const isGrace = lifecycle?.status === "grace_period";
+  const isExpired = lifecycle?.isExpired ?? false;
+  const trialDaysLeft = lifecycle?.daysLeftInTrial || 0;
+  const graceDaysLeft = lifecycle?.daysLeftInGrace || 0;
+  const retentionDaysLeft = lifecycle?.daysLeftInRetention || 0;
 
   if (loading) {
     return (
@@ -226,8 +259,15 @@ export default function BillingPage() {
       <CurrentPlanBanner
         plan={currentPlan}
         subscription={subscription}
+        lifecycle={lifecycle}
         isTrial={isTrial}
+        isGrace={isGrace}
+        isExpired={isExpired}
         trialDaysLeft={trialDaysLeft}
+        graceDaysLeft={graceDaysLeft}
+        retentionDaysLeft={retentionDaysLeft}
+        onExport={exportData}
+        exporting={exporting}
       />
 
       {/* Plan Selection */}
@@ -345,31 +385,75 @@ export default function BillingPage() {
 function CurrentPlanBanner({
   plan,
   subscription,
+  lifecycle,
   isTrial,
+  isGrace,
+  isExpired,
   trialDaysLeft,
+  graceDaysLeft,
+  retentionDaysLeft,
+  onExport,
+  exporting,
 }: {
   plan: (typeof PLANS)[0];
   subscription: SubscriptionInfo | null;
+  lifecycle: LifecycleState | null;
   isTrial: boolean;
+  isGrace: boolean;
+  isExpired: boolean;
   trialDaysLeft: number;
+  graceDaysLeft: number;
+  retentionDaysLeft: number;
+  onExport: () => void;
+  exporting: boolean;
 }) {
   const PlanIcon = plan.icon;
 
   return (
-    <div className="rounded-2xl border border-[var(--tp-border)] bg-[var(--tp-surface)] p-6">
+    <div className={cn(
+      "rounded-2xl border p-6",
+      isExpired
+        ? "border-red-200 bg-red-50/30"
+        : isGrace
+        ? "border-amber-200 bg-amber-50/30"
+        : "border-[var(--tp-border)] bg-[var(--tp-surface)]"
+    )}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[rgba(var(--tp-accent-rgb),0.1)] flex items-center justify-center">
-            <PlanIcon className="w-6 h-6 text-[rgb(var(--tp-accent-rgb))]" />
+          <div className={cn(
+            "w-12 h-12 rounded-xl flex items-center justify-center",
+            isExpired
+              ? "bg-red-100"
+              : isGrace
+              ? "bg-amber-100"
+              : "bg-[rgba(var(--tp-accent-rgb),0.1)]"
+          )}>
+            <PlanIcon className={cn(
+              "w-6 h-6",
+              isExpired ? "text-red-600" : isGrace ? "text-amber-600" : "text-[rgb(var(--tp-accent-rgb))]"
+            )} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-[rgb(var(--tp-fg-rgb))]">
+              <h2 className={cn(
+                "text-lg font-bold",
+                isExpired ? "text-red-700" : "text-[rgb(var(--tp-fg-rgb))]"
+              )}>
                 当前套餐: {plan.name}
               </h2>
               {isTrial && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
                   试用中
+                </span>
+              )}
+              {isGrace && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
+                  宽限期
+                </span>
+              )}
+              {isExpired && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">
+                  已降级
                 </span>
               )}
             </div>
@@ -386,6 +470,18 @@ function CurrentPlanBanner({
               <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.5)]">剩余试用天数</p>
             </div>
           )}
+          {isGrace && (
+            <div className="text-right">
+              <p className="text-2xl font-bold text-amber-600">{graceDaysLeft}</p>
+              <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.5)]">宽限期剩余</p>
+            </div>
+          )}
+          {isExpired && (
+            <div className="text-right">
+              <p className="text-2xl font-bold text-red-600">{retentionDaysLeft}</p>
+              <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.5)]">数据保留天数</p>
+            </div>
+          )}
           <div className="text-right">
             <p className="text-2xl font-bold text-[rgb(var(--tp-fg-rgb))]">
               {subscription?.currentUsers || 0}
@@ -397,12 +493,13 @@ function CurrentPlanBanner({
           </div>
           {plan.id !== "ultimate" && (
             <Button
-              variant="default"
+              variant={isExpired ? "default" : "default"}
+              className={isExpired ? "bg-red-600 hover:bg-red-700 text-white" : ""}
               onClick={() => {
                 document.getElementById("plans-section")?.scrollIntoView({ behavior: "smooth" });
               }}
             >
-              升级套餐
+              {isExpired ? "立即升级恢复" : "升级套餐"}
               <ArrowUpRight className="w-4 h-4 ml-1" />
             </Button>
           )}
@@ -415,6 +512,49 @@ function CurrentPlanBanner({
           <p className="text-sm text-amber-700">
             试用期即将结束（剩余 {trialDaysLeft} 天），升级套餐可保留全部功能。降级后数据保留 90 天。
           </p>
+        </div>
+      )}
+
+      {isGrace && (
+        <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200 flex items-center gap-2">
+          <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+          <p className="text-sm text-amber-700">
+            试用已结束，您处于 {graceDaysLeft} 天宽限期。宽限期结束后将自动降级为 Free 套餐，超出限额的功能将进入只读模式。
+          </p>
+        </div>
+      )}
+
+      {isExpired && (
+        <div className="mt-4 space-y-3">
+          <div className="p-3 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2">
+            <Ban className="w-4 h-4 text-red-600 shrink-0" />
+            <p className="text-sm text-red-700">
+              试用已结束，套餐已降级为 Free。超出 Free 限额的功能已锁定，现有数据保留 {retentionDaysLeft} 天。
+            </p>
+          </div>
+          {retentionDaysLeft > 0 && (
+            <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4 text-blue-600 shrink-0" />
+                <p className="text-sm text-blue-700">
+                  在数据清理前，您可以导出全部业务数据
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onExport}
+                disabled={exporting}
+              >
+                {exporting ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                ) : (
+                  <Download className="w-4 h-4 mr-1" />
+                )}
+                导出数据
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/auth/login", "/auth/register", "/auth/verify-email", "/console/onboarding"];
+const PUBLIC_PATHS = ["/", "/auth/login", "/auth/register", "/auth/verify-email", "/console/onboarding", "/console/billing"];
 
 /**
  * Security: Strip any X-Mock-* headers at the edge before they reach API routes.
