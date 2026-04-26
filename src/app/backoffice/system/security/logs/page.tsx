@@ -33,7 +33,7 @@ import {
   Badge,
 } from "@/components/ui";
 import { useSecurityStore } from "@/store/backoffice/securityStore";
-import type { SecurityEvent, SecuritySeverity } from "@/types/backoffice/security";
+import type { SecurityEvent, SecuritySeverity, SecurityEventType } from "@/types/backoffice/security";
 import { securityEventTypeLabels, severityLabels } from "@/lib/backoffice/mock-security";
 
 export default function SecurityLogsPage() {
@@ -54,7 +54,7 @@ export default function SecurityLogsPage() {
   // Filter events
   useEffect(() => {
     fetchEvents({
-      type: selectedType as any,
+      type: (selectedType as SecurityEventType) || undefined,
       severity: selectedSeverity,
       resolved: selectedStatus === "all" ? "all" : selectedStatus === "resolved",
     });

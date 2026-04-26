@@ -6,9 +6,10 @@ import { EnhancedDataTable } from "@/components/backoffice/ui/EnhancedDataTable"
 import { FilterBar } from "@/components/backoffice/ui/FilterBar";
 import { Plus, Zap, Target, Activity, Clock } from "lucide-react";
 import type { AISignal } from "@/types/backoffice";
-import { mockAISignals } from "@/lib/backoffice/mock-data";
+import type { StatusType } from "@/types/backoffice";
+import { mockAISignals } from "@/lib/backoffice/mock-ai-signals";
 
-const statusColors: Record<string, string> = {
+const statusColors: Record<string, StatusType> = {
   active: "info",
   expired: "default",
   hit_sl: "error",
@@ -100,7 +101,7 @@ export default function AISignalsListPage() {
       key: "status",
       title: "Status",
       render: (row: AISignal) => (
-        <StatusBadge status={row.status} type={statusColors[row.status] as any} />
+        <StatusBadge status={row.status} type={statusColors[row.status]} />
       ),
     },
     {
@@ -225,14 +226,14 @@ export default function AISignalsListPage() {
             ],
           },
         ]}
-        onRefresh={() => console.log("Refresh")}
+        onRefresh={() => {}}
       />
 
       <EnhancedDataTable<AISignal>
         columns={columns}
         data={filteredSignals}
         keyExtractor={(row) => row.id}
-        onRowClick={(row) => console.log("View signal", row.signalId)}
+        onRowClick={() => {}}
         emptyText="No signals found"
       />
     </div>

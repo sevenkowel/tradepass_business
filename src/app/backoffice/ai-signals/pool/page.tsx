@@ -6,7 +6,7 @@ import { EnhancedDataTable } from "@/components/backoffice/ui/EnhancedDataTable"
 import { FilterBar } from "@/components/backoffice/ui/FilterBar";
 import { Cpu, Target, TrendingUp, Activity, BarChart3, Zap } from "lucide-react";
 import type { SignalModel } from "@/types/backoffice";
-import { mockSignalModels } from "@/lib/backoffice/mock-data";
+import { mockSignalModels } from "@/lib/backoffice/mock-ai-signals";
 
 const typeColors: Record<string, string> = {
   technical: "info",
@@ -95,7 +95,7 @@ export default function SignalPoolPage() {
       key: "status",
       title: "Status",
       render: (row: SignalModel) => (
-        <StatusBadge status={row.status} type={row.status === "training" ? "warning" as any : undefined} />
+        <StatusBadge status={row.status} type={row.status === "training" ? "warning" : undefined} />
       ),
     },
     {
@@ -208,14 +208,14 @@ export default function SignalPoolPage() {
             ],
           },
         ]}
-        onRefresh={() => console.log("Refresh")}
+        onRefresh={() => {}}
       />
 
       <EnhancedDataTable<SignalModel>
         columns={columns}
         data={filteredModels}
         keyExtractor={(row) => row.id}
-        onRowClick={(row) => console.log("View model", row.name)}
+        onRowClick={() => {}}
         emptyText="No signal models found"
       />
     </div>

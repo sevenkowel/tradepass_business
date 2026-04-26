@@ -6,9 +6,11 @@ import { EnhancedDataTable } from "@/components/backoffice/ui/EnhancedDataTable"
 import { FilterBar } from "@/components/backoffice/ui/FilterBar";
 import { Users, CreditCard, BarChart3, DollarSign } from "lucide-react";
 import type { SignalUsage } from "@/types/backoffice";
-import { mockSignalUsages } from "@/lib/backoffice/mock-data";
+import { mockSignalUsages } from "@/lib/backoffice/mock-ai-signals";
 
-const planColors: Record<string, string> = {
+import type { StatusType } from "@/types/backoffice";
+
+const planColors: Record<string, StatusType> = {
   free: "default",
   basic: "info",
   pro: "warning",
@@ -51,7 +53,7 @@ export default function SignalUsagePage() {
       key: "planType",
       title: "Plan",
       render: (row: SignalUsage) => (
-        <StatusBadge status={row.planType} type={planColors[row.planType] as any} />
+        <StatusBadge status={row.planType} type={planColors[row.planType]} />
       ),
     },
     {
@@ -206,14 +208,14 @@ export default function SignalUsagePage() {
             ],
           },
         ]}
-        onRefresh={() => console.log("Refresh")}
+        onRefresh={() => {}}
       />
 
       <EnhancedDataTable<SignalUsage>
         columns={columns}
         data={filteredUsages}
         keyExtractor={(row) => row.id}
-        onRowClick={(row) => console.log("View usage", row.userId)}
+        onRowClick={() => {}}
         emptyText="No usage records found"
       />
     </div>

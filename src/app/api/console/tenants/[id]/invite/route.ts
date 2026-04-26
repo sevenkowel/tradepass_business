@@ -82,7 +82,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   });
 
   // In production: send email with invite link /auth/invite/accept?token=xxx
-  console.log(`[INVITE] Send invite email to ${email} with token ${inviteToken}`);
+  // TODO: integrate with email service
+  // console.log(`[INVITE] Send invite email to ${email} with token ${inviteToken}`);
 
   return NextResponse.json({ success: true, inviteToken, message: "Invitation sent" });
 }

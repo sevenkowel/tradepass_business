@@ -255,7 +255,7 @@ export default function UserLevelsPage() {
     {
       label: "删除",
       icon: <Trash2 className="w-4 h-4" />,
-      onClick: (row) => console.log("Delete level", row.id),
+      onClick: () => {},
       variant: "danger",
       disabled: (row) => row.level <= 1,
     },

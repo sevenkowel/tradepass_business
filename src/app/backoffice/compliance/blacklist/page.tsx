@@ -244,7 +244,7 @@ export default function BlacklistPage() {
     {
       label: "移除",
       icon: <Trash2 className="w-4 h-4" />,
-      onClick: (row) => console.log("Remove from blacklist", row.id),
+      onClick: () => {},
       variant: "danger",
       disabled: (row) => row.status === "removed",
     },

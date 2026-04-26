@@ -4,6 +4,7 @@ import { Drawer } from "@/components/backoffice/ui/Drawer";
 import { StatusBadge } from "@/components/backoffice/ui/StatusBadge";
 import { AlertTriangle, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import type { RiskAlert } from "@/types/backoffice";
+import type { StatusType } from "@/types/backoffice";
 
 interface RiskAlertDrawerProps {
   alert: RiskAlert | null;
@@ -11,7 +12,7 @@ interface RiskAlertDrawerProps {
   onClose: () => void;
 }
 
-const levelColors: Record<string, string> = {
+const levelColors: Record<string, StatusType> = {
   info: "info",
   warning: "warning",
   critical: "error",
@@ -54,7 +55,7 @@ export function RiskAlertDrawer({ alert, open, onClose }: RiskAlertDrawerProps) 
               </div>
               <StatusBadge
                 status={alert.level}
-                type={(levelColors[alert.level] || "default") as any}
+                type={levelColors[alert.level] || "default"}
               />
             </div>
           </div>

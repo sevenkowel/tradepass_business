@@ -195,12 +195,12 @@ export default function DepositOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleApprove = (order: DepositOrder) => {
-    console.log("Approve deposit", order.id);
+    // TODO: call /api/backoffice/funds/deposits/approve
     setSelectedOrder(null);
   };
 
   const handleReject = (order: DepositOrder, reason: string) => {
-    console.log("Reject deposit", order.id, reason);
+    // TODO: call /api/backoffice/funds/deposits/reject
     setSelectedOrder(null);
   };
 
@@ -407,15 +407,15 @@ export default function DepositOrdersPage() {
               {/* Quick Actions for pending orders */}
               {order.status === "pending" && (
                 <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700">
-                  <Button size="sm" onClick={(e) => { e.stopPropagation(); console.log("approve", order.id); }}>
+                  <Button size="sm" onClick={(e) => { e.stopPropagation(); /* TODO: approve */ }}>
                     <CheckCircle className="w-4 h-4" />
                     通过
                   </Button>
-                  <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); console.log("hold", order.id); }}>
+                  <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); /* TODO: hold */ }}>
                     <Clock className="w-4 h-4" />
                     挂起
                   </Button>
-                  <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); console.log("reject", order.id); }}>
+                  <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); /* TODO: reject */ }}>
                     <XCircle className="w-4 h-4" />
                     拒绝
                   </Button>

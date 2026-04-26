@@ -6,9 +6,10 @@ import { EnhancedDataTable } from "@/components/backoffice/ui/EnhancedDataTable"
 import { FilterBar } from "@/components/backoffice/ui/FilterBar";
 import { DollarSign, Download, TrendingUp, Wallet, PiggyBank } from "lucide-react";
 import type { ProfitRecord } from "@/types/backoffice";
-import { mockProfitRecords } from "@/lib/backoffice/mock-data";
+import type { StatusType } from "@/types/backoffice";
+import { mockProfitRecords } from "@/lib/backoffice/mock-copy-trading";
 
-const statusColors: Record<string, string> = {
+const statusColors: Record<string, StatusType> = {
   pending: "warning",
   settled: "success",
   disputed: "error",
@@ -89,7 +90,7 @@ export default function ProfitSharingPage() {
       key: "status",
       title: "Status",
       render: (row: ProfitRecord) => (
-        <StatusBadge status={row.status} type={statusColors[row.status] as any} />
+        <StatusBadge status={row.status} type={statusColors[row.status]} />
       ),
     },
     {
@@ -187,14 +188,14 @@ export default function ProfitSharingPage() {
             ],
           },
         ]}
-        onRefresh={() => console.log("Refresh")}
+        onRefresh={() => {}}
       />
 
       <EnhancedDataTable<ProfitRecord>
         columns={columns}
         data={filteredRecords}
         keyExtractor={(row) => row.id}
-        onRowClick={(row) => console.log("View record", row.id)}
+        onRowClick={() => {}}
         emptyText="No profit records found"
       />
     </div>

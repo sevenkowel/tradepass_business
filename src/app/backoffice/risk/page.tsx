@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/backoffice/ui/PageHeader";
 import { StatusBadge } from "@/components/backoffice/ui/StatusBadge";
 import { EnhancedDataTable } from "@/components/backoffice/ui/EnhancedDataTable";
@@ -16,9 +16,9 @@ import {
   Clock,
 } from "lucide-react";
 import type { RiskAlert, RiskMetric } from "@/types/backoffice";
-import { mockRiskAlerts, mockMarginAlerts } from "@/lib/backoffice/mock-data";
+import type { StatusType } from "@/types/backoffice";
 
-const levelColors: Record<string, string> = {
+const levelColors: Record<string, StatusType> = {
   info: "info",
   warning: "warning",
   critical: "error",
@@ -37,8 +37,20 @@ export default function RiskDashboardPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedAlert, setSelectedAlert] = useState<RiskAlert | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [riskEvents, setRiskEvents] = useState<RiskAlert[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredAlerts = mockRiskAlerts.filter((alert) => {
+  useEffect(() => {
+    fetch("/api/backoffice/risk/events")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setRiskEvents(data.items);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filteredAlerts = riskEvents.filter((alert) => {
     const matchesSearch =
       alert.alertId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       alert.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -127,7 +139,7 @@ export default function RiskDashboardPage() {
           </div>
           <StatusBadge
             status={row.level}
-            type={levelColors[row.level] as any}
+            type={levelColors[row.level]}
           />
         </div>
       ),
@@ -184,9 +196,9 @@ export default function RiskDashboardPage() {
     },
   ];
 
-  const criticalCount = mockRiskAlerts.filter((a) => a.level === "critical" && a.status === "new").length;
-  const warningCount = mockRiskAlerts.filter((a) => a.level === "warning" && a.status === "new").length;
-  const newCount = mockRiskAlerts.filter((a) => a.status === "new").length;
+  const criticalCount = riskEvents.filter((a) => a.level === "critical" && a.status === "new").length;
+  const warningCount = riskEvents.filter((a) => a.level === "warning" && a.status === "new").length;
+  const newCount = riskEvents.filter((a) => a.status === "new").length;
 
   const statsCards = [
     {
@@ -218,7 +230,7 @@ export default function RiskDashboardPage() {
     },
     {
       label: "Margin Call Accounts",
-      value: mockMarginAlerts.filter((m) => m.status === "warning").length.toString(),
+      value: "0",
       change: "",
       changeType: "neutral" as const,
       icon: Shield,
@@ -335,7 +347,7 @@ export default function RiskDashboardPage() {
             ],
           },
         ]}
-        onRefresh={() => console.log("Refresh")}
+        onRefresh={() => {}}
       />
 
       {/* Data Table */}

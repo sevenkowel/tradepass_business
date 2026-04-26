@@ -97,16 +97,14 @@ export function OCRResultEditor({
 
   // 处理确认
   const handleConfirm = () => {
-    const confirmData: Partial<OCRResult> = {};
+    const confirmData: Record<string, string> = {};
     fieldConfigs.forEach((config) => {
       const value = editedData[config.key];
-      if (config.type === "date" && value) {
-        confirmData[config.key as keyof OCRResult] = value as any;
-      } else {
-        confirmData[config.key as keyof OCRResult] = value as any;
+      if (value) {
+        confirmData[config.key] = value;
       }
     });
-    onConfirm(confirmData, editedFields);
+    onConfirm(confirmData as Partial<OCRResult>, editedFields);
   };
 
   // 置信度颜色和提示

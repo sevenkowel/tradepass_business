@@ -62,7 +62,7 @@ export function InvestmentExperienceForm() {
           </Label>
           <Select
             value={experience?.yearsOfExperience || "less_than_1"}
-            onValueChange={(value) => setValue("investmentExperience.yearsOfExperience", value as any)}
+            onValueChange={(value) => setValue("investmentExperience.yearsOfExperience", value as "none" | "less_than_1" | "1_to_3" | "3_to_5" | "more_than_5")}
           >
             <SelectTrigger className="bg-[rgb(var(--tp-surface-rgb))]">
               <SelectValue placeholder="Select experience level" />
@@ -83,7 +83,7 @@ export function InvestmentExperienceForm() {
           </Label>
           <Select
             value={experience?.tradingFrequency || "monthly"}
-            onValueChange={(value) => setValue("investmentExperience.tradingFrequency", value as any)}
+            onValueChange={(value) => setValue("investmentExperience.tradingFrequency", value as "rarely" | "monthly" | "weekly" | "daily")}
           >
             <SelectTrigger className="bg-[rgb(var(--tp-surface-rgb))]">
               <SelectValue placeholder="Select trading frequency" />
@@ -124,7 +124,7 @@ export function InvestmentExperienceForm() {
           </Label>
           <Select
             value={experience?.riskTolerance || "medium"}
-            onValueChange={(value) => setValue("investmentExperience.riskTolerance", value as any)}
+            onValueChange={(value) => setValue("investmentExperience.riskTolerance", value as "low" | "medium" | "high")}
           >
             <SelectTrigger className="bg-[rgb(var(--tp-surface-rgb))]">
               <SelectValue placeholder="Select risk tolerance" />

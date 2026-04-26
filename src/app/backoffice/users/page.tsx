@@ -209,12 +209,12 @@ export default function UsersPage() {
     {
       label: "调整余额",
       icon: <Wallet className="w-4 h-4" />,
-      onClick: (row) => console.log("Adjust balance", row.id),
+      onClick: () => {},
     },
     {
       label: "冻结账户",
       icon: <Ban className="w-4 h-4" />,
-      onClick: (row) => console.log("Freeze", row.id),
+      onClick: () => {},
       variant: "danger",
       disabled: (row) => row.status === "frozen",
     },
@@ -312,7 +312,7 @@ export default function UsersPage() {
           onRowClick={handleRowClick}
           emptyText="暂无用户数据"
           exportable
-          onExport={() => console.log("Export data")}
+          onExport={() => {}}
         />
       </Card>
 

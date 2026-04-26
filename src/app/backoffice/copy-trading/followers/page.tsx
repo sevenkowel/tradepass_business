@@ -6,7 +6,7 @@ import { EnhancedDataTable } from "@/components/backoffice/ui/EnhancedDataTable"
 import { FilterBar } from "@/components/backoffice/ui/FilterBar";
 import { Users, Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import type { CopyFollower } from "@/types/backoffice";
-import { mockCopyFollowers } from "@/lib/backoffice/mock-data";
+import { mockCopyFollowers } from "@/lib/backoffice/mock-copy-trading";
 
 export default function CopyFollowersPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -196,14 +196,14 @@ export default function CopyFollowersPage() {
             ],
           },
         ]}
-        onRefresh={() => console.log("Refresh")}
+        onRefresh={() => {}}
       />
 
       <EnhancedDataTable<CopyFollower>
         columns={columns}
         data={filteredFollowers}
         keyExtractor={(row) => row.id}
-        onRowClick={(row) => console.log("View follower", row.userId)}
+        onRowClick={() => {}}
         emptyText="No followers found"
       />
     </div>

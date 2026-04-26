@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageHeader, Button } from "@/components/backoffice/ui/PageHeader";
 import { EnhancedDataTable } from "@/components/backoffice/ui/EnhancedDataTable";
 import { StatusBadge } from "@/components/backoffice/ui/StatusBadge";
 import { FilterBar } from "@/components/backoffice/ui/FilterBar";
 import { Download, RefreshCw, TrendingUp, TrendingDown } from "lucide-react";
 import type { Order } from "@/types/backoffice";
-import { mockOrders } from "@/lib/backoffice/mock-data";
+import type { StatusType } from "@/types/backoffice";
 
-const statusColors: Record<string, string> = {
+const statusColors: Record<string, StatusType> = {
   open: "success",
   pending: "warning",
   closed: "default",
@@ -20,8 +20,20 @@ export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredOrders = mockOrders.filter((order) => {
+  useEffect(() => {
+    fetch("/api/backoffice/trading/orders")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setOrders(data.items);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.accountId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -126,7 +138,7 @@ export default function OrdersPage() {
       render: (row: Order) => (
 <StatusBadge
                   status={row.status}
-                  type={statusColors[row.status] as any}
+                  type={statusColors[row.status]}
                 />
       ),
     },
@@ -151,13 +163,13 @@ export default function OrdersPage() {
   const statsCards = [
     {
       label: "Open Orders",
-      value: mockOrders.filter((o) => o.status === "open").length.toString(),
+      value: orders.filter((o) => o.status === "open").length.toString(),
       change: "",
       changeType: "neutral" as const,
     },
     {
       label: "Total Volume (Open)",
-      value: `${mockOrders.filter((o) => o.status === "open").reduce((sum, o) => sum + o.volume, 0).toFixed(2)} lots`,
+      value: `${orders.filter((o) => o.status === "open").reduce((sum, o) => sum + o.volume, 0).toFixed(2)} lots`,
       change: "",
       changeType: "neutral" as const,
     },
@@ -165,11 +177,11 @@ export default function OrdersPage() {
       label: "Open P&L",
       value: `${totalProfit >= 0 ? "+" : ""}$${totalProfit.toFixed(2)}`,
       change: "",
-      changeType: (totalProfit >= 0 ? "positive" : "negative") ,
+      changeType: (totalProfit >= 0 ? "positive" : "negative") as "positive" | "negative",
     },
     {
       label: "Today Closed",
-      value: mockOrders.filter((o) => o.status === "closed").length.toString(),
+      value: orders.filter((o) => o.status === "closed").length.toString(),
       change: "",
       changeType: "neutral" as const,
     },
@@ -182,7 +194,7 @@ export default function OrdersPage() {
         description="Monitor and manage trading orders across all accounts"
         actions={
           <Button
-            onClick={() => console.log("Export")}
+            onClick={() => {}}
             variant="secondary"
           >
             <Download className="w-4 h-4" />
@@ -245,7 +257,7 @@ export default function OrdersPage() {
             ],
           },
         ]}
-        onRefresh={() => console.log("Refresh")}
+        onRefresh={() => {}}
       />
 
       {/* Data Table */}

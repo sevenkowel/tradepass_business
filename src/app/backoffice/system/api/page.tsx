@@ -213,13 +213,13 @@ export default function APIManagementPage() {
     {
       label: "复制",
       icon: <Copy className="w-4 h-4" />,
-      onClick: (row) => console.log("Copy key", row.id),
+      onClick: () => {},
       disabled: (row) => row.status !== "active",
     },
     {
       label: "撤销",
       icon: <Trash2 className="w-4 h-4" />,
-      onClick: (row) => console.log("Revoke key", row.id),
+      onClick: () => {},
       variant: "danger",
       disabled: (row) => row.status !== "active",
     },

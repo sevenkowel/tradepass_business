@@ -53,7 +53,8 @@ export async function POST(req: NextRequest) {
     });
 
     // TODO: send real email
-    console.log(`[EMAIL] Verification link: http://localhost:3001/auth/verify-email?token=${verifyToken}`);
+    // TODO: integrate with email service (SendGrid/AWS SES)
+    // console.log(`[EMAIL] Verification link: http://localhost:3001/auth/verify-email?token=${verifyToken}`);
 
     return NextResponse.json({
       success: true,

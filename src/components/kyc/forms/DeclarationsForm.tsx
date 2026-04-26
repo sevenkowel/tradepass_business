@@ -107,7 +107,7 @@ export function DeclarationsForm({ showUSPerson, showPEP, showMilitary, showProf
               <div className="pl-7 space-y-3">
                 <Select
                   value={declarations?.pepDetails?.relationship || "self"}
-                  onValueChange={(value) => setValue("declarations.pepDetails.relationship", value as any)}
+                  onValueChange={(value) => setValue("declarations.pepDetails.relationship", value as "self" | "family" | "associate")}
                 >
                   <SelectTrigger className="bg-[rgb(var(--tp-surface-rgb))]">
                     <SelectValue placeholder="Relationship" />

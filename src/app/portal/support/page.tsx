@@ -81,7 +81,7 @@ export default function SupportPage() {
         ].map(({ id, label, icon: Icon }) => (
           <button
             key={id}
-            onClick={() => setActiveTab(id as any)}
+            onClick={() => setActiveTab(id as "faq" | "tickets" | "contact")}
             className={cn(
               "flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors",
               activeTab === id

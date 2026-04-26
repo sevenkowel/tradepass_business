@@ -55,7 +55,7 @@ export function FinancialStatusForm() {
           </Label>
           <Select
             value={financial?.annualIncome || "50k_to_100k"}
-            onValueChange={(value) => setValue("financialStatus.annualIncome", value as any)}
+            onValueChange={(value) => setValue("financialStatus.annualIncome", value as "below_25k" | "25k_to_50k" | "50k_to_100k" | "100k_to_250k" | "above_250k")}
           >
             <SelectTrigger className="bg-[rgb(var(--tp-surface-rgb))]">
               <SelectValue placeholder="Select annual income range" />
@@ -76,7 +76,7 @@ export function FinancialStatusForm() {
           </Label>
           <Select
             value={financial?.netWorth || "100k_to_500k"}
-            onValueChange={(value) => setValue("financialStatus.netWorth", value as any)}
+            onValueChange={(value) => setValue("financialStatus.netWorth", value as "below_50k" | "50k_to_100k" | "100k_to_500k" | "500k_to_1m" | "above_1m")}
           >
             <SelectTrigger className="bg-[rgb(var(--tp-surface-rgb))]">
               <SelectValue placeholder="Select net worth range" />

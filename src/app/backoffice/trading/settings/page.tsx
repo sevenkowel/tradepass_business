@@ -167,7 +167,7 @@ export default function TradingSettingsPage() {
   };
 
   const handleSave = () => {
-    console.log("Save trading settings", settings);
+    // TODO: implement trading settings save
     setHasChanges(false);
   };
 

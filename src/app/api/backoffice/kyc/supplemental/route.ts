@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
     const result = await supplementalKYCService.listSupplementalReview(
       status || "all",
       type || undefined,
-      regionCode as any,
+      (regionCode as import("@/lib/kyc/region-config").RegionCode) || undefined,
       page,
       limit
     );

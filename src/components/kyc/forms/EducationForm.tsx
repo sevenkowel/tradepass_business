@@ -29,7 +29,7 @@ export function EducationForm() {
           </Label>
           <Select
             value={education?.highestLevel || "bachelor"}
-            onValueChange={(value) => setValue("education.highestLevel", value as any)}
+            onValueChange={(value) => setValue("education.highestLevel", value as "other" | "high_school" | "bachelor" | "master" | "doctorate")}
           >
             <SelectTrigger className="bg-[rgb(var(--tp-surface-rgb))]">
               <SelectValue placeholder="Select education level" />

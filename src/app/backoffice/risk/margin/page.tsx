@@ -245,7 +245,7 @@ export default function MarginAlertsPage() {
     {
       label: "标记已解决",
       icon: <CheckCircle className="w-4 h-4" />,
-      onClick: (row) => console.log("Resolve alert", row.id),
+      onClick: () => {},
       disabled: (row) => row.status === "resolved" || row.status === "liquidated",
     },
   ];

@@ -270,7 +270,7 @@ export default function AccountGroupsPage() {
     {
       label: "删除",
       icon: <Trash2 className="w-4 h-4" />,
-      onClick: (row) => console.log("Delete group", row.id),
+      onClick: () => {},
       variant: "danger",
       disabled: (row) => row.accountCount > 0,
     },

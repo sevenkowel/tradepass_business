@@ -203,12 +203,12 @@ export default function WithdrawalReviewPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleApprove = (req: WithdrawalRequest) => {
-    console.log("Approve", req.id);
+    // TODO: call /api/backoffice/funds/withdrawals/approve
     setSelectedRequest(null);
   };
 
   const handleReject = (req: WithdrawalRequest, reason: string) => {
-    console.log("Reject", req.id, reason);
+    // TODO: call /api/backoffice/funds/withdrawals/reject
     setSelectedRequest(null);
   };
 
@@ -415,15 +415,15 @@ export default function WithdrawalReviewPage() {
               {/* Quick Actions for pending requests */}
               {req.status === "pending" && (
                 <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700">
-                  <Button size="sm" onClick={(e) => { e.stopPropagation(); console.log("approve", req.id); }}>
+                  <Button size="sm" onClick={(e) => { e.stopPropagation(); /* TODO: approve */ }}>
                     <CheckCircle className="w-4 h-4" />
                     通过
                   </Button>
-                  <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); console.log("hold", req.id); }}>
+                  <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); /* TODO: hold */ }}>
                     <Clock className="w-4 h-4" />
                     挂起
                   </Button>
-                  <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); console.log("reject", req.id); }}>
+                  <Button size="sm" variant="danger" onClick={(e) => { e.stopPropagation(); /* TODO: reject */ }}>
                     <XCircle className="w-4 h-4" />
                     拒绝
                   </Button>

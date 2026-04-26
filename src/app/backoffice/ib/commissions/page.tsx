@@ -274,7 +274,7 @@ export default function CommissionRecordsPage() {
     {
       label: "结算",
       icon: <CheckCircle className="w-4 h-4" />,
-      onClick: (row) => console.log("Settle commission", row.id),
+      onClick: () => {},
       disabled: (row) => row.status !== "pending",
     },
   ];

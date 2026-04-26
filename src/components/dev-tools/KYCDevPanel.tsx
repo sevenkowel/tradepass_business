@@ -362,7 +362,7 @@ export function KYCDevPanel() {
         kycStore.setKYCData({
           rejectionReason: "Document appears to be fraudulent",
           rejectionDetails: "The uploaded document has been flagged by our verification system.",
-        } as any);
+        } as Record<string, string>);
       },
       navigateTo: "/portal/kyc/status",
     },

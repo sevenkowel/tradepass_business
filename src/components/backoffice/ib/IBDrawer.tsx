@@ -4,6 +4,7 @@ import { Drawer } from "@/components/backoffice/ui/Drawer";
 import { StatusBadge } from "@/components/backoffice/ui/StatusBadge";
 import { Users, DollarSign, TrendingUp, Activity, Link2 } from "lucide-react";
 import type { IBPartner } from "@/types/backoffice";
+import type { StatusType } from "@/types/backoffice";
 
 interface IBDrawerProps {
   ib: IBPartner | null;
@@ -11,8 +12,8 @@ interface IBDrawerProps {
   onClose: () => void;
 }
 
-const levelColors: Record<string, string> = {
-  manager: "primary",
+const levelColors: Record<string, StatusType> = {
+  manager: "info",
   ib: "info",
   sub_ib: "warning",
 };
@@ -50,7 +51,7 @@ export function IBDrawer({ ib, open, onClose }: IBDrawerProps) {
             <div className="mt-1">
               <StatusBadge
                 status={ib.level}
-                type={(levelColors[ib.level] || "default") as any}
+                type={levelColors[ib.level] || "default"}
               />
             </div>
           </div>

@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TrendingUp, TrendingDown, Plus } from "lucide-react";
 import { PageHeader, Button, StatusBadge } from "@/components/backoffice/ui";
 import { EnhancedDataTable } from "@/components/backoffice/ui/EnhancedDataTable";
 import { FilterBar } from "@/components/backoffice/ui/FilterBar";
 // import { AccountDetailDrawer } from "@/components/backoffice/users/AccountDetailDrawer";
-import { mockMTAccounts } from "@/lib/backoffice/mock-data";
 import { MTAccount } from "@/types/backoffice/account";
+import type { StatusType } from "@/types/backoffice";
 
-const statusColors: Record<string, string> = {
+const statusColors: Record<string, StatusType> = {
   active: "success",
   frozen: "warning",
-  closed: "neutral",
+  closed: "default",
 };
 
 export default function AccountsPage() {
@@ -21,8 +21,20 @@ export default function AccountsPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [selectedAccount, setSelectedAccount] = useState<MTAccount | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [accounts, setAccounts] = useState<MTAccount[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredAccounts = mockMTAccounts.filter((account) => {
+  useEffect(() => {
+    fetch("/api/backoffice/accounts")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setAccounts(data.items);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filteredAccounts = accounts.filter((account) => {
     const matchesSearch =
       account.accountId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       account.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -118,7 +130,7 @@ export default function AccountsPage() {
       key: "status",
       title: "Status",
       render: (row: MTAccount) => (
-        <StatusBadge status={row.status} type={statusColors[row.status] as any} />
+        <StatusBadge status={row.status} type={statusColors[row.status]} />
       ),
     },
     {
@@ -148,26 +160,26 @@ export default function AccountsPage() {
   const statsCards = [
     {
       label: "Total Accounts",
-      value: mockMTAccounts.length.toString(),
-      change: "+12",
+      value: accounts.length.toString(),
+      change: "+0",
       changeType: "positive" as const,
     },
     {
       label: "Active Accounts",
-      value: mockMTAccounts.filter((a) => a.status === "active").length.toString(),
-      change: "+8",
+      value: accounts.filter((a) => a.status === "active").length.toString(),
+      change: "+0",
       changeType: "positive" as const,
     },
     {
       label: "Total Equity",
-      value: `$${mockMTAccounts.reduce((sum, a) => sum + a.equity, 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
-      change: "+5.2%",
+      value: `$${accounts.reduce((sum, a) => sum + a.equity, 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
+      change: "+0%",
       changeType: "positive" as const,
     },
     {
       label: "Total Margin Used",
-      value: `$${mockMTAccounts.reduce((sum, a) => sum + a.margin, 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
-      change: "+2.1%",
+      value: `$${accounts.reduce((sum, a) => sum + a.margin, 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
+      change: "+0%",
       changeType: "neutral" as const,
     },
   ];
@@ -180,7 +192,7 @@ export default function AccountsPage() {
         actions={
           <>
             <Button
-              onClick={() => console.log("Create account")}
+              onClick={() => {}}
               variant="primary"
             >
               <Plus className="w-4 h-4 mr-1" />
@@ -244,7 +256,7 @@ export default function AccountsPage() {
             ],
           },
         ]}
-        onRefresh={() => console.log("Refresh")}
+        onRefresh={() => {}}
       />
 
       {/* Data Table */}

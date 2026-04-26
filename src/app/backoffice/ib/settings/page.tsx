@@ -67,7 +67,7 @@ export default function IBCommissionSettingsPage() {
   };
 
   const handleSave = () => {
-    console.log("Save commission settings", tiers);
+    // TODO: implement commission settings save
     setHasChanges(false);
   };
 

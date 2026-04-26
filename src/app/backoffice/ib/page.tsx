@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageHeader, Button } from "@/components/backoffice/ui/PageHeader";
 import { EnhancedDataTable } from "@/components/backoffice/ui/EnhancedDataTable";
 import { StatusBadge } from "@/components/backoffice/ui/StatusBadge";
@@ -8,16 +8,17 @@ import { FilterBar } from "@/components/backoffice/ui/FilterBar";
 import { IBDrawer } from "@/components/backoffice/ib/IBDrawer";
 import { Plus, Download, TrendingUp, Users, DollarSign } from "lucide-react";
 import type { IBPartner } from "@/types/backoffice";
-import { mockIBPartners } from "@/lib/backoffice/mock-data";
 
-const statusColors: Record<string, string> = {
+import type { StatusType } from "@/types/backoffice";
+
+const statusColors: Record<string, StatusType> = {
   active: "success",
   inactive: "default",
   suspended: "error",
 };
 
-const levelColors: Record<string, string> = {
-  manager: "primary",
+const levelColors: Record<string, StatusType> = {
+  manager: "info",
   ib: "info",
   sub_ib: "warning",
 };
@@ -26,10 +27,22 @@ export default function IBListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [levelFilter, setLevelFilter] = useState<string>("all");
+  const [ibPartners, setIbPartners] = useState<IBPartner[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/backoffice/ib")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setIbPartners(data.items);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
   const [selectedIB, setSelectedIB] = useState<IBPartner | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const filteredIBs = mockIBPartners.filter((ib) => {
+  const filteredIBs = ibPartners.filter((ib) => {
     const matchesSearch =
       ib.ibId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ib.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -76,7 +89,7 @@ export default function IBListPage() {
       render: (row: IBPartner) => (
         <StatusBadge
           status={row.level}
-          type={levelColors[row.level] as any}
+          type={levelColors[row.level]}
         />
       ),
     },
@@ -139,7 +152,7 @@ export default function IBListPage() {
       render: (row: IBPartner) => (
 <StatusBadge
                   status={row.status}
-                  type={statusColors[row.status] as any}
+                  type={statusColors[row.status]}
                 />
       ),
     },
@@ -162,14 +175,14 @@ export default function IBListPage() {
     setDrawerOpen(true);
   };
 
-  const totalClients = mockIBPartners.reduce((sum, ib) => sum + ib.totalClients, 0);
-  const totalCommission = mockIBPartners.reduce((sum, ib) => sum + ib.totalCommission, 0);
-  const pendingCommission = mockIBPartners.reduce((sum, ib) => sum + ib.pendingCommission, 0);
+  const totalClients = ibPartners.reduce((sum, ib) => sum + ib.totalClients, 0);
+  const totalCommission = ibPartners.reduce((sum, ib) => sum + ib.totalCommission, 0);
+  const pendingCommission = ibPartners.reduce((sum, ib) => sum + ib.pendingCommission, 0);
 
   const statsCards = [
     {
       label: "Total IB Partners",
-      value: mockIBPartners.length.toString(),
+      value: ibPartners.length.toString(),
       change: "+3",
       changeType: "positive" as const,
     },
@@ -201,14 +214,14 @@ export default function IBListPage() {
         actions={
           <>
             <Button
-              onClick={() => console.log("Add IB")}
+              onClick={() => {}}
               variant="primary"
             >
               <Plus className="w-4 h-4" />
               Add IB
             </Button>
             <Button
-              onClick={() => console.log("Export")}
+              onClick={() => {}}
               variant="secondary"
             >
               <Download className="w-4 h-4" />
@@ -273,7 +286,7 @@ export default function IBListPage() {
             ],
           },
         ]}
-        onRefresh={() => console.log("Refresh")}
+        onRefresh={() => {}}
       />
 
       {/* Data Table */}

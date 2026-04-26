@@ -205,13 +205,13 @@ export default function NBPProtectionPage() {
     {
       label: "通过",
       icon: <CheckCircle className="w-4 h-4" />,
-      onClick: (row) => console.log("Approve NBP", row.id),
+      onClick: () => {},
       disabled: (row) => row.status !== "pending",
     },
     {
       label: "拒绝",
       icon: <XCircle className="w-4 h-4" />,
-      onClick: (row) => console.log("Reject NBP", row.id),
+      onClick: () => {},
       variant: "danger",
       disabled: (row) => row.status !== "pending",
     },

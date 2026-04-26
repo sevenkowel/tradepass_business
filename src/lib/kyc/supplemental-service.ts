@@ -761,7 +761,7 @@ export class SupplementalKYCService {
 
     if (otherPending.length === 0) {
       // 没有其他限制，可以解除
-      console.log(`Restrictions removed for user ${userId}`);
+      // Restrictions removed for user
     }
   }
 
@@ -770,7 +770,7 @@ export class SupplementalKYCService {
     targetTier: KYCTierLevel
   ): Promise<void> {
     // TODO: 实现用户等级升级逻辑
-    console.log(`Upgrading user ${userId} to tier ${targetTier}`);
+    // Upgrading user tier
   }
 
   private async getUserRegion(userId: string): Promise<RegionCode | null> {

@@ -6,9 +6,11 @@ import { EnhancedDataTable } from "@/components/backoffice/ui/EnhancedDataTable"
 import { FilterBar } from "@/components/backoffice/ui/FilterBar";
 import { Plus, Users, TrendingUp, Wallet, Award } from "lucide-react";
 import type { CopyTrader } from "@/types/backoffice";
-import { mockCopyTraders } from "@/lib/backoffice/mock-data";
+import { mockCopyTraders } from "@/lib/backoffice/mock-copy-trading";
 
-const riskColors: Record<string, string> = {
+import type { StatusType } from "@/types/backoffice";
+
+const riskColors: Record<string, StatusType> = {
   low: "success",
   medium: "warning",
   high: "error",
@@ -92,7 +94,7 @@ export default function CopyTradersPage() {
       key: "riskLevel",
       title: "Risk",
       render: (row: CopyTrader) => (
-        <StatusBadge status={row.riskLevel} type={riskColors[row.riskLevel] as any} />
+        <StatusBadge status={row.riskLevel} type={riskColors[row.riskLevel]} />
       ),
     },
     {
@@ -206,14 +208,14 @@ export default function CopyTradersPage() {
             ],
           },
         ]}
-        onRefresh={() => console.log("Refresh")}
+        onRefresh={() => {}}
       />
 
       <EnhancedDataTable<CopyTrader>
         columns={columns}
         data={filteredTraders}
         keyExtractor={(row) => row.id}
-        onRowClick={(row) => console.log("View trader", row.traderId)}
+        onRowClick={() => {}}
         emptyText="No traders found"
       />
     </div>

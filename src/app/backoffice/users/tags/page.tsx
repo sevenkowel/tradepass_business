@@ -217,7 +217,7 @@ export default function UserTagsPage() {
     {
       label: "删除",
       icon: <Trash2 className="w-4 h-4" />,
-      onClick: (row) => console.log("Delete tag", row.id),
+      onClick: () => {},
       variant: "danger",
       disabled: (row) => row.isSystem,
     },

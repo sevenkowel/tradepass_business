@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageHeader, Button } from "@/components/backoffice/ui/PageHeader";
 import { EnhancedDataTable } from "@/components/backoffice/ui/EnhancedDataTable";
 import { StatusBadge } from "@/components/backoffice/ui/StatusBadge";
 import { FilterBar } from "@/components/backoffice/ui/FilterBar";
 import { Download, TrendingUp, TrendingDown } from "lucide-react";
 import type { Position } from "@/types/backoffice";
-import { mockPositions } from "@/lib/backoffice/mock-data";
 
-const statusColors: Record<string, string> = {
+import type { StatusType } from "@/types/backoffice";
+
+const statusColors: Record<string, StatusType> = {
   open: "success",
   closed: "default",
   partial: "warning",
@@ -19,8 +20,20 @@ export default function PositionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredPositions = mockPositions.filter((position) => {
+  useEffect(() => {
+    fetch("/api/backoffice/trading/positions")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setPositions(data.items);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filteredPositions = positions.filter((position) => {
     const matchesSearch =
       position.ticket.toLowerCase().includes(searchQuery.toLowerCase()) ||
       position.accountId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -138,7 +151,7 @@ export default function PositionsPage() {
   const statsCards = [
     {
       label: "Open Positions",
-      value: mockPositions.length.toString(),
+      value: positions.length.toString(),
       change: "",
       changeType: "neutral" as const,
     },
@@ -169,7 +182,7 @@ export default function PositionsPage() {
         description="Real-time view of all open trading positions"
         actions={
           <Button
-            onClick={() => console.log("Export")}
+            onClick={() => {}}
             variant="secondary"
           >
             <Download className="w-4 h-4" />
@@ -231,7 +244,7 @@ export default function PositionsPage() {
             ],
           },
         ]}
-        onRefresh={() => console.log("Refresh")}
+        onRefresh={() => {}}
       />
 
       {/* Data Table */}

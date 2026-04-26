@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { PageHeader, Button } from "@/components/backoffice/ui";
 import { Settings, Save, RotateCcw } from "lucide-react";
-import { mockCopySettings } from "@/lib/backoffice/mock-data";
+import { mockCopySettings } from "@/lib/backoffice/mock-copy-trading";
 import type { CopySettings } from "@/types/backoffice";
 
 export default function CopySettingsPage() {
@@ -69,7 +69,7 @@ export default function CopySettingsPage() {
             <select
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={settings.followMode}
-              onChange={(e) => updateField("followMode", e.target.value as any)}
+              onChange={(e) => updateField("followMode", e.target.value as "fixed" | "ratio" | "mirror")}
             >
               <option value="ratio">Ratio</option>
               <option value="fixed">Fixed Lots</option>

@@ -711,7 +711,7 @@ function RegionsTab({
                   value={region.opening.features.ocrProvider}
                   onChange={(e) =>
                     updateRegionFeatures(selectedRegion, {
-                      ocrProvider: e.target.value as any,
+                      ocrProvider: e.target.value as "tencent" | "google" | "azure",
                     })
                   }
                   disabled={!region.opening.features.ocrEnabled}
@@ -740,7 +740,7 @@ function RegionsTab({
                   value={region.opening.features.livenessProvider}
                   onChange={(e) =>
                     updateRegionFeatures(selectedRegion, {
-                      livenessProvider: e.target.value as any,
+                      livenessProvider: e.target.value as "tencent" | "face++" | "onfido",
                     })
                   }
                   disabled={!region.opening.features.livenessRequired}
