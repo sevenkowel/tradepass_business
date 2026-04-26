@@ -9,6 +9,7 @@ import {
   Package,
   CreditCard,
 } from "lucide-react";
+import { PlanStatusBar } from "@/components/billing/PlanStatusBar";
 
 const navItems = [
   { href: "/console", label: "仪表盘", icon: LayoutDashboard },
@@ -41,6 +42,7 @@ export default function ConsoleLayout({
 
   return (
     <DashboardLayout navItems={navItems} title="Console" sidebarBg="bg-slate-900">
+      <PlanStatusBar />
       {children}
     </DashboardLayout>
   );
