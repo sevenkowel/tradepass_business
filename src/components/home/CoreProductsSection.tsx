@@ -2,39 +2,51 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
-import { ArrowRight, Zap, Shield, Building2, Rocket, Globe } from "lucide-react";
+import { ArrowRight, Building2, Rocket, Zap, Shield, Newspaper, Brain } from "lucide-react";
 import Link from "next/link";
 
 const products = [
   {
-    icon: Zap,
-    title: "Trading Core",
-    description: "Ultra-low latency order execution and position management.",
-    features: ["< 1ms latency", "Multi-asset support", "High-frequency trading"],
-  },
-  {
-    icon: Shield,
-    title: "Risk Management",
-    description: "Real-time monitoring and automated risk control.",
-    features: ["Real-time alerts", "Position limits", "Margin calls"],
-  },
-  {
     icon: Building2,
-    title: "Broker Platform",
-    description: "Complete back-office for broker operations.",
-    features: ["User management", "Payment processing", "KYC/AML compliance"],
+    title: "TradePass Business",
+    description: "外汇经纪商业务系统基础层。KYC、开户、存取款、用户管理、基础报表。",
+    features: ["Portal + Backoffice", "9 地区 KYC 适配", "USDT / 银行 / 信用卡", "基础报表"],
+    price: "$7,000/月",
   },
   {
     icon: Rocket,
-    title: "Growth Engine",
-    description: "CRM, marketing automation, and customer data platform.",
-    features: ["Lead tracking", "Campaign automation", "Analytics dashboard"],
+    title: "TradePass Growth",
+    description: "增长营销引擎。多级 IB、营销自动化、转化漏斗、客户数据平台。",
+    features: ["L1/L2/L3 IB 代理", "营销自动化", "客户画像 CDP", "转化漏斗"],
+    price: "$5,000/月",
   },
   {
-    icon: Globe,
-    title: "Trading Ecosystem",
-    description: "Copy trading, signal marketplace, and strategy hub.",
-    features: ["Social trading", "Signal providers", "Strategy marketplace"],
+    icon: Zap,
+    title: "TradePass Engine",
+    description: "交易基础设施。MT5 终端、订单持仓、跟单交易、AI 信号、API。",
+    features: ["MT5 Web 终端", "订单持仓管理", "跟单交易", "AI 交易信号", "API 集成"],
+    price: "$10,000/月",
+  },
+  {
+    icon: Shield,
+    title: "TradePass Edge",
+    description: "风控与流动性层。实时风控、保证金告警、黑名单、LP 聚合。",
+    features: ["实时风控引擎", "保证金告警", "黑名单管理", "LP 聚合"],
+    price: "$9,000/月",
+  },
+  {
+    icon: Newspaper,
+    title: "TradePass Media",
+    description: "媒体资讯服务。财经日历、新闻快讯、财经头条、市场评论。",
+    features: ["财经日历", "新闻快讯", "市场评论", "数据可视化"],
+    price: "$2,000/月",
+  },
+  {
+    icon: Brain,
+    title: "TradePass AI",
+    description: "AI 智能服务。AI 交易信号、策略、订单分析、日报周报月报。",
+    features: ["AI 交易策略", "订单深度分析", "AI 日报/周报/月报", "AI 风控预警"],
+    price: "$5,000/月",
   },
 ];
 
@@ -51,12 +63,12 @@ export function CoreProductsSection() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-foreground mb-4">
-            Powerful Products Built for{" "}
-            <span className="gradient-text">Broker Growth</span>
+            6 大产品线，构建完整的{" "}
+            <span className="gradient-text">经纪商生态</span>
           </h2>
           <p className="text-lg text-foreground/60 max-w-2xl mx-auto">
-            From trading infrastructure to customer acquisition, 
-            we have everything you need to build a successful brokerage.
+            从业务运营到交易技术，从增长营销到 AI 智能，
+            TradePass 提供一站式外汇经纪商 SaaS 解决方案。
           </p>
         </motion.div>
 
@@ -77,8 +89,11 @@ export function CoreProductsSection() {
               <h3 className="text-xl font-semibold text-foreground mb-3">
                 {product.title}
               </h3>
-              <p className="text-foreground/60 text-sm mb-6">
+              <p className="text-foreground/60 text-sm mb-4">
                 {product.description}
+              </p>
+              <p className="text-accent font-bold text-lg mb-4">
+                {product.price}
               </p>
               <ul className="space-y-2 mb-6">
                 {product.features.map((feature, fIndex) => (
@@ -90,7 +105,7 @@ export function CoreProductsSection() {
               </ul>
               <Link href="/auth/register">
                 <Button variant="ghost" size="sm" className="group/btn">
-                  Learn more
+                  免费试用
                   <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                 </Button>
               </Link>
