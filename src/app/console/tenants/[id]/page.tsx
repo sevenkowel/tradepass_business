@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, ExternalLink, Copy, CheckCircle2, Users, Loader2, ToggleLeft, ToggleRight } from "lucide-react";
+import { ArrowLeft, ExternalLink, Copy, CheckCircle2, Users, Loader2, ToggleLeft, ToggleRight, Globe, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TenantDetail {
@@ -16,6 +16,11 @@ interface TenantDetail {
     status: string;
     region: string;
     trialEndsAt: string | null;
+    brandName: string | null;
+    subdomain: string | null;
+    customDomain: string | null;
+    customDomainVerified: boolean;
+    primaryColor: string | null;
   };
   subscriptions: {
     id: string;
@@ -272,6 +277,66 @@ export default function TenantDetailPage() {
                     <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">{m.role}</span>
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Domain Config */}
+          <Card>
+            <CardContent className="p-5 space-y-4">
+              <h2 className="font-semibold text-slate-900 flex items-center gap-2">
+                <Globe className="w-4 h-4" />域名配置
+              </h2>
+              <div className="text-sm space-y-3">
+                <div>
+                  <p className="text-slate-500 text-xs">子域名</p>
+                  <p className="font-medium text-slate-900">
+                    {tenant.subdomain ? (
+                      <a
+                        href={`https://${tenant.subdomain}.tradepass.io`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline flex items-center gap-1"
+                      >
+                        {tenant.subdomain}.tradepass.io
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : (
+                      <span className="text-slate-400">未设置</span>
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-slate-500 text-xs">自定义域名</p>
+                  <p className="font-medium text-slate-900">
+                    {tenant.customDomain ? (
+                      <span className="flex items-center gap-1">
+                        {tenant.customDomain}
+                        {tenant.customDomainVerified ? (
+                          <span className="text-xs px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-full flex items-center gap-0.5">
+                            <Shield className="w-3 h-3" />已验证
+                          </span>
+                        ) : (
+                          <span className="text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full">待验证</span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">未配置</span>
+                    )}
+                  </p>
+                </div>
+                {tenant.primaryColor && (
+                  <div>
+                    <p className="text-slate-500 text-xs">品牌色</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div
+                        className="w-6 h-6 rounded border border-slate-200"
+                        style={{ backgroundColor: tenant.primaryColor }}
+                      />
+                      <span className="text-slate-700 font-mono text-xs">{tenant.primaryColor}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

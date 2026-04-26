@@ -20,6 +20,7 @@ function hasMockHeaders(request: NextRequest): boolean {
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
   const token = request.cookies.get("token")?.value;
+  const hostname = request.headers.get("host") || "";
 
   // S3: Reject requests carrying X-Mock-* headers globally
   if (hasMockHeaders(request)) {
@@ -27,6 +28,22 @@ export function middleware(request: NextRequest) {
       JSON.stringify({ success: false, error: "Mock headers are not allowed" }),
       { status: 403, headers: { "Content-Type": "application/json" } }
     );
+  }
+
+  const response = NextResponse.next();
+
+  // Subdomain resolution: extract subdomain from xxx.tradepass.io
+  const isMainDomain = hostname === "tradepass.io" || hostname === "www.tradepass.io" || hostname === "localhost:3001" || hostname === "localhost:3000";
+  if (!isMainDomain && hostname.includes("tradepass.io")) {
+    const subdomain = hostname.split(".")[0];
+    if (subdomain && subdomain !== "www") {
+      response.cookies.set("tenant_subdomain", subdomain, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: "lax",
+      });
+      response.headers.set("x-tenant-subdomain", subdomain);
+    }
   }
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
@@ -45,11 +62,11 @@ export function middleware(request: NextRequest) {
   const onboardingCompleted = request.cookies.get("onboarding_completed")?.value === "true";
 
   if (token && pathname.startsWith("/console")) {
-    // Not completed onboarding → force to onboarding
+    // Not completed onboarding -> force to onboarding
     if (!onboardingCompleted && pathname !== "/console/onboarding") {
       return NextResponse.redirect(new URL("/console/onboarding", request.url));
     }
-    // Completed onboarding → redirect away from onboarding page
+    // Completed onboarding -> redirect away from onboarding page
     if (onboardingCompleted && pathname === "/console/onboarding") {
       return NextResponse.redirect(new URL("/console", request.url));
     }
@@ -58,7 +75,6 @@ export function middleware(request: NextRequest) {
   // Persist tenant param from URL into cookie for portal/backoffice internal nav
   const tenantId = searchParams.get("tenant");
   if (tenantId && (pathname.startsWith("/portal") || pathname.startsWith("/backoffice"))) {
-    const response = NextResponse.next();
     response.cookies.set("portal_tenant", tenantId, {
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
@@ -67,7 +83,7 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
