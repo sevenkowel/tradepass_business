@@ -20,6 +20,7 @@ import {
   Ban,
   Database,
   Download,
+  DollarSign,
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { cn } from "@/lib/utils";
@@ -179,6 +180,7 @@ export default function BillingPage() {
   const [yearly, setYearly] = useState(false);
   const [upgrading, setUpgrading] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [currency, setCurrency] = useState<string>("USD");
 
   useEffect(() => {
     Promise.all([
@@ -221,13 +223,17 @@ export default function BillingPage() {
 
   async function upgradePlan(planId: string) {
     setUpgrading(planId);
-    const res = await fetch("/api/console/billing/upgrade", {
+    const res = await fetch("/api/console/billing/checkout-session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: planId, yearly }),
+      body: JSON.stringify({ plan: planId, yearly, currency }),
     });
     const data = await res.json();
-    if (data.success) {
+    if (data.url) {
+      window.location.href = data.url;
+    } else if (data.redirectUrl) {
+      window.location.href = data.redirectUrl;
+    } else if (data.free) {
       window.location.reload();
     }
     setUpgrading(null);
@@ -272,36 +278,57 @@ export default function BillingPage() {
 
       {/* Plan Selection */}
       <div>
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
           <div>
             <h2 className="text-xl font-bold text-[rgb(var(--tp-fg-rgb))]">选择套餐</h2>
             <p className="text-sm text-[rgba(var(--tp-fg-rgb),0.6)] mt-1">
-              升级套餐解锁更多功能，年付享 9 折优惠
+              升级套餐解锁更多功能，年付享 85 折优惠
             </p>
           </div>
-          <div className="flex items-center gap-2 bg-[rgba(var(--tp-fg-rgb),0.05)] rounded-lg p-1">
-            <button
-              onClick={() => setYearly(false)}
-              className={cn(
-                "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                !yearly
-                  ? "bg-[rgb(var(--tp-accent-rgb))] text-white"
-                  : "text-[rgba(var(--tp-fg-rgb),0.6)]"
-              )}
-            >
-              月付
-            </button>
-            <button
-              onClick={() => setYearly(true)}
-              className={cn(
-                "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                yearly
-                  ? "bg-[rgb(var(--tp-accent-rgb))] text-white"
-                  : "text-[rgba(var(--tp-fg-rgb),0.6)]"
-              )}
-            >
-              年付 <span className="text-xs opacity-80">-10%</span>
-            </button>
+          <div className="flex items-center gap-2">
+            {/* Currency Selector */}
+            <div className="flex items-center gap-1 bg-[rgba(var(--tp-fg-rgb),0.05)] rounded-lg p-1">
+              <DollarSign className="w-3.5 h-3.5 text-[rgba(var(--tp-fg-rgb),0.4)] ml-2" />
+              {["USD", "CNY", "EUR", "GBP", "JPY", "HKD"].map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setCurrency(c)}
+                  className={cn(
+                    "px-2 py-1 rounded text-xs font-medium transition-colors",
+                    currency === c
+                      ? "bg-[rgb(var(--tp-accent-rgb))] text-white"
+                      : "text-[rgba(var(--tp-fg-rgb),0.5)] hover:text-[rgba(var(--tp-fg-rgb),0.8)]"
+                  )}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+            {/* Billing Period */}
+            <div className="flex items-center gap-2 bg-[rgba(var(--tp-fg-rgb),0.05)] rounded-lg p-1">
+              <button
+                onClick={() => setYearly(false)}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                  !yearly
+                    ? "bg-[rgb(var(--tp-accent-rgb))] text-white"
+                    : "text-[rgba(var(--tp-fg-rgb),0.6)]"
+                )}
+              >
+                月付
+              </button>
+              <button
+                onClick={() => setYearly(true)}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                  yearly
+                    ? "bg-[rgb(var(--tp-accent-rgb))] text-white"
+                    : "text-[rgba(var(--tp-fg-rgb),0.6)]"
+                )}
+              >
+                年付 <span className="text-xs opacity-80">-15%</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -312,6 +339,7 @@ export default function BillingPage() {
               plan={plan}
               isCurrent={currentPlan.id === plan.id}
               yearly={yearly}
+              currency={currency}
               onUpgrade={() => upgradePlan(plan.id)}
               upgrading={upgrading === plan.id}
             />
@@ -565,17 +593,22 @@ function PlanCard({
   plan,
   isCurrent,
   yearly,
+  currency,
   onUpgrade,
   upgrading,
 }: {
   plan: (typeof PLANS)[0];
   isCurrent: boolean;
   yearly: boolean;
+  currency: string;
   onUpgrade: () => void;
   upgrading: boolean;
 }) {
   const PlanIcon = plan.icon;
-  const price = yearly ? plan.yearlyPrice : plan.price;
+  const { getPlanPrice, formatPrice } = require("@/lib/stripe/pricing");
+  const priceInfo = getPlanPrice(plan.id, currency, yearly);
+  const displayPrice = yearly ? priceInfo.yearly : priceInfo.monthly;
+  const monthlyPrice = getPlanPrice(plan.id, currency, false).monthly;
 
   const colorMap: Record<string, string> = {
     slate: "border-slate-200 hover:border-slate-300",
@@ -628,13 +661,13 @@ function PlanCard({
       <div className="mb-4">
         <div className="flex items-baseline gap-1">
           <span className="text-2xl font-bold text-[rgb(var(--tp-fg-rgb))]">
-            ${price.toLocaleString()}
+            {formatPrice(displayPrice, currency)}
           </span>
-          <span className="text-sm text-[rgba(var(--tp-fg-rgb),0.5)]">/月</span>
+          <span className="text-sm text-[rgba(var(--tp-fg-rgb),0.5)]">{yearly ? "/年" : "/月"}</span>
         </div>
-        {yearly && price > 0 && (
+        {yearly && displayPrice > 0 && (
           <p className="text-xs text-emerald-600">
-            年付节省 ${((plan.price - plan.yearlyPrice) * 12).toLocaleString()}/年
+            年付节省 {formatPrice(Math.round(monthlyPrice * 12 * 0.15), currency)}/年
           </p>
         )}
       </div>

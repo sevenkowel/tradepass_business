@@ -94,6 +94,7 @@ model Tenant {
   domains     TenantDomain[]
   notifications TenantNotification[]
   dataRetention TenantDataRetention?
+  stripeCustomer StripeCustomer?
 
   @@map("tenants")
 }
@@ -187,12 +188,35 @@ model Invoice {
   dueDate       DateTime @map("due_date")
   pdfUrl        String?  @map("pdf_url")
   metadata      String?  @map("metadata")
+
+  // === Stripe Integration ===
+  stripeCustomerId       String? @map("stripe_customer_id")
+  stripeCheckoutSessionId String? @map("stripe_checkout_session_id")
+  stripePaymentIntentId   String? @map("stripe_payment_intent_id")
+  stripeSubscriptionId    String? @map("stripe_subscription_id")
+  paymentMethod          String? @map("payment_method") // card, usdt, bank_transfer
+
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("invoices")
+}
+
+model StripeCustomer {
+  id              String   @id @default(cuid())
+  tenantId        String   @unique @map("tenant_id")
+  stripeCustomerId String  @unique @map("stripe_customer_id")
+  email           String
+  name            String?
+  defaultCurrency String   @default("USD") @map("default_currency")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("stripe_customers")
 }
 
 model PaymentMethod {
