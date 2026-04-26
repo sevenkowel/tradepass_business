@@ -1,46 +1,23 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const BASE_URL = process.env.BASE_URL || "http://localhost:3001";
-
 export default defineConfig({
-  testDir: "./tests",
-  fullyParallel: false, // 串行执行，避免数据冲突
-  workers: 1,
-  reporter: [
-    ["list"],
-    ["html", { open: "never" }],
-    ["json", { outputFile: "test-results/report.json" }],
-  ],
+  testDir: "./tests/e2e",
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: "html",
   use: {
-    baseURL: BASE_URL,
-    trace: "retain-on-failure",
-    screenshot: "only-on-failure",
-    video: "off",
-    actionTimeout: 15000,
-    navigationTimeout: 30000,
+    baseURL: "http://localhost:3001",
+    trace: "on-first-retry",
   },
   projects: [
-    {
-      name: "chromium",
-      use: {
-        ...devices["Desktop Chrome"],
-        viewport: { width: 1280, height: 720 },
-        launchOptions: {
-          executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-        },
-      },
-    },
-    {
-      name: "Mobile Chrome",
-      use: {
-        ...devices["Pixel 5"],
-        launchOptions: {
-          executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-        },
-      },
-    },
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    { name: "firefox", use: { ...devices["Desktop Firefox"] } },
   ],
-  expect: {
-    timeout: 15000,
+  webServer: {
+    command: "npm run build && npm start",
+    url: "http://localhost:3001",
+    reuseExistingServer: !process.env.CI,
   },
 });
