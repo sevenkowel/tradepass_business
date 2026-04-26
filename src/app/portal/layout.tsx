@@ -32,7 +32,7 @@ async function validateTenant(tenantId: string) {
     if (!tenant || (!membership && tenant.ownerId !== user.id)) return null;
 
     const license = await prisma.license.findFirst({
-      where: { tenantId, productCode: "broker_os", status: "active" },
+      where: { tenantId, productCode: "trade_pass_business", status: "active" },
     });
     if (!license) return null;
 

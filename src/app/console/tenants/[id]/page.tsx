@@ -82,7 +82,7 @@ export default function TenantDetailPage() {
   }
 
   const { tenant, subscriptions, licenses, members } = data;
-  const hasBrokerOS = subscriptions.some((s) => s.product.code === "broker_os");
+  const hasBusiness = subscriptions.some((s) => s.product.code === "trade_pass_business");
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -107,7 +107,7 @@ export default function TenantDetailPage() {
         {/* Left column */}
         <div className="lg:col-span-2 space-y-6">
           {/* Access Cards */}
-          {hasBrokerOS && (
+          {hasBusiness && (
             <Card>
               <CardContent className="p-5 space-y-4">
                 <h2 className="font-semibold text-slate-900">业务系统入口</h2>
@@ -196,7 +196,7 @@ export default function TenantDetailPage() {
           </Card>
 
           {/* Feature Toggles */}
-          {hasBrokerOS && Object.keys(features).length > 0 && (
+          {hasBusiness && Object.keys(features).length > 0 && (
             <Card>
               <CardContent className="p-5 space-y-4">
                 <div className="flex items-center justify-between">

@@ -25,13 +25,13 @@ export async function GET(req: NextRequest) {
   const license = await prisma.license.findFirst({
     where: {
       tenantId,
-      productCode: "broker_os",
+      productCode: "trade_pass_business",
       status: "active",
     },
   });
 
   if (!license) {
-    return NextResponse.json({ error: "No active Broker OS license" }, { status: 403 });
+    return NextResponse.json({ error: "No active TradePass Business license" }, { status: 403 });
   }
 
   return NextResponse.json({

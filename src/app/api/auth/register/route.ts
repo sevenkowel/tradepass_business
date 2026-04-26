@@ -43,6 +43,83 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // === Auto-create MVP Tenant ===
+    const tenantSlug = `tenant-${user.id.slice(0, 8)}`;
+    const subdomain = `${name.toLowerCase().replace(/[^a-z0-9]/g, "")}-${user.id.slice(0, 6)}`;
+
+    const tenant = await prisma.tenant.create({
+      data: {
+        name: name,
+        slug: tenantSlug,
+        ownerId: user.id,
+        status: "trial",
+        plan: "mvp",
+        maxUsers: 10,
+        maxAccounts: 5,
+        brandName: name,
+        subdomain: subdomain,
+        trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
+        onboardingLocked: true,
+      },
+    });
+
+    // Create TenantOnboarding
+    await prisma.tenantOnboarding.create({
+      data: {
+        tenantId: tenant.id,
+        status: "in_progress",
+        step: 1,
+        data: JSON.stringify({}),
+        isLocked: false,
+      },
+    });
+
+    // Create TenantConfig (default MVP config)
+    await prisma.tenantConfig.create({
+      data: {
+        tenantId: tenant.id,
+        brand: JSON.stringify({ name, primaryColor: "#1a73e8" }),
+        auth: JSON.stringify({ methods: ["email"], loginFlow: "password" }),
+        kyc: JSON.stringify({ regions: ["VN"], level: "basic", amlEnabled: false }),
+        trading: JSON.stringify({ groups: ["forex"], leverage: "1:100", spreadMode: "floating" }),
+        payment: JSON.stringify({ currencies: ["USD"], depositChannels: ["usdt"], withdrawalChannels: ["usdt"] }),
+        channels: JSON.stringify({ emailProvider: "tradepass_default", smsProvider: "tradepass_default", ekycProvider: "tradepass_default" }),
+        mvpMode: true,
+      },
+    });
+
+    // Create Subscription for TradePass Business (MVP trial)
+    const businessProduct = await prisma.product.findUnique({
+      where: { code: "trade_pass_business" },
+    });
+
+    if (businessProduct) {
+      await prisma.subscription.create({
+        data: {
+          tenantId: tenant.id,
+          productId: businessProduct.id,
+          status: "trialing",
+          planName: "mvp",
+          seatLimit: 10,
+          currentSeats: 1,
+          trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+          features: JSON.stringify({ plan: "mvp", modules: ["portal", "kyc_basic", "funds_usdt"] }),
+        },
+      });
+
+      // Create License
+      await prisma.license.create({
+        data: {
+          key: `tp-business-${tenant.id}-${Date.now()}`,
+          tenantId: tenant.id,
+          subscriptionId: (await prisma.subscription.findFirst({ where: { tenantId: tenant.id } }))!.id,
+          productCode: "trade_pass_business",
+          status: "active",
+          features: JSON.stringify({ plan: "mvp" }),
+        },
+      });
+    }
+
     const verifyToken = generateVerificationToken();
     await prisma.emailVerification.create({
       data: {
@@ -52,14 +129,11 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // TODO: send real email
-    // TODO: integrate with email service (SendGrid/AWS SES)
-    // console.log(`[EMAIL] Verification link: http://localhost:3001/auth/verify-email?token=${verifyToken}`);
-
     return NextResponse.json({
       success: true,
-      message: "Registration successful. Please verify your email.",
+      message: "Registration successful. Please verify your email and complete onboarding.",
       verifyUrl: `/auth/verify-email?token=${verifyToken}`,
+      tenantId: tenant.id,
     });
   } catch (err) {
     console.error("Register error:", err);

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/auth/login", "/auth/register", "/auth/verify-email"];
+const PUBLIC_PATHS = ["/", "/auth/login", "/auth/register", "/auth/verify-email", "/console/onboarding"];
 
 /**
  * Security: Strip any X-Mock-* headers at the edge before they reach API routes.
@@ -39,6 +39,20 @@ export function middleware(request: NextRequest) {
   // Redirect authenticated users away from auth pages
   if ((pathname === "/auth/login" || pathname === "/auth/register") && token) {
     return NextResponse.redirect(new URL("/console", request.url));
+  }
+
+  // Onboarding routing guard
+  const onboardingCompleted = request.cookies.get("onboarding_completed")?.value === "true";
+
+  if (token && pathname.startsWith("/console")) {
+    // Not completed onboarding → force to onboarding
+    if (!onboardingCompleted && pathname !== "/console/onboarding") {
+      return NextResponse.redirect(new URL("/console/onboarding", request.url));
+    }
+    // Completed onboarding → redirect away from onboarding page
+    if (onboardingCompleted && pathname === "/console/onboarding") {
+      return NextResponse.redirect(new URL("/console", request.url));
+    }
   }
 
   // Persist tenant param from URL into cookie for portal/backoffice internal nav

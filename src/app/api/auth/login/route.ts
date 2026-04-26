@@ -58,6 +58,14 @@ export async function POST(req: NextRequest) {
       data: { lastLoginAt: new Date() },
     });
 
+    // Check onboarding status
+    const tenant = await prisma.tenant.findFirst({
+      where: { ownerId: user.id },
+      include: { onboarding: true },
+    });
+
+    const onboardingCompleted = tenant?.onboarding?.status === "completed";
+
     const token = signToken({ userId: user.id, email: user.email });
     const csrfToken = generateCsrfToken();
 
@@ -69,11 +77,22 @@ export async function POST(req: NextRequest) {
         name: user.name,
         status: user.status,
       },
+      onboardingCompleted,
+      redirectTo: onboardingCompleted ? "/console" : "/console/onboarding",
     });
 
     // Auth token
     res.cookies.set("token", token, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
+
+    // Onboarding status cookie (for middleware routing)
+    res.cookies.set("onboarding_completed", onboardingCompleted ? "true" : "false", {
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7,

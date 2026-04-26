@@ -21,6 +21,11 @@ model User {
   twoFactorSecret   String?   @map("two_factor_secret")
   twoFactorEnabled  Boolean   @default(false) @map("two_factor_enabled")
   lastLoginAt       DateTime? @map("last_login_at")
+
+  // === Onboarding Tracking ===
+  onboardingCompletedAt DateTime? @map("onboarding_completed_at")
+  onboardingLocked      Boolean   @default(false) @map("onboarding_locked")
+
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
@@ -49,6 +54,25 @@ model Tenant {
   domainWhitelist String?  @map("domain_whitelist")
   trialEndsAt     DateTime? @map("trial_ends_at")
   ownerId         String   @map("owner_id")
+
+  // === Branding & Whitelabel ===
+  brandName       String?  @map("brand_name")
+  slogan          String?
+  faviconUrl      String?  @map("favicon_url")
+  primaryColor    String?  @map("primary_color") @default("#1a73e8")
+  subdomain       String?  @unique
+  customDomain    String?  @unique @map("custom_domain")
+  customDomainVerified Boolean @default(false) @map("custom_domain_verified")
+
+  // === Plan & Limits ===
+  plan            String   @default("mvp") // free, starter, professional, enterprise, ultimate
+  maxUsers        Int      @default(10) @map("max_users")
+  maxAccounts     Int      @default(5) @map("max_accounts")
+
+  // === Onboarding Control ===
+  onboardingLocked Boolean @default(false) @map("onboarding_locked")
+  onboardingCompletedAt DateTime? @map("onboarding_completed_at")
+
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -60,6 +84,9 @@ model Tenant {
   auditLogs   AuditLog[]
   onboarding  TenantOnboarding?
   apps        TenantApp[]
+  config      TenantConfig?
+  features    TenantFeature[]
+  domains     TenantDomain[]
 
   @@map("tenants")
 }
@@ -212,6 +239,13 @@ model TenantOnboarding {
   step      Int      @default(1) @map("step")
   data      String   @default("{}") @map("data")
   deadline  DateTime? @map("deadline")
+
+  // === Step Tracking ===
+  completedSteps String? @map("completed_steps") // JSON array of step ids
+  skippedSteps   String? @map("skipped_steps")   // JSON array
+  lockedSteps    String? @map("locked_steps")    // JSON array (premium features)
+  isLocked       Boolean @default(false) @map("is_locked")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -246,6 +280,76 @@ model AppCatalog {
   createdAt    DateTime @default(now()) @map("created_at")
 
   @@map("app_catalogs")
+}
+
+// ===================== Tenant Config & Features =====================
+
+model TenantConfig {
+  id          String   @id @default(cuid())
+  tenantId    String   @unique @map("tenant_id")
+
+  // === Brand Config ===
+  brand       String?  // JSON: { name, slogan, logoUrl, faviconUrl, primaryColor }
+
+  // === Auth Config ===
+  auth        String?  // JSON: { methods: ['email','phone','social'], registerFlow, loginFlow }
+
+  // === KYC Config ===
+  kyc         String?  // JSON: { regions, level, amlEnabled, amlThreshold }
+
+  // === Trading Config ===
+  trading     String?  // JSON: { groups, leverage, spreadMode, platforms, lpProvider }
+
+  // === Payment Config ===
+  payment     String?  // JSON: { currencies, depositChannels, withdrawalChannels, feeTemplate }
+
+  // === Third-Party Channels ===
+  channels    String?  // JSON: { emailProvider, smsProvider, ekycProvider }
+
+  // === MVP Mode ===
+  mvpMode     Boolean  @default(true) @map("mvp_mode")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_configs")
+}
+
+model TenantFeature {
+  id              String   @id @default(cuid())
+  tenantId        String   @map("tenant_id")
+  featureKey      String   @map("feature_key")
+  enabled         Boolean  @default(false)
+  requiresUpgrade Boolean  @default(false) @map("requires_upgrade")
+  upgradeTarget   String?  @map("upgrade_target") // e.g. "starter", "professional"
+  reason          String?  // why disabled / upgrade required
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, featureKey])
+  @@map("tenant_features")
+}
+
+model TenantDomain {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  domain       String   @unique
+  type         String   // subdomain | custom
+  status       String   @default("pending") // pending, active, failed
+  cnameTarget  String?  @map("cname_target")
+  sslStatus    String?  @map("ssl_status") // pending, issued, error
+  verifiedAt   DateTime? @map("verified_at")
+  failedReason String?  @map("failed_reason")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_domains")
 }
 
 // ===================== Broker Core Models =====================

@@ -17,16 +17,18 @@ import {
   CreditCard,
   Landmark,
   Bitcoin,
+  ArrowUpRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
-  { id: 1, title: "品牌与域名", icon: Building2 },
-  { id: 2, title: "认证配置", icon: Shield },
+  { id: 1, title: "品牌与身份", icon: Building2 },
+  { id: 2, title: "业务配置", icon: Shield },
   { id: 3, title: "交易配置", icon: TrendingUp },
   { id: 4, title: "资金配置", icon: Wallet },
-  { id: 5, title: "审核发布", icon: Rocket },
+  { id: 5, title: "三方通道", icon: Globe },
+  { id: 6, title: "审核与发布", icon: Rocket },
 ];
 
 const KYC_REGIONS = [
@@ -129,7 +131,7 @@ export default function OnboardingPage() {
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold text-[rgb(var(--tp-fg-rgb))] mb-2">
-            初始化您的 Broker OS
+            初始化您的 TradePass Business
           </h1>
           <p className="text-[rgba(var(--tp-fg-rgb),0.6)]">
             完成以下配置，即可开始使用 TradePass 平台
@@ -208,10 +210,17 @@ export default function OnboardingPage() {
               />
             )}
             {step === 5 && (
-              <Step5Review
+              <Step5Channels
+                data={data}
+                onNext={(d) => saveStep(6, d)}
+                onBack={() => setStep(4)}
+              />
+            )}
+            {step === 6 && (
+              <Step6Publish
                 data={data}
                 onComplete={complete}
-                onBack={() => setStep(4)}
+                onBack={() => setStep(5)}
               />
             )}
           </motion.div>
@@ -228,17 +237,37 @@ export default function OnboardingPage() {
   );
 }
 
-// ========== Step 1: Brand & Domain ==========
+// ========== Step 1: Brand & Identity ==========
 function Step1Brand({ data, onNext }: { data: any; onNext: (d: any) => void }) {
   const [brandName, setBrandName] = useState(data.brandName || "");
+  const [slogan, setSlogan] = useState(data.slogan || "");
   const [subdomain, setSubdomain] = useState(data.subdomain || "");
+  const [primaryColor, setPrimaryColor] = useState(data.primaryColor || "#1a73e8");
+  const [logoPreview, setLogoPreview] = useState<string | null>(data.logoUrl || null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(data.faviconUrl || null);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>, type: "logo" | "favicon") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      if (type === "logo") setLogoPreview(result);
+      else setFaviconPreview(result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-[rgb(var(--tp-fg-rgb))]">
-        品牌与域名
-      </h2>
+      <div>
+        <h2 className="text-xl font-semibold text-[rgb(var(--tp-fg-rgb))]">品牌与身份</h2>
+        <p className="text-sm text-[rgba(var(--tp-fg-rgb),0.6)] mt-1">
+          配置您的品牌标识，这些将展示在 Portal 和 Backoffice 中
+        </p>
+      </div>
 
+      {/* Brand Name */}
       <div>
         <label className="block text-sm font-medium text-[rgb(var(--tp-fg-rgb))] mb-2">
           品牌名称 <span className="text-red-500">*</span>
@@ -252,6 +281,104 @@ function Step1Brand({ data, onNext }: { data: any; onNext: (d: any) => void }) {
         />
       </div>
 
+      {/* Slogan */}
+      <div>
+        <label className="block text-sm font-medium text-[rgb(var(--tp-fg-rgb))] mb-2">
+          Slogan / 标语
+        </label>
+        <input
+          type="text"
+          value={slogan}
+          onChange={(e) => setSlogan(e.target.value)}
+          placeholder="例如：全球领先的金融服务平台"
+          className="w-full h-10 px-3 rounded-lg border border-[var(--tp-border)] bg-[var(--tp-bg)] text-[rgb(var(--tp-fg-rgb))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--tp-accent-rgb))]/20 focus:border-[rgb(var(--tp-accent-rgb))]"
+        />
+      </div>
+
+      {/* Logo & Favicon Upload */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-[rgb(var(--tp-fg-rgb))] mb-2">
+            Logo
+          </label>
+          <div className="relative">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleLogoUpload(e, "logo")}
+              className="hidden"
+              id="logo-upload"
+            />
+            <label
+              htmlFor="logo-upload"
+              className="flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-[var(--tp-border)] bg-[var(--tp-bg)] cursor-pointer hover:border-[rgb(var(--tp-accent-rgb))] transition-colors overflow-hidden"
+            >
+              {logoPreview ? (
+                <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain p-2" />
+              ) : (
+                <>
+                  <Building2 className="w-6 h-6 text-[rgba(var(--tp-fg-rgb),0.4)] mb-2" />
+                  <span className="text-xs text-[rgba(var(--tp-fg-rgb),0.5)]">点击上传 Logo</span>
+                </>
+              )}
+            </label>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-[rgb(var(--tp-fg-rgb))] mb-2">
+            Favicon
+          </label>
+          <div className="relative">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleLogoUpload(e, "favicon")}
+              className="hidden"
+              id="favicon-upload"
+            />
+            <label
+              htmlFor="favicon-upload"
+              className="flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-[var(--tp-border)] bg-[var(--tp-bg)] cursor-pointer hover:border-[rgb(var(--tp-accent-rgb))] transition-colors overflow-hidden"
+            >
+              {faviconPreview ? (
+                <img src={faviconPreview} alt="Favicon preview" className="w-12 h-12 object-contain" />
+              ) : (
+                <>
+                  <Globe className="w-6 h-6 text-[rgba(var(--tp-fg-rgb),0.4)] mb-2" />
+                  <span className="text-xs text-[rgba(var(--tp-fg-rgb),0.5)]">点击上传 Favicon</span>
+                </>
+              )}
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Primary Color */}
+      <div>
+        <label className="block text-sm font-medium text-[rgb(var(--tp-fg-rgb))] mb-2">
+          品牌主色
+        </label>
+        <div className="flex items-center gap-3">
+          <input
+            type="color"
+            value={primaryColor}
+            onChange={(e) => setPrimaryColor(e.target.value)}
+            className="w-10 h-10 rounded-lg border border-[var(--tp-border)] cursor-pointer"
+          />
+          <input
+            type="text"
+            value={primaryColor}
+            onChange={(e) => setPrimaryColor(e.target.value)}
+            className="flex-1 h-10 px-3 rounded-lg border border-[var(--tp-border)] bg-[var(--tp-bg)] text-[rgb(var(--tp-fg-rgb))] text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[rgb(var(--tp-accent-rgb))]/20"
+          />
+          <div
+            className="w-10 h-10 rounded-lg border border-[var(--tp-border)]"
+            style={{ backgroundColor: primaryColor }}
+          />
+        </div>
+      </div>
+
+      {/* Subdomain */}
       <div>
         <label className="block text-sm font-medium text-[rgb(var(--tp-fg-rgb))] mb-2">
           子域名 <span className="text-red-500">*</span>
@@ -272,7 +399,7 @@ function Step1Brand({ data, onNext }: { data: any; onNext: (d: any) => void }) {
 
       <div className="flex justify-end">
         <Button
-          onClick={() => onNext({ brandName, subdomain })}
+          onClick={() => onNext({ brandName, slogan, subdomain, primaryColor, logoUrl: logoPreview, faviconUrl: faviconPreview })}
           disabled={!brandName || !subdomain}
         >
           下一步 <ChevronRight className="w-4 h-4 ml-1" />
@@ -551,8 +678,138 @@ function Step4Funds({ data, onNext, onBack }: { data: any; onNext: (d: any) => v
   );
 }
 
-// ========== Step 5: Review & Launch ==========
-function Step5Review({ data, onComplete, onBack }: { data: any; onComplete: () => void; onBack: () => void }) {
+// ========== Step 5: Third-Party Channels ==========
+function Step5Channels({ data, onNext, onBack }: { data: any; onNext: (d: any) => void; onBack: () => void }) {
+  const [emailProvider, setEmailProvider] = useState(data.emailProvider || "tradepass_default");
+  const [smsProvider, setSmsProvider] = useState(data.smsProvider || "tradepass_default");
+  const [ekycProvider, setEkycProvider] = useState(data.ekycProvider || "tradepass_default");
+
+  const EMAIL_PROVIDERS = [
+    { id: "tradepass_default", name: "TradePass 默认", desc: "免费使用，有发送限额", free: true },
+    { id: "sendgrid", name: "SendGrid", desc: "专业邮件服务，高送达率", free: false },
+    { id: "aws_ses", name: "AWS SES", desc: "企业级邮件发送", free: false },
+  ];
+
+  const SMS_PROVIDERS = [
+    { id: "tradepass_default", name: "TradePass 默认", desc: "免费使用，有发送限额", free: true },
+    { id: "twilio", name: "Twilio", desc: "全球短信覆盖", free: false },
+    { id: "messagebird", name: "MessageBird", desc: "欧洲市场优选", free: false },
+  ];
+
+  const EKYC_PROVIDERS = [
+    { id: "tradepass_default", name: "TradePass 默认", desc: "基础 OCR + 活体检测", free: true },
+    { id: "jumio", name: "Jumio", desc: "企业级 KYC 验证", free: false },
+    { id: "onfido", name: "Onfido", desc: "AI 驱动的身份验证", free: false },
+  ];
+
+  const ProviderCard = ({
+    provider,
+    selected,
+    onSelect,
+  }: {
+    provider: any;
+    selected: boolean;
+    onSelect: () => void;
+  }) => (
+    <button
+      onClick={onSelect}
+      className={cn(
+        "w-full p-4 rounded-xl border text-left transition-all",
+        selected
+          ? "border-[rgb(var(--tp-accent-rgb))] bg-[rgba(var(--tp-accent-rgb),0.05)]"
+          : "border-[var(--tp-border)] hover:border-[rgba(var(--tp-fg-rgb),0.3)]"
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <span className="font-medium text-[rgb(var(--tp-fg-rgb))]">{provider.name}</span>
+        {provider.free ? (
+          <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+            免费
+          </span>
+        ) : (
+          <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 flex items-center gap-1">
+            <Lock className="w-3 h-3" /> 增值
+          </span>
+        )}
+      </div>
+      <p className="text-xs text-[rgba(var(--tp-fg-rgb),0.5)] mt-1">{provider.desc}</p>
+    </button>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-[rgb(var(--tp-fg-rgb))]">三方通道配置</h2>
+        <p className="text-sm text-[rgba(var(--tp-fg-rgb),0.6)] mt-1">
+          选择 Email、SMS 和 eKYC 服务提供商。MVP 阶段可使用 TradePass 默认通道。
+        </p>
+      </div>
+
+      {/* Email */}
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-[rgb(var(--tp-fg-rgb))]">
+          Email 服务提供商
+        </label>
+        <div className="space-y-2">
+          {EMAIL_PROVIDERS.map((p) => (
+            <ProviderCard
+              key={p.id}
+              provider={p}
+              selected={emailProvider === p.id}
+              onSelect={() => setEmailProvider(p.id)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* SMS */}
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-[rgb(var(--tp-fg-rgb))]">
+          SMS 服务提供商
+        </label>
+        <div className="space-y-2">
+          {SMS_PROVIDERS.map((p) => (
+            <ProviderCard
+              key={p.id}
+              provider={p}
+              selected={smsProvider === p.id}
+              onSelect={() => setSmsProvider(p.id)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* eKYC */}
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-[rgb(var(--tp-fg-rgb))]">
+          eKYC 服务提供商
+        </label>
+        <div className="space-y-2">
+          {EKYC_PROVIDERS.map((p) => (
+            <ProviderCard
+              key={p.id}
+              provider={p}
+              selected={ekycProvider === p.id}
+              onSelect={() => setEkycProvider(p.id)}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onBack}>
+          <ChevronLeft className="w-4 h-4 mr-1" /> 上一步
+        </Button>
+        <Button onClick={() => onNext({ emailProvider, smsProvider, ekycProvider })}>
+          下一步 <ChevronRight className="w-4 h-4 ml-1" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ========== Step 6: Review & Launch ==========
+function Step6Publish({ data, onComplete, onBack }: { data: any; onComplete: () => void; onBack: () => void }) {
   const [confirming, setConfirming] = useState(false);
 
   const handleComplete = async () => {
@@ -563,7 +820,9 @@ function Step5Review({ data, onComplete, onBack }: { data: any; onComplete: () =
   const sections = [
     { title: "品牌", items: [
       { label: "品牌名称", value: data.brandName },
+      { label: "Slogan", value: data.slogan },
       { label: "子域名", value: data.subdomain ? `${data.subdomain}.tradepass.io` : "" },
+      { label: "品牌色", value: data.primaryColor },
     ]},
     { title: "认证", items: [
       { label: "注册方式", value: data.registerMethods?.join(", ") },
@@ -580,12 +839,21 @@ function Step5Review({ data, onComplete, onBack }: { data: any; onComplete: () =
       { label: "入金通道", value: data.depositChannels?.map((c: string) => PAYMENT_CHANNELS.find((p) => p.id === c)?.label).join(", ") },
       { label: "出金通道", value: data.withdrawChannels?.map((c: string) => PAYMENT_CHANNELS.find((p) => p.id === c)?.label).join(", ") },
     ]},
+    { title: "三方通道", items: [
+      { label: "Email", value: data.emailProvider },
+      { label: "SMS", value: data.smsProvider },
+      { label: "eKYC", value: data.ekycProvider },
+    ]},
   ];
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-[rgb(var(--tp-fg-rgb))]">审核与发布</h2>
-      <p className="text-sm text-[rgba(var(--tp-fg-rgb),0.6)]">请确认以下配置，发布后即刻生效</p>
+      <div>
+        <h2 className="text-xl font-semibold text-[rgb(var(--tp-fg-rgb))]">审核与发布</h2>
+        <p className="text-sm text-[rgba(var(--tp-fg-rgb),0.6)] mt-1">
+          请确认以下配置，发布后即刻生效
+        </p>
+      </div>
 
       <div className="space-y-4">
         {sections.map((sec) => (
@@ -601,6 +869,37 @@ function Step5Review({ data, onComplete, onBack }: { data: any; onComplete: () =
             </div>
           </div>
         ))}
+      </div>
+
+      {/* MVP Limit Warning */}
+      <div className="p-4 rounded-xl border border-amber-200 bg-amber-50">
+        <div className="flex items-start gap-3">
+          <Lock className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+          <div>
+            <h4 className="text-sm font-medium text-amber-800">MVP 试用模式</h4>
+            <p className="text-xs text-amber-700 mt-1">
+              当前处于 14 天 MVP 试用阶段，部分功能受限：
+            </p>
+            <ul className="text-xs text-amber-700 mt-1 space-y-0.5 list-disc list-inside">
+              <li>最大 10 个用户、5 个交易账户</li>
+              <li>存款单笔上限 $100，提款单笔上限 $50</li>
+              <li>MT5 仅支持 Demo 账户</li>
+              <li>部分三方通道为 TradePass 默认服务</li>
+            </ul>
+            <div className="mt-3">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => {
+                  window.location.href = "/console/billing?upgrade=starter";
+                }}
+              >
+                升级至 Starter 套餐
+                <ArrowUpRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="flex justify-between">
