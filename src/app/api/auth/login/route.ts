@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, signToken } from "@/lib/auth";
-import { verifyToken as verifyTotp } from "@/lib/backoffice/twofa-utils";
+import { verify2FACode } from "@/lib/otp";
 import { generateCsrfToken, setCsrfCookie } from "@/lib/security";
 import { z } from "zod";
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
   password: z.string().min(1),
   otpCode: z.string().length(6).optional(),
+  loginStep: z.enum(["password", "2fa"]).optional().default("password"),
 });
 
 export async function POST(req: NextRequest) {
@@ -19,32 +21,65 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
-    const { email, password, otpCode } = parsed.data;
+    const { email, phone, password, otpCode, loginStep } = parsed.data;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    if (!email && !phone) {
+      return NextResponse.json(
+        { error: "Email or phone is required" },
+        { status: 400 }
+      );
+    }
+
+    // 查找用户（优先 email，其次 phone）
+    let user = null;
+    if (email) {
+      user = await prisma.user.findUnique({ where: { email } });
+    } else if (phone) {
+      user = await prisma.user.findFirst({ where: { phone } });
+    }
+
     if (!user) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
     if (user.status === "pending_verification") {
-      return NextResponse.json({ error: "Please verify your email first" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Please verify your email or phone first" },
+        { status: 403 }
+      );
     }
 
+    if (user.status === "suspended") {
+      return NextResponse.json(
+        { error: "Account suspended. Please contact support." },
+        { status: 403 }
+      );
+    }
+
+    // 密码验证
     const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // S10: 2FA enforcement — if enabled, require valid OTP before issuing token
-    const user2fa = user as unknown as Record<string, unknown>;
-    if (user2fa.twoFactorEnabled && user2fa.twoFactorSecret) {
+    // S10: 2FA enforcement — MVP Demo 使用日期验证码
+    if (user.twoFactorEnabled && loginStep === "password") {
+      return NextResponse.json({
+        success: false,
+        require2FA: true,
+        message: "2FA code required",
+        hint: "请输入当天 2FA 验证码（6位：YYMMDD）",
+      }, { status: 403 });
+    }
+
+    if (user.twoFactorEnabled && loginStep === "2fa") {
       if (!otpCode) {
         return NextResponse.json(
           { success: false, require2FA: true, error: "2FA code required" },
           { status: 403 }
         );
       }
-      const otpValid = verifyTotp(otpCode, user2fa.twoFactorSecret as string);
+      const otpValid = verify2FACode(otpCode);
       if (!otpValid) {
         return NextResponse.json(
           { success: false, error: "Invalid 2FA code" },
@@ -53,12 +88,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 更新最后登录时间
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
 
-    // Check onboarding status
+    // 检查 onboarding 状态
     const tenant = await prisma.tenant.findFirst({
       where: { ownerId: user.id },
       include: { onboarding: true },
@@ -76,12 +112,13 @@ export async function POST(req: NextRequest) {
         email: user.email,
         name: user.name,
         status: user.status,
+        kycStatus: user.kycStatus,
+        twoFactorEnabled: user.twoFactorEnabled,
       },
       onboardingCompleted,
-      redirectTo: onboardingCompleted ? "/console" : "/console/onboarding",
+      redirectTo: onboardingCompleted ? "/portal" : "/console/onboarding",
     });
 
-    // Auth token
     res.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -90,7 +127,6 @@ export async function POST(req: NextRequest) {
       path: "/",
     });
 
-    // Onboarding status cookie (for middleware routing)
     res.cookies.set("onboarding_completed", onboardingCompleted ? "true" : "false", {
       httpOnly: false,
       secure: process.env.NODE_ENV === "production",
@@ -99,8 +135,18 @@ export async function POST(req: NextRequest) {
       path: "/",
     });
 
-    // S6: CSRF token cookie
     setCsrfCookie(res, csrfToken);
+
+    // 设置 portal_tenant cookie，使 portal 页面可访问
+    if (tenant) {
+      res.cookies.set("portal_tenant", tenant.id, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7,
+        path: "/",
+      });
+    }
 
     return res;
   } catch (err) {

@@ -94,27 +94,49 @@ export default function OnboardingPage() {
       .catch(() => setLoading(false));
   }, [router]);
 
+  const [error, setError] = useState<string>("");
+
   const saveStep = useCallback(
     async (nextStep: number, stepData?: any) => {
       setSaving(true);
+      setError("");
       const merged = { ...data, ...(stepData || {}) };
-      await fetch("/api/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ step: nextStep, data: merged }),
-      });
-      setData(merged);
-      setStep(nextStep);
-      setSaving(false);
+      try {
+        const res = await fetch("/api/onboarding", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ step: nextStep, data: merged }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || `保存失败 (${res.status})`);
+        }
+        setData(merged);
+        setStep(nextStep);
+      } catch (err: any) {
+        setError(err.message || "保存失败，请重试");
+      } finally {
+        setSaving(false);
+      }
     },
     [data]
   );
 
   const complete = useCallback(async () => {
     setSaving(true);
-    await fetch("/api/onboarding/complete", { method: "POST" });
-    setSaving(false);
-    router.replace("/console");
+    setError("");
+    try {
+      const res = await fetch("/api/onboarding/complete", { method: "POST" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `发布失败 (${res.status})`);
+      }
+      router.replace("/console");
+    } catch (err: any) {
+      setError(err.message || "发布失败，请重试");
+    } finally {
+      setSaving(false);
+    }
   }, [router]);
 
   if (loading) {
@@ -172,6 +194,17 @@ export default function OnboardingPage() {
           ))}
         </div>
 
+        {/* Global Error */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700"
+          >
+            {error}
+          </motion.div>
+        )}
+
         {/* Step Content */}
         <AnimatePresence mode="wait">
           <motion.div
@@ -221,6 +254,7 @@ export default function OnboardingPage() {
                 data={data}
                 onComplete={complete}
                 onBack={() => setStep(5)}
+                error={error}
               />
             )}
           </motion.div>
@@ -809,12 +843,18 @@ function Step5Channels({ data, onNext, onBack }: { data: any; onNext: (d: any) =
 }
 
 // ========== Step 6: Review & Launch ==========
-function Step6Publish({ data, onComplete, onBack }: { data: any; onComplete: () => void; onBack: () => void }) {
+function Step6Publish({ data, onComplete, onBack, error }: { data: any; onComplete: () => void; onBack: () => void; error?: string }) {
   const [confirming, setConfirming] = useState(false);
 
   const handleComplete = async () => {
     setConfirming(true);
-    await onComplete();
+    try {
+      await onComplete();
+    } catch {
+      // error already shown by parent
+    } finally {
+      setConfirming(false);
+    }
   };
 
   const sections = [
@@ -901,6 +941,12 @@ function Step6Publish({ data, onComplete, onBack }: { data: any; onComplete: () 
           </div>
         </div>
       </div>
+
+      {error && (
+        <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       <div className="flex justify-between">
         <Button variant="outline" onClick={onBack}>

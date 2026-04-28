@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentTenant } from "@/lib/api/tenant";
+import { getCurrentTenant, getCurrentUserFromToken } from "@/lib/api/tenant";
 
 export async function GET(req: NextRequest) {
   const tenant = await getCurrentTenant(req);
   if (!tenant) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { error: "No tenant found. Please create a tenant first at /console/tenants/new" },
+      { status: 401 }
+    );
   }
 
   const onboarding = await prisma.tenantOnboarding.findUnique({
@@ -33,14 +36,23 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const tenant = await getCurrentTenant(req);
+  const user = await getCurrentUserFromToken(req);
+
   if (!tenant) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // No tenant yet — try to create one from onboarding step 1 data if available
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    return NextResponse.json(
+      { error: "No tenant found. Please create a tenant first at /console/tenants/new" },
+      { status: 401 }
+    );
   }
 
   const body = await req.json();
   const { step, data } = body;
 
-  if (!step || step < 1 || step > 5) {
+  if (!step || step < 1 || step > 6) {
     return NextResponse.json({ error: "Invalid step" }, { status: 400 });
   }
 

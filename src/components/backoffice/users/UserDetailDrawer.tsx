@@ -41,11 +41,12 @@ const tabs: { key: TabType; label: string }[] = [
   { key: "ib", label: "IB" },
 ];
 
-const kycStatusConfig: Record<KYCStatus, { label: string; color: string; bg: string }> = {
+const kycStatusConfig: Record<string, { label: string; color: string; bg: string }> = {
   pending: { label: "待审核", color: "text-amber-600", bg: "bg-amber-100" },
   verified: { label: "已认证", color: "text-emerald-600", bg: "bg-emerald-100" },
   rejected: { label: "已拒绝", color: "text-red-600", bg: "bg-red-100" },
   not_submitted: { label: "未提交", color: "text-slate-500", bg: "bg-slate-100" },
+  not_started: { label: "未开始", color: "text-slate-500", bg: "bg-slate-100" },
 };
 
 export function UserDetailDrawer({ user, isOpen, onClose }: UserDetailDrawerProps) {
@@ -54,7 +55,7 @@ export function UserDetailDrawer({ user, isOpen, onClose }: UserDetailDrawerProp
 
   if (!user) return null;
 
-  const kycConfig = kycStatusConfig[user.kycStatus];
+  const kycConfig = kycStatusConfig[user.kycStatus] || { label: "未知", color: "text-slate-500", bg: "bg-slate-100" };
 
   // Mock data for tabs
   const mockAccounts = [

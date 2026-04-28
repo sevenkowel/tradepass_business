@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ChevronLeft, Shield, AlertCircle } from "lucide-react";
+import { ChevronLeft, Shield, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DocumentUpload } from "@/components/kyc/DocumentUpload";
 import { useKYCStore } from "@/lib/kyc/store";
+import { useKYCGuard } from "@/lib/kyc/guard-client";
 import { devFetch } from "@/lib/kyc/dev-fetch";
 import type { DocumentType } from "@/lib/kyc/types";
 
@@ -15,17 +16,30 @@ export default function DocumentPage() {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const { 
-    setDocumentType, 
-    setDocumentImages, 
+  const [lastBackImage, setLastBackImage] = useState<string | null>(null);
+
+  const {
+    setDocumentType,
+    setDocumentImages,
     setOCRResult: saveOCRResult,
     regionCode,
   } = useKYCStore();
 
+  // Step guard
+  const { allowed, checking } = useKYCGuard(1);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-[rgb(var(--tp-bg-rgb))] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[rgb(var(--tp-accent-rgb))]" />
+      </div>
+    );
+  }
+
   const handleUpload = (frontImage: string, backImage: string | null, type: DocumentType) => {
     setDocumentType(type);
     setDocumentImages(frontImage, backImage || undefined);
+    setLastBackImage(backImage);
     setError(null);
   };
 
@@ -48,18 +62,39 @@ export default function DocumentPage() {
       }
 
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.error || "OCR recognition failed");
       }
-      
+
       if (!data.data) {
         throw new Error("Invalid OCR response data");
       }
-      
+
       // 保存 OCR 结果到 store
       saveOCRResult(data.data);
-      
+
+      // 自动保存步骤到数据库
+      try {
+        await devFetch("/api/kyc/save-step", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            step: 1,
+            data: {
+              documentType: type,
+              documentFrontUrl: frontImage,
+              documentBackUrl: lastBackImage,
+              ocrConfidence: data.data.confidence,
+              ocrData: data.data,
+            },
+          }),
+        });
+      } catch (saveErr) {
+        console.warn("Auto-save step 1 failed:", saveErr);
+        // 不阻塞流程，继续跳转
+      }
+
       // 跳转到 OCR 确认页面
       router.push("/portal/kyc/ocr-confirm");
     } catch (error) {

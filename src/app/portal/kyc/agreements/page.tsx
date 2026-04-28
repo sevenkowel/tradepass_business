@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ChevronLeft, FileCheck, CheckCircle2, Loader2 } from "lucide-react";
+import { ChevronLeft, FileCheck, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AgreementSign } from "@/components/kyc/AgreementSign";
 import { useKYCStore } from "@/lib/kyc/store";
+import { useKYCGuard } from "@/lib/kyc/guard-client";
 import { devFetch } from "@/lib/kyc/dev-fetch";
 
 // Mock agreements - in production, fetch from API
@@ -187,17 +188,31 @@ export default function AgreementsPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  
-  const { 
-    setAgreementSignatures, 
+
+  const {
+    setAgreementSignatures,
     setStatus,
     kycData,
     regionCode,
   } = useKYCStore();
 
+  // Step guard
+  const { allowed, checking } = useKYCGuard(4);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-[rgb(var(--tp-bg-rgb))] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[rgb(var(--tp-accent-rgb))]" />
+      </div>
+    );
+  }
+
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const handleSubmit = async (signatures: { agreementId: string; signature: string }[]) => {
     setIsSubmitting(true);
-    
+    setSubmitError(null);
+
     try {
       // Save signatures to store
       const fullSignatures = signatures.map(sig => ({
@@ -208,33 +223,47 @@ export default function AgreementsPage() {
         ipAddress: "", // Would be filled by server
         userAgent: navigator.userAgent,
       }));
-      
+
       setAgreementSignatures(fullSignatures);
-      
+
+      // Build complete submit payload from store data
+      const payload = {
+        regionCode,
+        kycLevel: kycData?.kycLevel || "basic",
+        documents: {
+          type: kycData?.documentType,
+          frontUrl: kycData?.documentFrontUrl,
+          backUrl: kycData?.documentBackUrl,
+          selfieUrl: kycData?.selfieUrl,
+        },
+        personalInfo: kycData?.personalInfo,
+        ocrConfidence: kycData?.ocrConfidence || 0.9,
+        livenessPassed: kycData?.livenessPassed || false,
+      };
+
       // Submit KYC application
       const response = await devFetch("/api/kyc/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          region: regionCode,
-          ocrConfidence: kycData?.ocrConfidence || 0.9,
-          livenessPassed: kycData?.livenessPassed || false,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        throw new Error("Submission failed");
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `提交失败 (${response.status})`);
       }
 
       const data = await response.json();
-      setStatus(data.data.status);
+      setStatus(data.status || "submitted");
       setIsSuccess(true);
-      
+
       // Redirect to status page after a delay
       setTimeout(() => {
         router.push("/portal/kyc/status");
       }, 2000);
     } catch (error) {
+      const message = error instanceof Error ? error.message : "提交失败，请稍后重试";
+      setSubmitError(message);
       console.error("Submission error:", error);
     } finally {
       setIsSubmitting(false);
@@ -331,6 +360,15 @@ export default function AgreementsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {submitError && (
+                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-red-700">提交失败</p>
+                    <p className="text-xs text-red-600">{submitError}</p>
+                  </div>
+                </div>
+              )}
               <AgreementSign
                 agreements={agreements}
                 onSubmit={handleSubmit}

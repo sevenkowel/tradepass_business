@@ -2,26 +2,57 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ChevronLeft, ScanFace } from "lucide-react";
+import { ChevronLeft, ScanFace, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { LivenessCheck } from "@/components/kyc/LivenessCheck";
 import { useKYCStore } from "@/lib/kyc/store";
+import { useKYCGuard } from "@/lib/kyc/guard-client";
+import { devFetch } from "@/lib/kyc/dev-fetch";
 import { getRegionConfig } from "@/lib/kyc/region-config";
 
 export default function LivenessPage() {
   const router = useRouter();
   const { setLivenessResult, setCurrentStep, regionCode } = useKYCStore();
 
+  // Step guard
+  const { allowed, checking } = useKYCGuard(2);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-[rgb(var(--tp-bg-rgb))] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[rgb(var(--tp-accent-rgb))]" />
+      </div>
+    );
+  }
+
   // Check if liveness is required for this region
-  const isLivenessRequired = regionCode 
-    ? getRegionConfig(regionCode).features.livenessRequired 
+  const isLivenessRequired = regionCode
+    ? getRegionConfig(regionCode).features.livenessRequired
     : true;
 
-  const handleComplete = (success: boolean, videoData?: string) => {
+  const handleComplete = async (success: boolean, videoData?: string) => {
     if (success) {
       setLivenessResult(true, videoData);
       setCurrentStep(3);
+
+      // 自动保存步骤到数据库
+      try {
+        await devFetch("/api/kyc/save-step", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            step: 2,
+            data: {
+              livenessPassed: true,
+              livenessVideoUrl: videoData,
+            },
+          }),
+        });
+      } catch (saveErr) {
+        console.warn("Auto-save step 2 failed:", saveErr);
+      }
+
       router.push("/portal/kyc/personal-info");
     }
   };

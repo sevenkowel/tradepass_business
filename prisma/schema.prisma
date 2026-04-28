@@ -17,6 +17,7 @@ model User {
   phone             String?
   status            String   @default("pending_verification")
   emailVerifiedAt   DateTime? @map("email_verified_at")
+  phoneVerified     Boolean   @default(false) @map("phone_verified")
   kycStatus         String?   @default("not_started") @map("kyc_status")
   twoFactorSecret   String?   @map("two_factor_secret")
   twoFactorEnabled  Boolean   @default(false) @map("two_factor_enabled")

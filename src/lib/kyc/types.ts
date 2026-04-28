@@ -41,6 +41,7 @@ export interface UserKYC {
   documentType?: DocumentType;
   documentFrontUrl?: string;
   documentBackUrl?: string;
+  selfieUrl?: string;
   documentNumber?: string;
   documentExpiryDate?: string;
   

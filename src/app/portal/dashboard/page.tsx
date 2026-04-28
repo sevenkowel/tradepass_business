@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import {
   OnboardingFunnel,
   AccountOverview,
@@ -15,13 +16,28 @@ import {
 } from "@/components/dashboard";
 import { useDevConfig } from "@/lib/dev-config";
 import { getDashboardConfig } from "@/lib/user-perspectives";
+import { useDashboardData } from "@/hooks/useDashboardData";
 
 export default function DashboardPage() {
   // 使用开发者配置中的视角
   const { currentPerspective } = useDevConfig();
-  
+
   // 获取 Dashboard 配置（基于用户阶段）
   const config = getDashboardConfig(currentPerspective);
+
+  // 获取真实数据
+  const { data, isLoading, error } = useDashboardData();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50/50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-3" />
+          <p className="text-sm text-slate-500">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/50">

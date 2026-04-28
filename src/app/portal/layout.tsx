@@ -32,7 +32,11 @@ async function validateTenant(tenantId: string) {
     if (!tenant || (!membership && tenant.ownerId !== user.id)) return null;
 
     const license = await prisma.license.findFirst({
-      where: { tenantId, productCode: "trade_pass_business", status: "active" },
+      where: {
+        tenantId,
+        status: "active",
+        productCode: "trade_pass_business",
+      },
     });
     if (!license) return null;
 
@@ -44,11 +48,22 @@ async function validateTenant(tenantId: string) {
 
 export default async function PortalLayout({
   children,
+  searchParams,
 }: {
   children: React.ReactNode;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const cookieStore = await cookies();
-  const tenantId = cookieStore.get("portal_tenant")?.value;
+  let tenantId = cookieStore.get("portal_tenant")?.value;
+
+  // Fallback: read tenant from URL query param
+  if (!tenantId && searchParams) {
+    const params = await searchParams;
+    const t = params.tenant;
+    if (typeof t === "string") {
+      tenantId = t;
+    }
+  }
 
   if (!tenantId) {
     redirect("/console");

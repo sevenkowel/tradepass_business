@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PersonalInfoForm } from "@/components/kyc/PersonalInfoForm";
 import { useKYCStore } from "@/lib/kyc/store";
+import { useKYCGuard } from "@/lib/kyc/guard-client";
+import { devFetch } from "@/lib/kyc/dev-fetch";
 import { getRegionConfig } from "@/lib/kyc/region-config";
 import type { PersonalInfo } from "@/lib/kyc/types";
 import type { RegionKYCConfig } from "@/lib/kyc/region-config";
@@ -17,12 +19,15 @@ export default function PersonalInfoPage() {
   const [regionConfig, setRegionConfig] = useState<RegionKYCConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
-  const { 
-    setPersonalInfo, 
-    setCurrentStep, 
+  const {
+    setPersonalInfo,
+    setCurrentStep,
     regionCode,
     kycData,
   } = useKYCStore();
+
+  // Step guard
+  const { allowed, checking: guardChecking } = useKYCGuard(3);
 
   useEffect(() => {
     if (regionCode) {
@@ -39,6 +44,23 @@ export default function PersonalInfoPage() {
   const handleSubmit = async (data: PersonalInfo) => {
     setPersonalInfo(data);
     setCurrentStep(4);
+
+    // 自动保存步骤到数据库
+    try {
+      await devFetch("/api/kyc/save-step", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          step: 3,
+          data: {
+            personalInfo: data,
+          },
+        }),
+      });
+    } catch (saveErr) {
+      console.warn("Auto-save step 3 failed:", saveErr);
+    }
+
     router.push("/portal/kyc/agreements");
   };
 
@@ -54,7 +76,7 @@ export default function PersonalInfoPage() {
     };
   };
 
-  if (isLoading) {
+  if (isLoading || guardChecking) {
     return (
       <div className="min-h-screen bg-[rgb(var(--tp-bg-rgb))] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-[rgb(var(--tp-accent-rgb))]" />

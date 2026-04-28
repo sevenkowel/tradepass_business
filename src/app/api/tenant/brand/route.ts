@@ -1,33 +1,69 @@
 import { NextRequest, NextResponse } from "next/server";
-import { resolveTenantFromRequest } from "@/lib/tenant/resolver";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
-  const subdomain = req.cookies.get("tenant_subdomain")?.value;
-  const hostname = req.headers.get("host");
+  try {
+    const { searchParams } = new URL(req.url);
+    const tenantId = searchParams.get("tenantId");
+    const subdomain = searchParams.get("subdomain");
 
-  // Also check x-tenant-subdomain header (set by middleware)
-  const headerSubdomain = req.headers.get("x-tenant-subdomain");
+    let tenant = null;
 
-  const tenant = await resolveTenantFromRequest(
-    headerSubdomain || subdomain,
-    hostname
-  );
+    if (tenantId) {
+      tenant = await prisma.tenant.findUnique({
+        where: { id: tenantId },
+      });
+    } else if (subdomain) {
+      tenant = await prisma.tenant.findUnique({
+        where: { subdomain },
+      });
+    }
 
-  if (!tenant) {
-    return NextResponse.json({ brand: null });
+    if (!tenant) {
+      // Return default brand for unconfigured access
+      return NextResponse.json({
+        success: true,
+        data: {
+          brandName: "TradePass",
+          slogan: "The Operating System for Modern Brokers",
+          logoUrl: null,
+          faviconUrl: null,
+          primaryColor: "#1a73e8",
+          subdomain: null,
+        },
+      });
+    }
+
+    // Try TenantConfig.brand first, fallback to Tenant fields
+    const tenantConfig = await prisma.tenantConfig.findUnique({
+      where: { tenantId: tenant.id },
+    });
+
+    let brand: Record<string, any> = {};
+    if (tenantConfig?.brand) {
+      try {
+        brand = JSON.parse(tenantConfig.brand);
+      } catch {
+        brand = {};
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        brandName: brand.brandName || tenant.brandName || tenant.name || "TradePass",
+        slogan: brand.slogan || tenant.slogan || "",
+        logoUrl: brand.logoUrl || tenant.logoUrl || null,
+        faviconUrl: brand.faviconUrl || tenant.faviconUrl || null,
+        primaryColor: brand.primaryColor || tenant.primaryColor || "#1a73e8",
+        subdomain: brand.subdomain || tenant.subdomain || null,
+      },
+    });
+  } catch (err: any) {
+    console.error("[tenant/brand] error:", err);
+    return NextResponse.json(
+      { error: err.message || "Failed to fetch brand" },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({
-    brand: {
-      id: tenant.id,
-      name: tenant.name,
-      brandName: tenant.brandName,
-      slogan: tenant.slogan,
-      logoUrl: tenant.logoUrl,
-      faviconUrl: tenant.faviconUrl,
-      primaryColor: tenant.primaryColor,
-      subdomain: tenant.subdomain,
-      customDomain: tenant.customDomain,
-    },
-  });
 }

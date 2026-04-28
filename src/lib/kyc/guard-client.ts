@@ -1,0 +1,54 @@
+"use client";
+
+/**
+ * KYC Step Guard — 客户端 Hook
+ * 确保用户不能跳过前置步骤
+ */
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useKYCStore } from "./store";
+import { checkStepPermission } from "./guard";
+
+interface GuardResult {
+  allowed: boolean;
+  redirectTo: string | null;
+  checking: boolean;
+}
+
+/** 检查用户是否可以访问指定步骤 */
+export function useKYCGuard(targetStep: number): GuardResult {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
+  const [allowed, setAllowed] = useState(false);
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
+
+  const { kycData, regionCode } = useKYCStore();
+
+  useEffect(() => {
+    const check = () => {
+      const result = checkStepPermission(targetStep, regionCode, kycData);
+      if (!result.allowed) {
+        if (result.missingStep === 0) setRedirectTo("/portal/kyc");
+        else if (result.missingStep === 1) setRedirectTo("/portal/kyc/document");
+        else if (result.missingStep === 2) setRedirectTo("/portal/kyc/liveness");
+        else if (result.missingStep === 3) setRedirectTo("/portal/kyc/personal-info");
+        setAllowed(false);
+      } else {
+        setAllowed(true);
+      }
+      setChecking(false);
+    };
+
+    check();
+  }, [targetStep, kycData, regionCode]);
+
+  // 如果检测到不允许，执行重定向
+  useEffect(() => {
+    if (!checking && redirectTo) {
+      router.replace(redirectTo);
+    }
+  }, [checking, redirectTo, router]);
+
+  return { allowed, redirectTo, checking };
+}

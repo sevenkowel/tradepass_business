@@ -15,12 +15,18 @@ export function TenantValidator({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let tenantId = searchParams.get("tenant");
+    const fromQuery = !!tenantId;
     if (!tenantId) {
       tenantId = getCookie("portal_tenant");
     }
     if (!tenantId) {
       router.replace("/console");
       return;
+    }
+
+    // Persist tenant in cookie for cross-system access (Portal / Backoffice)
+    if (fromQuery) {
+      document.cookie = `portal_tenant=${tenantId};path=/;max-age=${60 * 60 * 24 * 7};SameSite=Lax`;
     }
 
     fetch(`/api/auth/validate-tenant-access?tenantId=${tenantId}`)

@@ -67,16 +67,35 @@ export default function ModulesPage() {
   const { currentTenant } = useTenantStore();
 
   useEffect(() => {
-    if (!currentTenant) return;
     fetchModules();
-  }, [currentTenant]);
+  }, []);
 
   async function fetchModules() {
     setLoading(true);
-    const res = await fetch(`/api/console/modules?tenantId=${currentTenant?.id}`);
-    const data = await res.json();
-    setModules(data.modules || []);
-    setLoading(false);
+    try {
+      // Get current tenant first (fallback if store is empty)
+      let tenantId = currentTenant?.id;
+      if (!tenantId) {
+        const tenantRes = await fetch("/api/console/tenants");
+        const tenantData = await tenantRes.json();
+        const firstTenant = tenantData.tenants?.[0];
+        if (firstTenant) {
+          tenantId = firstTenant.id;
+        }
+      }
+      if (!tenantId) {
+        setModules([]);
+        setLoading(false);
+        return;
+      }
+      const res = await fetch(`/api/console/modules?tenantId=${tenantId}`);
+      const data = await res.json();
+      setModules(data.modules || []);
+    } catch {
+      setModules([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function startTrial(moduleCode: string, plan: string) {
