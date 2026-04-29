@@ -12,6 +12,25 @@ export default function CreateTenantPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [slugValue, setSlugValue] = useState("");
+
+  // 根据名称自动生成 slug
+  function generateSlug(name: string) {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\u4e00-\u9fa5]/g, "-")  // 保留中文但替换其他特殊字符
+      .replace(/[\u4e00-\u9fa5]/g, "")  // 移除中文（slug 只支持英文和数字）
+      .replace(/-+/g, "-")  // 合并多个连字符
+      .replace(/^-|-$/g, "");  // 移除首尾连字符
+  }
+
+  function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const name = e.target.value;
+    // 如果用户还没有手动编辑过 slug，则自动生成
+    if (!slugValue || slugValue === generateSlug(name.slice(0, -1))) {
+      setSlugValue(generateSlug(name));
+    }
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -19,12 +38,14 @@ export default function CreateTenantPage() {
     setError("");
 
     const form = new FormData(e.currentTarget);
+    const slug = form.get("slug") as string;
+    
     const res = await fetch("/api/console/tenants", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: form.get("name"),
-        slug: form.get("slug"),
+        slug: slug || undefined,  // 如果为空则让后端自动生成
         region: form.get("region"),
       }),
     });
@@ -37,11 +58,12 @@ export default function CreateTenantPage() {
       return;
     }
 
-    router.push(`/console/tenants/${data.tenant.id}/subscribe`);
+    // 创建成功后跳转到 onboarding 流程，完成租户初始化配置
+    router.push("/console/onboarding");
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className=" mx-auto space-y-6">
       <div className="flex items-center gap-3">
         <Link href="/console">
           <Button variant="outline" size="sm">
@@ -55,13 +77,25 @@ export default function CreateTenantPage() {
         <CardContent className="p-6">
           <form onSubmit={onSubmit} className="space-y-5">
             <div>
-              <label className="text-sm font-medium text-slate-700">租户名称</label>
-              <Input name="name" required className="mt-1" placeholder="例如：Alpha Broker" />
+              <label className="text-sm font-medium text-slate-700">租户名称 <span className="text-red-500">*</span></label>
+              <Input 
+                name="name" 
+                required 
+                className="mt-1" 
+                placeholder="例如：Alpha Broker" 
+                onChange={handleNameChange}
+              />
             </div>
             <div>
               <label className="text-sm font-medium text-slate-700">租户标识（slug）</label>
-              <Input name="slug" required className="mt-1" placeholder="alpha-broker" />
-              <p className="text-xs text-slate-500 mt-1">用于生成唯一标识，仅限字母、数字和连字符</p>
+              <Input 
+                name="slug" 
+                className="mt-1" 
+                placeholder="alpha-broker（可选，留空将自动生成）" 
+                value={slugValue}
+                onChange={(e) => setSlugValue(e.target.value)}
+              />
+              <p className="text-xs text-slate-500 mt-1">用于生成唯一标识，仅限字母、数字和连字符。留空将自动生成。</p>
             </div>
             <div>
               <label className="text-sm font-medium text-slate-700">数据中心区域</label>

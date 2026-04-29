@@ -1,19 +1,59 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { PortalShell } from "@/components/portal/layout/PortalShell";
 import { TenantCookieSetter } from "@/components/portal/layout/TenantCookieSetter";
 import { DevConfigProvider } from "@/lib/dev-config";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
+import { getTenantBrandById, BrandConfig } from "@/lib/brand";
 
-export const metadata: Metadata = {
-  title: {
-    template: "%s | TradePass Portal",
-    default: "TradePass Portal",
-  },
-  description: "TradePass Client Portal - Manage your trading accounts, wallet, and more.",
-};
+/**
+ * 从 Host 头提取租户子域名
+ * portal.dupoin.localhost:3002 → dupoin
+ */
+function getTenantSubdomainFromHost(host: string): string | null {
+  const hostname = host.split(":")[0];
+  const parts = hostname.split(".");
+
+  // 三级子域名: portal.tenant.localhost
+  if (parts.length >= 3 && parts[parts.length - 1] === "localhost") {
+    // 格式: xxx.tenant.localhost，tenant 是倒数第二个
+    return parts[parts.length - 2];
+  }
+
+  return null;
+}
+
+// 动态生成 metadata（使用品牌名称）
+export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = await cookies();
+  const headersList = await headers();
+  const host = headersList.get("host") || "";
+
+  // 优先从子域名获取租户，其次从 cookie
+  let tenantId = cookieStore.get("portal_tenant")?.value;
+  const subdomain = getTenantSubdomainFromHost(host);
+
+  if (subdomain && !tenantId) {
+    const tenant = await prisma.tenant.findUnique({ where: { subdomain } });
+    if (tenant) tenantId = tenant.id;
+  }
+
+  let brandName = "TradePass";
+  if (tenantId) {
+    const brand = await getTenantBrandById(tenantId);
+    brandName = brand.brandName;
+  }
+
+  return {
+    title: {
+      template: `%s | ${brandName} Portal`,
+      default: `${brandName} Portal`,
+    },
+    description: `${brandName} Client Portal - Manage your trading accounts, wallet, and more.`,
+  };
+}
 
 async function validateTenant(tenantId: string) {
   const cookieStore = await cookies();
@@ -51,10 +91,20 @@ export default async function PortalLayout({
   searchParams,
 }: {
   children: React.ReactNode;
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const cookieStore = await cookies();
+  const headersList = await headers();
+  const host = headersList.get("host") || "";
+
   let tenantId = cookieStore.get("portal_tenant")?.value;
+
+  // Phase 3: 从子域名获取租户
+  const subdomain = getTenantSubdomainFromHost(host);
+  if (subdomain && !tenantId) {
+    const tenant = await prisma.tenant.findUnique({ where: { subdomain } });
+    if (tenant) tenantId = tenant.id;
+  }
 
   // Fallback: read tenant from URL query param
   if (!tenantId && searchParams) {
@@ -74,11 +124,14 @@ export default async function PortalLayout({
     redirect("/console");
   }
 
+  // 服务端获取品牌配置
+  const brand = await getTenantBrandById(tenantId);
+
   return (
     <>
       <TenantCookieSetter />
       <DevConfigProvider>
-        <PortalShell tenant={access.tenant}>{children}</PortalShell>
+        <PortalShell tenant={access.tenant} brand={brand}>{children}</PortalShell>
       </DevConfigProvider>
     </>
   );

@@ -17,14 +17,28 @@ export async function getCurrentTenant(req: NextRequest) {
   if (!payload) return null;
 
   try {
-    // 1. Try tenantMember first
+    // 1. 优先从 cookie 获取指定的租户（支持多租户切换）
+    const tenantIdFromCookie = req.cookies.get("portal_tenant")?.value;
+    if (tenantIdFromCookie) {
+      const tenant = await prisma.tenant.findUnique({
+        where: { id: tenantIdFromCookie },
+      });
+      // 验证用户是否属于该租户（owner 或 member）
+      if (tenant && (tenant.ownerId === payload.userId || await prisma.tenantMember.findFirst({
+        where: { tenantId: tenant.id, userId: payload.userId }
+      }))) {
+        return tenant;
+      }
+    }
+
+    // 2. Try tenantMember first
     const member = await prisma.tenantMember.findFirst({
       where: { userId: payload.userId },
       include: { tenant: true },
     });
     if (member) return member.tenant;
 
-    // 2. Fallback: user is owner of a tenant but no member record
+    // 3. Fallback: user is owner of a tenant but no member record
     const owned = await prisma.tenant.findFirst({
       where: { ownerId: payload.userId },
     });

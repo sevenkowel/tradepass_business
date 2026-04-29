@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   LucideIcon,
+  ExternalLink,
 } from "lucide-react";
 
 export interface NavItem {
@@ -25,6 +26,7 @@ interface DashboardLayoutProps {
   title: string;
   sidebarBg?: string; // e.g. "bg-slate-900"
   redirectTo?: string;
+  portalUrl?: string; // 租户官网入口 URL
 }
 
 export default function DashboardLayout({
@@ -33,6 +35,7 @@ export default function DashboardLayout({
   title,
   sidebarBg = "bg-slate-900",
   redirectTo,
+  portalUrl,
 }: DashboardLayoutProps) {
   const { user, loading } = useUser({ redirectTo });
   const pathname = usePathname();
@@ -85,6 +88,17 @@ export default function DashboardLayout({
       </nav>
 
       <div className="p-4 border-t border-white/10">
+        {portalUrl && (
+          <a
+            href={portalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:text-white transition-colors w-full mb-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            前往租户官网
+          </a>
+        )}
         <div className="px-4 py-2 text-sm text-slate-300 truncate">
           {user?.email}
         </div>

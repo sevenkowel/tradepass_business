@@ -1,36 +1,68 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import {
-  LayoutDashboard,
-  Building2,
-  Package,
-  CreditCard,
-  Layers,
-  BookOpen,
-  Key,
-} from "lucide-react";
-import { PlanStatusBar } from "@/components/billing/PlanStatusBar";
+import { ConsoleLayout } from "@/components/console/layout";
+import { useTenantStore } from "@/store/tenantStore";
 
-const navItems = [
-  { href: "/console", label: "仪表盘", icon: LayoutDashboard },
-  { href: "/console/tenants", label: "租户管理", icon: Building2 },
-  { href: "/console/products", label: "产品管理", icon: Package },
-  { href: "/console/modules", label: "产品矩阵", icon: Layers },
-  { href: "/console/billing", label: "账单管理", icon: CreditCard },
-  { href: "/console/oauth-apps", label: "OAuth2 应用", icon: Key },
-  { href: "/console/api-docs", label: "API 文档", icon: BookOpen },
-];
+interface BrandData {
+  brandName: string;
+  subdomain: string | null;
+}
 
-export default function ConsoleLayout({
+function buildPortalUrl(brand: BrandData | null): string | undefined {
+  if (!brand) return undefined;
+  if (brand.subdomain) {
+    const { protocol, host } = window.location;
+    const mainDomain = host.replace(/^[^.]+\./, "");
+    return `${protocol}//${brand.subdomain}.${mainDomain}`;
+  }
+  return undefined;
+}
+
+export default function ConsoleRootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { currentTenant, setCurrentTenant, setTenants } = useTenantStore();
+  const [portalUrl, setPortalUrl] = useState<string | undefined>();
+
+  useEffect(() => {
+    // 获取租户列表并设置当前租户（如果未设置）
+    async function initTenant() {
+      try {
+        const res = await fetch("/api/console/tenants");
+        const data = await res.json();
+        if (data.tenants?.length > 0) {
+          setTenants(data.tenants);
+          if (!currentTenant) {
+            setCurrentTenant(data.tenants[0]);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+    initTenant();
+  }, []);
+
+  useEffect(() => {
+    // 获取租户品牌信息以构建 portal URL
+    const tenantId = currentTenant?.id;
+    if (!tenantId) return;
+
+    fetch(`/api/tenant/brand?tenantId=${tenantId}`)
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success && res.data) {
+          setPortalUrl(buildPortalUrl(res.data));
+        }
+      })
+      .catch(() => {});
+  }, [currentTenant?.id]);
 
   useEffect(() => {
     // Skip onboarding check on onboarding page itself
@@ -47,9 +79,8 @@ export default function ConsoleLayout({
   }, [pathname, router]);
 
   return (
-    <DashboardLayout navItems={navItems} title="Console" sidebarBg="bg-slate-900">
-      <PlanStatusBar />
+    <ConsoleLayout portalUrl={portalUrl}>
       {children}
-    </DashboardLayout>
+    </ConsoleLayout>
   );
 }

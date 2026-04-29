@@ -149,7 +149,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-[var(--tp-bg)] py-12 px-4">
-      <div className="max-w-3xl mx-auto">
+      <div className=" mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold text-[rgb(var(--tp-fg-rgb))] mb-2">

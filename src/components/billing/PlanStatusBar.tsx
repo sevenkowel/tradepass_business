@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { Zap, ArrowUpRight, AlertTriangle, Clock, Ban, Database } from "lucide-react";
+import { Zap, ArrowUpRight, AlertTriangle, Clock, Ban, Database, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LifecycleState {
@@ -100,15 +100,15 @@ export function PlanStatusBar() {
 
   if (isExpired) {
     statusText = `已降级 · 数据保留 ${lifecycle.daysLeftInRetention} 天`;
-    statusIcon = <Ban className="w-3.5 h-3.5" />;
+    statusIcon = <Ban className="w-4 h-4" />;
     statusClass = "text-red-700";
   } else if (isGrace) {
     statusText = `宽限期剩余 ${lifecycle.daysLeftInGrace} 天`;
-    statusIcon = <Clock className="w-3.5 h-3.5" />;
+    statusIcon = <Clock className="w-4 h-4" />;
     statusClass = "text-amber-700";
   } else if (isTrial) {
     statusText = `试用剩余 ${lifecycle.daysLeftInTrial} 天`;
-    statusIcon = null;
+    statusIcon = <Sparkles className="w-4 h-4" />;
     statusClass = "text-amber-700";
   } else if (isPaid) {
     statusText = "订阅中";
@@ -119,57 +119,86 @@ export function PlanStatusBar() {
   return (
     <div
       className={cn(
-        "px-4 lg:px-8 py-2 flex items-center justify-between gap-4 text-sm",
-        urgent || isGrace
-          ? "bg-amber-50 border-b border-amber-200"
-          : isExpired
+        "px-4 lg:px-8 py-3 flex items-center justify-between gap-4 text-sm",
+        isExpired
           ? "bg-red-50 border-b border-red-200"
+          : urgent
+          ? "bg-amber-100 border-b border-amber-300"
+          : isTrial
+          ? "bg-blue-50 border-b border-blue-200"
+          : isGrace
+          ? "bg-amber-50 border-b border-amber-200"
           : "bg-white border-b border-slate-100"
       )}
     >
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-3">
+        {/* 套餐标签 */}
         <span
           className={cn(
-            "text-xs px-2 py-0.5 rounded-full font-medium",
+            "inline-flex items-center text-xs px-3 py-1.5 rounded-full font-semibold leading-none shadow-sm",
             PLAN_COLORS[subscription.plan] || PLAN_COLORS.free
           )}
         >
           {PLAN_LABELS[subscription.plan] || subscription.plan}
         </span>
 
+        {/* 状态指示器 */}
         {(isTrial || isGrace || isExpired || isPaid) && (
-          <span className={cn("flex items-center gap-1 font-medium", statusClass)}>
+          <span
+            className={cn(
+              "inline-flex items-center gap-2 font-semibold leading-none px-3 py-1.5 rounded-full",
+              isExpired
+                ? "bg-red-100 text-red-700"
+                : urgent
+                ? "bg-amber-200 text-amber-800 animate-pulse"
+                : isTrial
+                ? "bg-blue-100 text-blue-700"
+                : isGrace
+                ? "bg-amber-100 text-amber-700"
+                : "bg-emerald-100 text-emerald-700"
+            )}
+          >
             {statusIcon}
             {statusText}
           </span>
         )}
 
+        {/* 过期提醒 */}
         {isExpired && lifecycle.daysLeftInRetention > 0 && (
-          <span className="flex items-center gap-1 text-red-600">
-            <Database className="w-3.5 h-3.5" />
+          <span className="flex items-center gap-1.5 text-red-600 font-medium bg-red-100 px-3 py-1.5 rounded-full">
+            <Database className="w-4 h-4" />
             数据将于 {lifecycle.daysLeftInRetention} 天后清理
           </span>
         )}
 
+        {/* 用户上限提醒 */}
         {nearLimit && (
-          <span className="flex items-center gap-1 text-amber-700">
-            <AlertTriangle className="w-3.5 h-3.5" />
+          <span className="flex items-center gap-1.5 text-amber-700 font-medium bg-amber-100 px-3 py-1.5 rounded-full">
+            <AlertTriangle className="w-4 h-4" />
             用户接近上限 ({subscription.currentUsers}/{subscription.maxUsers})
           </span>
         )}
       </div>
 
+      {/* 操作按钮 */}
       <div className="flex items-center gap-2">
         {(isExpired || isGrace || (isTrial && lifecycle.daysLeftInTrial <= 7)) && (
           <Button
             variant="default"
             size="sm"
             onClick={() => router.push("/console/billing")}
-            className={isExpired ? "bg-red-600 hover:bg-red-700 text-white" : ""}
+            className={cn(
+              "font-semibold shadow-sm",
+              isExpired
+                ? "bg-red-600 hover:bg-red-700 text-white"
+                : urgent
+                ? "bg-amber-500 hover:bg-amber-600 text-white"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            )}
           >
-            <Zap className="w-3.5 h-3.5 mr-1" />
-            {isExpired ? "立即升级恢复" : "升级套餐"}
-            <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
+            <Zap className="w-4 h-4 mr-1.5" />
+            {isExpired ? "立即升级恢复" : urgent ? "立即升级" : "升级套餐"}
+            <ArrowUpRight className="w-4 h-4 ml-1" />
           </Button>
         )}
         {isPaid && subscription.plan !== "ultimate" && (
@@ -177,10 +206,11 @@ export function PlanStatusBar() {
             variant="outline"
             size="sm"
             onClick={() => router.push("/console/billing")}
+            className="font-semibold"
           >
-            <Zap className="w-3.5 h-3.5 mr-1" />
+            <Zap className="w-4 h-4 mr-1.5" />
             管理套餐
-            <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
+            <ArrowUpRight className="w-4 h-4 ml-1" />
           </Button>
         )}
       </div>

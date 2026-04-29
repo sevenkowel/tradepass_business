@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { usePortalStore } from "@/store/portalStore";
 import { clsx, type ClassValue } from "clsx";
+import { BrandConfig, DEFAULT_BRAND } from "@/lib/brand";
 
 function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
@@ -290,11 +291,29 @@ function NavItemRenderer({
   );
 }
 
-export function PortalSidebar({ tenantId }: { tenantId?: string }) {
+interface PortalSidebarProps {
+  tenantId?: string;
+  brand?: BrandConfig;
+}
+
+export function PortalSidebar({ tenantId, brand }: PortalSidebarProps) {
   const pathname = usePathname();
   const { sidebarCollapsed, toggleSidebar } = usePortalStore();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+
+  // 使用传入的品牌配置或默认值
+  const brandConfig = brand || DEFAULT_BRAND;
+
+  // 计算品牌首字母（用于无 Logo 时的 fallback）
+  const brandInitials = useMemo(() => {
+    return brandConfig.brandName
+      .split(/\s+/)
+      .map((word) => word[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  }, [brandConfig.brandName]);
 
   const toggleExpanded = (href: string) => {
     setExpandedItems((prev) => {
@@ -317,19 +336,45 @@ export function PortalSidebar({ tenantId }: { tenantId?: string }) {
         sidebarCollapsed ? "w-[72px]" : "w-[240px]"
       )}
     >
-      {/* Logo 区域 */}
+      {/* Logo 区域 - 使用租户品牌配置 */}
       <div className="h-[72px] flex items-center border-b border-[var(--tp-border)] relative">
         {sidebarCollapsed ? (
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--tp-accent)] to-[var(--tp-accent)]/80 flex items-center justify-center mx-auto shadow-lg shadow-[var(--tp-accent)]/20">
-            <span className="text-white text-sm font-bold">TP</span>
-          </div>
+          <Link href={addTenantParam("/portal/dashboard", tenantId)} className="mx-auto">
+            {brandConfig.logoUrl ? (
+              <img
+                src={brandConfig.logoUrl}
+                alt={brandConfig.brandName}
+                className="w-10 h-10 rounded-xl object-contain"
+              />
+            ) : (
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto shadow-lg"
+                style={{ backgroundColor: brandConfig.primaryColor }}
+              >
+                <span className="text-white text-sm font-bold">{brandInitials}</span>
+              </div>
+            )}
+          </Link>
         ) : (
-          <div className="flex items-center gap-3 px-4">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--tp-accent)] to-[var(--tp-accent)]/80 flex items-center justify-center shadow-lg shadow-[var(--tp-accent)]/20">
-              <span className="text-white text-sm font-bold">TP</span>
-            </div>
-            <span className="text-lg font-bold text-[var(--tp-fg)] tracking-tight">TradePass</span>
-          </div>
+          <Link href={addTenantParam("/portal/dashboard", tenantId)} className="flex items-center gap-3 px-4">
+            {brandConfig.logoUrl ? (
+              <img
+                src={brandConfig.logoUrl}
+                alt={brandConfig.brandName}
+                className="w-9 h-9 rounded-xl object-contain"
+              />
+            ) : (
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg"
+                style={{ backgroundColor: brandConfig.primaryColor }}
+              >
+                <span className="text-white text-sm font-bold">{brandInitials}</span>
+              </div>
+            )}
+            <span className="text-lg font-bold text-[var(--tp-fg)] tracking-tight truncate max-w-[140px]">
+              {brandConfig.brandName}
+            </span>
+          </Link>
         )}
         
         {/* 折叠按钮 */}

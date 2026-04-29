@@ -1,67 +1,37 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Sidebar, TopBar } from "@/components/backoffice/layout";
-import { useAuthStore } from "@/store/backoffice";
-import { useBackofficeSidebarStore } from "@/store/backofficeSidebarStore";
-import { ToastContextProvider } from "@/components/ui";
-import { cn } from "@/lib/utils";
-import { TenantValidator } from "./TenantValidator";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import {
+  LayoutDashboard,
+  Users,
+  KeyRound,
+  CreditCard,
+  ClipboardList,
+  Building2,
+} from "lucide-react";
 
-function BackofficeContent({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
-  const { sidebarCollapsed } = useBackofficeSidebarStore();
+const navItems = [
+  { href: "/backoffice", label: "仪表盘", icon: LayoutDashboard },
+  { href: "/backoffice/users", label: "用户管理", icon: Users },
+  { href: "/backoffice/tenants", label: "租户管理", icon: Building2 },
+  { href: "/backoffice/licenses", label: "License 管理", icon: KeyRound },
+  { href: "/backoffice/billing", label: "计费管理", icon: CreditCard },
+  { href: "/backoffice/audit-logs", label: "审计日志", icon: ClipboardList },
+];
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/backoffice/login");
-    }
-  }, [isAuthenticated, router]);
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900" />
-      </div>
-    );
-  }
-
-  return (
-    <ToastContextProvider>
-      <div className="min-h-screen bg-gray-50">
-        <TopBar />
-        <Sidebar />
-        <main
-          className={cn(
-            "min-h-[calc(100vh-64px)] transition-all duration-300",
-            sidebarCollapsed ? "lg:ml-[80px]" : "lg:ml-[260px]"
-          )}
-        >
-          <div className="p-4 lg:p-6">{children}</div>
-        </main>
-      </div>
-    </ToastContextProvider>
-  );
-}
-
-export default function BackofficeLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900" />
-        </div>
-      }
+    <DashboardLayout
+      navItems={navItems}
+      title="Admin"
+      sidebarBg="bg-slate-950"
+      redirectTo="/auth/login"
     >
-      <TenantValidator>
-        <BackofficeContent>{children}</BackofficeContent>
-      </TenantValidator>
-    </Suspense>
+      {children}
+    </DashboardLayout>
   );
 }

@@ -40,19 +40,40 @@ export async function POST(req: NextRequest) {
       subdomain: onboardingData.subdomain || tenant.subdomain || "",
     };
 
-    await prisma.tenant.update({
-      where: { id: tenant.id },
-      data: {
-        brandName: brandData.brandName,
-        slogan: brandData.slogan,
-        logoUrl: brandData.logoUrl,
-        faviconUrl: brandData.faviconUrl,
-        primaryColor: brandData.primaryColor,
-        subdomain: brandData.subdomain,
-        onboardingCompletedAt: new Date(),
-        onboardingLocked: false,
-      },
-    });
+    // Update tenant brand data (subdomain may conflict, handle gracefully)
+    try {
+      await prisma.tenant.update({
+        where: { id: tenant.id },
+        data: {
+          brandName: brandData.brandName,
+          slogan: brandData.slogan,
+          logoUrl: brandData.logoUrl,
+          faviconUrl: brandData.faviconUrl,
+          primaryColor: brandData.primaryColor,
+          subdomain: brandData.subdomain || tenant.subdomain || `tenant-${tenant.id.slice(0, 8)}`,
+          onboardingCompletedAt: new Date(),
+          onboardingLocked: false,
+        },
+      });
+    } catch (subdomainError: any) {
+      // If subdomain conflict, update without subdomain
+      if (subdomainError.message?.includes("subdomain")) {
+        await prisma.tenant.update({
+          where: { id: tenant.id },
+          data: {
+            brandName: brandData.brandName,
+            slogan: brandData.slogan,
+            logoUrl: brandData.logoUrl,
+            faviconUrl: brandData.faviconUrl,
+            primaryColor: brandData.primaryColor,
+            onboardingCompletedAt: new Date(),
+            onboardingLocked: false,
+          },
+        });
+      } else {
+        throw subdomainError;
+      }
+    }
 
     // Also sync to TenantConfig.brand for unified access
     await prisma.tenantConfig.upsert({
@@ -68,6 +89,40 @@ export async function POST(req: NextRequest) {
         trading: "{}",
         payment: "{}",
         channels: "{}",
+      },
+    });
+
+    // Sync auth config from onboarding to TenantConfig
+    const authConfig = onboardingData.auth || {};
+    const kycConfig = onboardingData.kyc || {};
+    const tradingConfig = onboardingData.trading || {};
+    const paymentConfig = onboardingData.payment || {};
+
+    await prisma.tenantConfig.update({
+      where: { tenantId: tenant.id },
+      data: {
+        auth: JSON.stringify({
+          registerMethods: authConfig.registerMethods || ["email", "phone"],
+          loginMethods: authConfig.loginMethods || ["email", "phone"],
+          emailVerificationRequired: authConfig.emailVerificationRequired ?? true,
+          phoneVerificationRequired: authConfig.phoneVerificationRequired ?? true,
+          passwordPolicy: authConfig.passwordPolicy || { minLength: 8, requireUppercase: true, requireNumber: true },
+        }),
+        kyc: JSON.stringify({
+          regions: kycConfig.regions || ["VN"],
+          level: kycConfig.level || "basic",
+          amlEnabled: kycConfig.amlEnabled ?? false,
+        }),
+        trading: JSON.stringify({
+          groups: tradingConfig.groups || ["forex"],
+          leverage: tradingConfig.leverage || "1:100",
+          spreadMode: tradingConfig.spreadMode || "floating",
+        }),
+        payment: JSON.stringify({
+          currencies: paymentConfig.currencies || ["USD"],
+          depositChannels: paymentConfig.depositChannels || ["usdt"],
+          withdrawalChannels: paymentConfig.withdrawalChannels || ["usdt"],
+        }),
       },
     });
 

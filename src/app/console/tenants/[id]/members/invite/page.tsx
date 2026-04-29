@@ -40,7 +40,7 @@ export default function InviteMemberPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto space-y-6">
+    <div className=" mx-auto space-y-6">
       <div className="flex items-center gap-3">
         <Link href={`/console/tenants/${id}`}>
           <Button variant="outline" size="sm">

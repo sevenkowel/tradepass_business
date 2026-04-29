@@ -50,7 +50,7 @@ export default function ApiDocsPage() {
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6  mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[rgb(var(--tp-fg-rgb))] flex items-center gap-2">
           <BookOpen className="w-6 h-6 text-[rgb(var(--tp-accent-rgb))]" />

@@ -260,7 +260,7 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-6xl">
+    <div className="space-y-8 ">
       {/* Current Plan Banner */}
       <CurrentPlanBanner
         plan={currentPlan}

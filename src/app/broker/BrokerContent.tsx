@@ -37,6 +37,28 @@ const DEFAULT_BRAND: BrandConfig = {
   subdomain: null,
 };
 
+/**
+ * 从子域名获取租户标识
+ * dupoin.localhost:3002 → dupoin
+ */
+function getTenantSubdomainFromHost(): string | null {
+  if (typeof window === "undefined") return null;
+  const host = window.location.host;
+  const hostname = host.split(":")[0];
+  const parts = hostname.split(".");
+
+  // 二级子域名: tenant.localhost
+  if (parts.length === 2 && parts[1] === "localhost") {
+    return parts[0];
+  }
+
+  // 从 cookie 读取 (由 middleware 设置)
+  const match = document.cookie.match(/x-tenant-subdomain=([^;]+)/);
+  if (match) return match[1];
+
+  return null;
+}
+
 const navLinks = [
   { label: "Products", href: "#markets" },
   { label: "Why Us", href: "#features" },
@@ -103,6 +125,7 @@ export default function BrokerContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tenantId = searchParams.get("tenantId");
+  const tenantSubdomain = getTenantSubdomainFromHost();
 
   const [brand, setBrand] = useState<BrandConfig>(DEFAULT_BRAND);
   const [brandLoading, setBrandLoading] = useState(true);
@@ -112,7 +135,13 @@ export default function BrokerContent() {
   useEffect(() => {
     async function loadBrand() {
       try {
-        const params = tenantId ? `?tenantId=${tenantId}` : "";
+        // 优先使用 URL 参数中的 tenantId，其次使用子域名
+        let params = "";
+        if (tenantId) {
+          params = `?tenantId=${tenantId}`;
+        } else if (tenantSubdomain) {
+          params = `?subdomain=${tenantSubdomain}`;
+        }
         const res = await fetch(`/api/tenant/brand${params}`);
         const data = await res.json();
         if (data.success && data.data) {
@@ -125,20 +154,21 @@ export default function BrokerContent() {
       }
     }
     loadBrand();
-  }, [tenantId]);
+  }, [tenantId, tenantSubdomain]);
 
   const primary = brand.primaryColor;
   const primaryLight = lightenColor(primary, 30);
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    const qp = tenantId
-      ? `?tenantId=${tenantId}${email ? `&email=${encodeURIComponent(email)}` : ""}`
-      : email
-      ? `?email=${encodeURIComponent(email)}`
-      : "";
+    // 使用子域名格式: tenant.localhost:3002/auth/register
+    const qp = email ? `?email=${encodeURIComponent(email)}` : "";
     router.push(`/auth/portal/register${qp}`);
   };
+
+  // 构建登录/注册链接 (使用相对路径，保持子域名)
+  const authLoginUrl = `/auth/portal/login`;
+  const authRegisterUrl = `/auth/portal/register`;
 
   const BrandLogo = () => {
     if (brand.logoUrl) {
@@ -171,7 +201,7 @@ export default function BrokerContent() {
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-slate-950/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/broker" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <BrandLogo />
             </Link>
 
@@ -184,21 +214,21 @@ export default function BrokerContent() {
             </div>
 
             <div className="hidden md:flex items-center gap-3">
-              <Link
-                href={`/auth/portal/login${tenantId ? `?tenantId=${tenantId}` : ""}`}
-                className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-4 py-2"
-              >
-                Log In
-              </Link>
-              <Link
-                href={`/auth/portal/register${tenantId ? `?tenantId=${tenantId}` : ""}`}
-                className="text-sm font-medium text-slate-950 px-5 py-2 rounded-lg transition-colors"
-                style={{ backgroundColor: primary }}
-                onMouseEnter={(e) => { (e.target as HTMLElement).style.backgroundColor = primaryLight; }}
-                onMouseLeave={(e) => { (e.target as HTMLElement).style.backgroundColor = primary; }}
-              >
-                Sign Up
-              </Link>
+            <Link
+              href={authLoginUrl}
+              className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-4 py-2"
+            >
+              Log In
+            </Link>
+            <Link
+              href={authRegisterUrl}
+              className="text-sm font-medium text-slate-950 px-5 py-2 rounded-lg transition-colors"
+              style={{ backgroundColor: primary }}
+              onMouseEnter={(e) => { (e.target as HTMLElement).style.backgroundColor = primaryLight; }}
+              onMouseLeave={(e) => { (e.target as HTMLElement).style.backgroundColor = primary; }}
+            >
+              Sign Up
+            </Link>
             </div>
 
             <button className="md:hidden text-slate-300" onClick={() => setMobileOpen(!mobileOpen)}>
@@ -215,11 +245,11 @@ export default function BrokerContent() {
               </a>
             ))}
             <div className="pt-3 border-t border-white/5 flex flex-col gap-2">
-              <Link href={`/auth/portal/login${tenantId ? `?tenantId=${tenantId}` : ""}`} className="text-center text-sm font-medium text-slate-300 hover:text-white py-2">
+              <Link href={authLoginUrl} className="text-center text-sm font-medium text-slate-300 hover:text-white py-2">
                 Log In
               </Link>
               <Link
-                href={`/auth/portal/register${tenantId ? `?tenantId=${tenantId}` : ""}`}
+                href={authRegisterUrl}
                 className="text-center text-sm font-medium text-slate-950 py-2 rounded-lg"
                 style={{ backgroundColor: primary }}
               >
@@ -443,7 +473,7 @@ export default function BrokerContent() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href={`/auth/portal/register${tenantId ? `?tenantId=${tenantId}` : ""}`}
+              href={authRegisterUrl}
               className="w-full sm:w-auto px-8 py-3 text-slate-950 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
               style={{ backgroundColor: primary }}
               onMouseEnter={(e) => { (e.target as HTMLElement).style.backgroundColor = primaryLight; }}
@@ -452,7 +482,7 @@ export default function BrokerContent() {
               OPEN LIVE ACCOUNT <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href={`/auth/portal/login${tenantId ? `?tenantId=${tenantId}` : ""}`}
+              href={authLoginUrl}
               className="w-full sm:w-auto px-8 py-3 border border-white/10 hover:border-white/20 text-white font-medium rounded-lg transition-colors"
             >
               CLIENT LOGIN
@@ -484,10 +514,10 @@ export default function BrokerContent() {
               Risk Warning: CFDs are complex instruments and come with a high risk of losing money rapidly due to leverage. 78% of retail investor accounts lose money when trading CFDs.
             </p>
             <div className="flex items-center gap-6">
-              <Link href={`/auth/portal/login${tenantId ? `?tenantId=${tenantId}` : ""}`} className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+              <Link href={authLoginUrl} className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
                 Login
               </Link>
-              <Link href={`/auth/portal/register${tenantId ? `?tenantId=${tenantId}` : ""}`} className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+              <Link href={authRegisterUrl} className="text-xs text-slate-500 hover:text-slate-300 transition-colors">
                 Register
               </Link>
             </div>

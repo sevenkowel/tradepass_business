@@ -170,7 +170,7 @@ export default function ModulesPage() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6  mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[rgb(var(--tp-fg-rgb))]">产品矩阵</h1>
         <p className="text-sm text-[rgba(var(--tp-fg-rgb),0.6)] mt-1">

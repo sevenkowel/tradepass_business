@@ -47,7 +47,7 @@ export default function SubscribePage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className=" mx-auto space-y-6">
       <h1 className="text-xl font-bold text-slate-900">选择订阅产品</h1>
       <p className="text-slate-500">为新租户选择需要开通的产品，试用期内免费体验。</p>
 

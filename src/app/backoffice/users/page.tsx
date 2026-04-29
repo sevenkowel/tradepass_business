@@ -1,269 +1,196 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import { Eye, Ban, Wallet, Loader2 } from "lucide-react";
-import { Card, PageHeader, Button, StatusBadge, LevelBadge, EnhancedDataTable, type Column, type RowAction } from "@/components/backoffice/ui";
-import { FilterBar } from "@/components/backoffice/ui/FilterBar";
-import { UserDetailDrawer } from "@/components/backoffice/users/UserDetailDrawer";
-import { Breadcrumb } from "@/components/backoffice/layout";
-import type { BackofficeUser } from "@/types/backoffice";
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Search, Loader2, Ban, CheckCircle2, Users } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { cn } from "@/lib/utils";
 
-export default function UsersPage() {
-  const [users, setUsers] = useState<BackofficeUser[]>([]);
+interface UserItem {
+  id: string;
+  email: string;
+  name: string | null;
+  phone: string | null;
+  status: string;
+  kycStatus: string | null;
+  emailVerifiedAt: string | null;
+  lastLoginAt: string | null;
+  createdAt: string;
+}
+
+export default function AdminUsersPage() {
+  const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [stats, setStats] = useState({
-    total: 0,
-    active: 0,
-    pendingKyc: 0,
-    frozen: 0,
-  });
-
-  const [selectedUser, setSelectedUser] = useState<BackofficeUser | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
-
-  // Fetch users from API
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/backoffice/users");
-      const data = await res.json();
-      if (data.success) {
-        setUsers(data.items);
-        // Calculate stats
-        const active = data.items.filter((u: BackofficeUser) => u.status === "active").length;
-        const pendingKyc = data.items.filter((u: BackofficeUser) => u.kycStatus === "pending" || u.kycStatus === "not_submitted").length;
-        const frozen = data.items.filter((u: BackofficeUser) => u.status === "frozen").length;
-        setStats({
-          total: data.total,
-          active,
-          pendingKyc,
-          frozen,
-        });
-      } else {
-        setError(data.error || "加载失败");
-      }
-    } catch {
-      setError("网络错误，请稍后重试");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [search, setSearch] = useState("");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+  }, []);
 
-  const handleRowClick = (user: BackofficeUser) => {
-    setSelectedUser(user);
-    setDrawerOpen(true);
-  };
+  async function fetchUsers() {
+    const res = await fetch("/api/backoffice/users");
+    const data = await res.json();
+    setUsers(data.users || []);
+    setLoading(false);
+  }
 
-  const columns: Column<BackofficeUser>[] = [
-    {
-      key: "uid",
-      title: "UID",
-      width: "100px",
-      sortable: true,
-      render: (row) => (
-        <Link href={`/backoffice/users/${row.id}`} className="font-mono text-blue-600 hover:underline">
-          {row.uid}
-        </Link>
-      ),
-    },
-    {
-      key: "name",
-      title: "用户名",
-      sortable: true,
-      render: (row) => (
-        <div>
-          <p className="font-medium text-slate-900 dark:text-white">{row.name}</p>
-          <p className="text-xs text-slate-500">{row.email}</p>
-        </div>
-      ),
-    },
-    {
-      key: "level",
-      title: "等级",
-      width: "100px",
-      render: (row) => <LevelBadge level={row.level} />,
-    },
-    {
-      key: "balance",
-      title: "余额",
-      width: "120px",
-      align: "right",
-      sortable: true,
-      render: (row) => (
-        <span className="font-medium text-slate-900 dark:text-white">
-          ${row.balance.toLocaleString()}
-        </span>
-      ),
-    },
-    {
-      key: "status",
-      title: "状态",
-      width: "100px",
-      render: (row) => <StatusBadge status={row.status} />,
-    },
-    {
-      key: "kycStatus",
-      title: "KYC",
-      width: "120px",
-      render: (row) => <StatusBadge status={row.kycStatus} />,
-    },
-    {
-      key: "createdAt",
-      title: "注册时间",
-      width: "150px",
-      sortable: true,
-      render: (row) => (
-        <span className="text-slate-600 dark:text-slate-400">{new Date(row.createdAt).toLocaleDateString("zh-CN")}</span>
-      ),
-    },
-  ];
+  async function updateStatus(userId: string, status: string) {
+    setUpdatingId(userId);
+    await fetch("/api/backoffice/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, status }),
+    });
+    await fetchUsers();
+    setUpdatingId(null);
+  }
 
-  const rowActions: RowAction<BackofficeUser>[] = [
-    {
-      label: "查看详情",
-      icon: <Eye className="w-4 h-4" />,
-      onClick: handleRowClick,
-    },
-    {
-      label: "调整余额",
-      icon: <Wallet className="w-4 h-4" />,
-      onClick: () => {},
-    },
-    {
-      label: "冻结账户",
-      icon: <Ban className="w-4 h-4" />,
-      onClick: () => {},
-      variant: "danger",
-      disabled: (row) => row.status === "frozen",
-    },
-  ];
+  const filtered = users.filter(
+    (u) =>
+      u.email.toLowerCase().includes(search.toLowerCase()) ||
+      (u.name && u.name.toLowerCase().includes(search.toLowerCase()))
+  );
 
-  const filterOptions = [
-    { key: "status", label: "状态", type: "select" as const, options: [
-      { label: "正常", value: "active" },
-      { label: "冻结", value: "frozen" },
-      { label: "待激活", value: "pending" },
-    ]},
-    { key: "kyc", label: "KYC 状态", type: "select" as const, options: [
-      { label: "已认证", value: "verified" },
-      { label: "待审核", value: "pending" },
-      { label: "已拒绝", value: "rejected" },
-      { label: "未提交", value: "not_submitted" },
-    ]},
-    { key: "level", label: "等级", type: "select" as const, options: [
-      { label: "Standard", value: "standard" },
-      { label: "VIP", value: "vip" },
-      { label: "Premium", value: "premium" },
-      { label: "Enterprise", value: "enterprise" },
-    ]},
-  ];
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-slate-400 mr-2" />
+        <span className="text-sm text-slate-500">加载中...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
-      <Breadcrumb items={[{ label: "用户管理" }, { label: "用户列表" }]} />
-
-      {/* Page Header */}
-      <PageHeader
-        title="用户管理"
-        description="管理平台用户、KYC认证和账户设置"
-        actions={
-          <div className="flex gap-3">
-            <Button variant="secondary">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              导出
-            </Button>
-            <Button>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              添加用户
-            </Button>
-          </div>
-        }
-      />
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="!p-4">
-          <p className="text-sm text-slate-500 dark:text-slate-400">总用户数</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{stats.total}</p>
-          <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-            {stats.total > 0 ? `${Math.round((stats.active / stats.total) * 100)}% 活跃` : "暂无数据"}
-          </p>
-        </Card>
-        <Card className="!p-4">
-          <p className="text-sm text-slate-500 dark:text-slate-400">活跃用户</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{stats.active}</p>
-          <p className="text-xs text-slate-500 mt-1">{stats.total > 0 ? `${Math.round((stats.active / stats.total) * 100)}%` : "-"}</p>
-        </Card>
-        <Card className="!p-4">
-          <p className="text-sm text-slate-500 dark:text-slate-400">待审核 KYC</p>
-          <p className="text-2xl font-bold text-amber-600 mt-1">{stats.pendingKyc}</p>
-          <p className="text-xs text-amber-600 mt-1">
-            {stats.pendingKyc > 0 ? "需要处理" : "暂无"}
-          </p>
-        </Card>
-        <Card className="!p-4">
-          <p className="text-sm text-slate-500 dark:text-slate-400">冻结账户</p>
-          <p className="text-2xl font-bold text-red-600 mt-1">{stats.frozen}</p>
-          <p className="text-xs text-slate-500 mt-1">{stats.total > 0 ? `${((stats.frozen / stats.total) * 100).toFixed(1)}%` : "-"}</p>
-        </Card>
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Input
+            placeholder="搜索邮箱或姓名..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
       </div>
 
-      {/* Filter Bar */}
-      <FilterBar
-        filters={filterOptions}
-        searchable
-        searchKeys={["uid", "name", "email"]}
-        searchPlaceholder="搜索 UID、用户名或邮箱..."
-      />
-
-      {/* Error */}
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600 flex items-center gap-2">
-          <span className="font-medium">加载失败：</span>
-          {error}
-          <button onClick={fetchUsers} className="ml-auto text-red-700 underline hover:no-underline">
-            重试
-          </button>
-        </div>
-      )}
-
-      {/* Data Table */}
-      <Card padding="none">
-        <EnhancedDataTable<BackofficeUser>
-          columns={columns}
-          data={users}
-          keyExtractor={(row) => row.id}
-          selectable
-          selectedKeys={selectedKeys}
-          onSelectionChange={setSelectedKeys}
-          rowActions={rowActions}
-          onRowClick={handleRowClick}
-          emptyText={loading ? "" : "暂无用户数据"}
-          exportable
-          onExport={() => {}}
-          loading={loading}
-        />
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500">用户</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500">状态</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500">KYC</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500">注册时间</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500">最后登录</th>
+                  <th className="text-right px-5 py-3 font-medium text-slate-500">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((u) => (
+                  <tr key={u.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                    <td className="px-5 py-3">
+                      <p className="font-medium text-slate-900">{u.name || "-"}</p>
+                      <p className="text-xs text-slate-500">{u.email}</p>
+                    </td>
+                    <td className="px-5 py-3">
+                      <StatusBadge status={u.status} />
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className="text-xs text-slate-500">{u.kycStatus || "-"}</span>
+                    </td>
+                    <td className="px-5 py-3 text-slate-500">
+                      {new Date(u.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-5 py-3 text-slate-500">
+                      {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString() : "-"}
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      {u.status === "active" ? (
+                        <ConfirmDialog
+                          title="确认禁用用户"
+                          description={`确定要禁用用户 ${u.email} 吗？禁用后该用户将无法登录。`}
+                          confirmText="禁用"
+                          variant="danger"
+                          onConfirm={() => updateStatus(u.id, "suspended")}
+                          trigger={
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={updatingId === u.id}
+                            >
+                              {updatingId === u.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Ban className="w-3.5 h-3.5 mr-1" />
+                              )}
+                              禁用
+                            </Button>
+                          }
+                        />
+                      ) : (
+                        <ConfirmDialog
+                          title="确认恢复用户"
+                          description={`确定要恢复用户 ${u.email} 的访问权限吗？`}
+                          confirmText="恢复"
+                          onConfirm={() => updateStatus(u.id, "active")}
+                          trigger={
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={updatingId === u.id}
+                            >
+                              {updatingId === u.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                              )}
+                              恢复
+                            </Button>
+                          }
+                        />
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {filtered.length === 0 && (
+              <EmptyState
+                icon={<Users className="w-5 h-5" />}
+                title={search ? "未找到匹配用户" : "暂无用户"}
+                description={search ? "请尝试其他搜索关键词" : "还没有用户注册。"}
+              />
+            )}
+          </div>
+        </CardContent>
       </Card>
-
-      {/* User Detail Drawer */}
-      <UserDetailDrawer
-        user={selectedUser}
-        isOpen={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-      />
     </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    active: "bg-emerald-100 text-emerald-700",
+    suspended: "bg-red-100 text-red-700",
+    pending_verification: "bg-amber-100 text-amber-700",
+    pending_invite: "bg-blue-100 text-blue-700",
+  };
+  return (
+    <span
+      className={cn(
+        "text-xs px-2 py-0.5 rounded-full font-medium",
+        map[status] || "bg-slate-100 text-slate-600"
+      )}
+    >
+      {status}
+    </span>
   );
 }

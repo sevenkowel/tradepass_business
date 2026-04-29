@@ -115,8 +115,9 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error("Dashboard API error:", err);
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", detail: errorMessage },
       { status: 500 }
     );
   }

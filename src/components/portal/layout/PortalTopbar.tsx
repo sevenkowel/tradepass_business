@@ -24,18 +24,11 @@ export function PortalTopbar({ breadcrumbs, tenantName }: PortalTopbarProps) {
 
   return (
     <header
-      className={cn(
-        "fixed top-0 right-0 h-[72px] bg-[var(--tp-surface)] border-b border-[var(--tp-border)] flex items-center justify-between px-6 z-30 transition-all duration-300",
-        sidebarCollapsed ? "left-[72px]" : "left-[260px]"
-      )}
+      className="fixed top-0 right-0 h-[72px] bg-[var(--tp-surface)] border-b border-[var(--tp-border)] flex items-center justify-between px-6 z-30 transition-all duration-300 ease-out"
+      style={{ left: sidebarCollapsed ? '72px' : '240px' }}
     >
-      {/* Left: Search + Tenant */}
+      {/* Left: Search */}
       <div className="flex items-center gap-4">
-        {tenantName && (
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[var(--tp-accent)]/10 text-[var(--tp-accent)] rounded-lg text-sm font-medium">
-            {tenantName}
-          </div>
-        )}
         <div className="hidden sm:flex items-center gap-2 bg-[var(--tp-bg)] rounded-xl px-4 py-2.5 w-80 border border-[var(--tp-border)] focus-within:border-[var(--tp-accent)] focus-within:ring-2 focus-within:ring-[var(--tp-accent)]/10 transition-all">
           <Search size={18} className="text-[var(--tp-muted)]" />
           <input

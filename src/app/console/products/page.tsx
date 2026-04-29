@@ -82,10 +82,10 @@ export default function ProductsPage() {
   const subscribedExtensions = extensions.filter((p) => p.isSubscribed);
 
   return (
-    <div className="space-y-10 max-w-5xl">
+    <div className="space-y-10 w-full">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-slate-900">产品管理</h1>
+        <h1 className="text-2xl font-bold text-slate-900">产品管理</h1>
         <p className="text-sm text-slate-500 mt-1">
           浏览和订阅 TradePass 产品套件
         </p>
