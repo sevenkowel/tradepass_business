@@ -1,18 +1,44 @@
 # 🎭 TradePass Mock Demo 模式
 
+## ⚠️ 重要：使用 localhost.io 访问子域名
+
+由于 macOS/Windows hosts 文件不支持通配符 (`*.localhost`)，需要使用 `localhost.io` 替代：
+
+```
+# ✅ 正确的访问方式
+http://console.localhost.io:3002
+http://demo.localhost.io:3002
+http://portal.demo.localhost.io:3002
+
+# ❌ 错误的访问方式（hosts 不支持）
+http://console.localhost:3002
+```
+
+完整指南见：[LOCALHOST_IO_GUIDE.md](./LOCALHOST_IO_GUIDE.md)
+
+---
+
 ## 快速开始
 
 ### 1. 启用 Mock 模式
 
-在任意 URL 后添加 `?mock=true` 参数：
+在官网 URL 后添加 `?mock=true` 参数：
 
 ```
-http://localhost:3002/?mock=true
-http://demo.localhost:3002/?mock=true
-http://portal.demo.localhost:3002/?mock=true
+http://localhost:3002?mock=true
 ```
 
 启用后，Mock 模式会持续 30 天（通过 cookie 保存）。
+
+### 然后访问各系统
+
+```
+http://console.localhost.io:3002          # Console
+http://backoffice.localhost.io:3002       # Backoffice
+http://demo.localhost.io:3002             # 租户官网
+http://portal.demo.localhost.io:3002      # Portal
+http://crm.demo.localhost.io:3002         # CRM
+```
 
 ### 2. 预设用户账号
 

@@ -41,8 +41,11 @@ export function enableMockMode(): void {
         if (user) {
           const token = `demo-token-${Date.now()}`;
           mockDB.createSession(token, user.id, 24);
-          document.cookie = `token=${token}; path=/; domain=.localhost`;
-          document.cookie = `portal_tenant=${user.tenantId || ''}; path=/; domain=.localhost`;
+          // 根据当前域名确定 cookie domain
+          const isLocalhostIo = window.location.hostname.includes('localhost.io');
+          const cookieDomain = isLocalhostIo ? '.localhost.io' : '.localhost';
+          document.cookie = `token=${token}; path=/; domain=${cookieDomain}`;
+          document.cookie = `portal_tenant=${user.tenantId || ''}; path=/; domain=${cookieDomain}`;
           window.location.reload();
         }
       },

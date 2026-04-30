@@ -24,24 +24,31 @@ interface AppContext {
 
 function detectAppFromHost(host: string): AppContext {
   const hostname = host.split(":")[0];
+  const parts = hostname.split(".");
 
   // Platform ends (plain hostname match)
   if (hostname === "localhost" || hostname === "127.0.0.1") return { app: "website", isPlatform: true };
-  if (hostname === "console.localhost") return { app: "console", isPlatform: true };
-  if (hostname === "backoffice.localhost") return { app: "backoffice", isPlatform: true };
+  if (hostname === "console.localhost" || hostname === "console.localhost.io") return { app: "console", isPlatform: true };
+  if (hostname === "backoffice.localhost" || hostname === "backoffice.localhost.io") return { app: "backoffice", isPlatform: true };
 
-  // Three-level subdomain: xxx.yyy.localhost
-  const parts = hostname.split(".");
-  if (parts.length >= 3 && parts[parts.length - 1] === "localhost") {
-    const [sub, tenantDomain] = parts;
+  // Three-level subdomain: xxx.yyy.localhost or xxx.yyy.localhost.io
+  const isLocalhostTLD = parts[parts.length - 1] === "localhost";
+  const isLocalhostIo = parts.length >= 2 && parts.slice(-2).join(".") === "localhost.io";
+  
+  if ((isLocalhostTLD && parts.length >= 3) || (isLocalhostIo && parts.length >= 4)) {
+    const offset = isLocalhostIo ? 1 : 0; // localhost.io 多一个部分
+    const sub = parts[0];
+    const tenantDomain = parts[1];
+    
     if (sub === "portal") return { app: "portal", tenantSubdomain: tenantDomain, isPlatform: false };
     if (sub === "crm") return { app: "crm", tenantSubdomain: tenantDomain, isPlatform: false };
     if (sub === "console") return { app: "console", isPlatform: true };
     if (sub === "backoffice") return { app: "backoffice", isPlatform: true };
   }
 
-  // Two-level subdomain: tenant.localhost
-  if (parts.length === 2 && parts[1] === "localhost") {
+  // Two-level subdomain: tenant.localhost or tenant.localhost.io
+  if ((parts.length === 2 && parts[1] === "localhost") || 
+      (parts.length === 3 && parts.slice(-2).join(".") === "localhost.io")) {
     return { app: "tenant-website", tenantSubdomain: parts[0], isPlatform: false };
   }
 
@@ -66,7 +73,12 @@ function detectAppFromHost(host: string): AppContext {
 
 interface AppRouteConfig {
   publicPaths: string[];
-  redirectUnauthenticated: string | ((ctx: AppContext) => string);
+  redirectUnauthenticated: string | ((ctx: AppContext, hostname: string) => string);
+}
+
+// 检测当前使用的域名后缀（localhost 或 localhost.io）
+function getDomainSuffix(hostname: string): string {
+  return hostname.includes("localhost.io") ? "localhost.io" : "localhost";
 }
 
 const APP_ROUTES: Record<AppName, AppRouteConfig> = {
@@ -87,23 +99,32 @@ const APP_ROUTES: Record<AppName, AppRouteConfig> = {
 
   "tenant-website": {
     publicPaths: ["/", "/auth/login", "/auth/portal/login", "/auth/portal/register", "/auth/crm/login", "/about", "/products"],
-    redirectUnauthenticated: (ctx) => ctx.tenantSubdomain 
-      ? `http://${ctx.tenantSubdomain}.localhost:3002/auth/login`
-      : "/auth/login",
+    redirectUnauthenticated: (ctx, hostname) => {
+      const suffix = getDomainSuffix(hostname);
+      return ctx.tenantSubdomain 
+        ? `http://${ctx.tenantSubdomain}.${suffix}:3002/auth/login`
+        : "/auth/login";
+    },
   },
 
   portal: {
     publicPaths: ["/auth/login"],
-    redirectUnauthenticated: (ctx) => ctx.tenantSubdomain
-      ? `http://${ctx.tenantSubdomain}.localhost:3002/auth/portal/login`
-      : "/auth/login",
+    redirectUnauthenticated: (ctx, hostname) => {
+      const suffix = getDomainSuffix(hostname);
+      return ctx.tenantSubdomain
+        ? `http://${ctx.tenantSubdomain}.${suffix}:3002/auth/portal/login`
+        : "/auth/login";
+    },
   },
 
   crm: {
     publicPaths: ["/auth/login"],
-    redirectUnauthenticated: (ctx) => ctx.tenantSubdomain
-      ? `http://${ctx.tenantSubdomain}.localhost:3002/auth/crm/login`
-      : "/auth/login",
+    redirectUnauthenticated: (ctx, hostname) => {
+      const suffix = getDomainSuffix(hostname);
+      return ctx.tenantSubdomain
+        ? `http://${ctx.tenantSubdomain}.${suffix}:3002/auth/crm/login`
+        : "/auth/login";
+    },
   },
 
   unknown: {
@@ -182,7 +203,7 @@ export function middleware(request: NextRequest) {
   // Check authentication (simplified)
   if (!token) {
     const redirectTarget = typeof config.redirectUnauthenticated === 'function'
-      ? config.redirectUnauthenticated(appContext)
+      ? config.redirectUnauthenticated(appContext, hostname)
       : config.redirectUnauthenticated;
     
     // Add current URL as redirect param
