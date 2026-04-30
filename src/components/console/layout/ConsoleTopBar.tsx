@@ -109,17 +109,24 @@ export function ConsoleTopBar({ sidebarCollapsed, user, portalUrl, onMenuToggle 
 
       {/* Right Section */}
       <div className="flex items-center gap-2">
-        {/* Portal Link */}
+        {/* Portal Link - 纯路径模式 */}
         {portalUrl && (
-          <a
-            href={portalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-          >
-            <ExternalLink className="w-4 h-4" />
-            <span>前往租户官网</span>
-          </a>
+          <>
+            <a
+              href="/portal"
+              className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>前往 Portal</span>
+            </a>
+            <a
+              href="/crm"
+              className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>前往 CRM</span>
+            </a>
+          </>
         )}
 
         {/* Notifications */}

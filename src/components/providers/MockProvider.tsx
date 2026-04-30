@@ -47,6 +47,17 @@ export function MockProvider({ children }: { children: React.ReactNode }) {
 function MockIndicator() {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // 获取当前用户角色
+  const getRolePath = (buttonRole: string) => {
+    const paths: Record<string, string> = {
+      'platform_admin': '/backoffice',
+      'tenant_owner': '/console',
+      'tenant_admin': '/crm',
+      'default_user': '/portal',
+    };
+    return paths[buttonRole] || '/';
+  };
+
   return (
     <div className="fixed bottom-4 right-4 z-[9999] flex flex-col items-end gap-2">
       {isExpanded && (
@@ -62,13 +73,13 @@ function MockIndicator() {
                 onClick={() => (window as any).MockTools?.switchUser('admin@tradepass.io')}
                 className="flex-1 bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded text-xs"
               >
-                切到平台管理员
+                平台管理员 → /backoffice
               </button>
               <button
                 onClick={() => (window as any).MockTools?.switchUser('owner@demobroker.com')}
                 className="flex-1 bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded text-xs"
               >
-                切到租户管理员
+                租户所有者 → /console
               </button>
             </div>
             <div className="flex gap-2">
@@ -76,22 +87,27 @@ function MockIndicator() {
                 onClick={() => (window as any).MockTools?.switchUser('admin@demobroker.com')}
                 className="flex-1 bg-purple-600 hover:bg-purple-500 px-3 py-1.5 rounded text-xs"
               >
-                切到 CRM 管理员
+                CRM 管理员 → /crm
               </button>
               <button
                 onClick={() => (window as any).MockTools?.switchUser('user@example.com')}
                 className="flex-1 bg-orange-600 hover:bg-orange-500 px-3 py-1.5 rounded text-xs"
               >
-                切到普通用户
+                普通用户 → /portal
               </button>
             </div>
             <hr className="border-slate-700 my-2" />
-            <button
-              onClick={() => (window as any).MockTools?.reset()}
-              className="w-full bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded text-xs"
-            >
-              🔄 重置所有数据
-            </button>
+            <div className="flex gap-2">
+              <a href="/" className="flex-1 bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-xs text-center">
+                回到官网 /
+              </a>
+              <button
+                onClick={() => (window as any).MockTools?.reset()}
+                className="flex-1 bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded text-xs"
+              >
+                🔄 重置所有数据
+              </button>
+            </div>
           </div>
           
           <p className="text-slate-500 text-xs mt-3">

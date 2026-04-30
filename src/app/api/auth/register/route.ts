@@ -126,15 +126,12 @@ async function handleMockRegister(
 
   setSecureCookie(res, "token", token, { 
     httpOnly: true, 
-    domain: ".localhost",
     maxAge: 24 * 60 * 60,
   });
   setSecureCookie(res, "onboarding_completed", newUser.role === 'tenant_owner' ? "false" : "true", { 
-    domain: ".localhost",
     maxAge: 24 * 60 * 60,
   });
   setSecureCookie(res, "portal_tenant", assignedTenantId, { 
-    domain: ".localhost",
     maxAge: 24 * 60 * 60,
   });
 
@@ -250,8 +247,8 @@ async function handleRealRegister(req: NextRequest, data: any) {
       tenantId: tenant.id,
       user: { id: user.id, email: user.email, name: user.name },
     });
-    setSecureCookie(res, "token", token, { httpOnly: true, domain: ".localhost" });
-    setSecureCookie(res, "portal_tenant", tenant.id, { domain: ".localhost" });
+    setSecureCookie(res, "token", token, { httpOnly: true });
+    setSecureCookie(res, "portal_tenant", tenant.id, { });
     return res;
   }
 

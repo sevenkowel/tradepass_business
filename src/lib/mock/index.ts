@@ -41,12 +41,25 @@ export function enableMockMode(): void {
         if (user) {
           const token = `demo-token-${Date.now()}`;
           mockDB.createSession(token, user.id, 24);
-          // 根据当前域名确定 cookie domain
-          const isLocalhostIo = window.location.hostname.includes('localhost.io');
-          const cookieDomain = isLocalhostIo ? '.localhost.io' : '.localhost';
-          document.cookie = `token=${token}; path=/; domain=${cookieDomain}`;
-          document.cookie = `portal_tenant=${user.tenantId || ''}; path=/; domain=${cookieDomain}`;
-          window.location.reload();
+          // 纯路径路由模式：不需要 domain，只用 path 级 cookie
+          document.cookie = `token=${token}; path=/`;
+          document.cookie = `portal_tenant=${user.tenantId || ''}; path=/`;
+          // 记录当前用户角色，方便前端做自动跳转
+          document.cookie = `mock_user_role=${user.role}; path=/`;
+          document.cookie = `onboarding_completed=${user.role === 'tenant_owner' ? 'false' : 'true'}; path=/`;
+          // 菜单展开状态
+          setIsExpanded(false);
+          // 根据角色跳转
+          const rolePath = {
+            'platform_admin': '/backoffice',
+            'tenant_owner': '/console',
+            'tenant_admin': '/crm',
+            'user': '/portal',
+          }[user.role] || '/';
+          window.location.href = rolePath;
+        } else {
+          console.warn(`[MockTools] User not found: ${email}`);
+          console.log('Available users:', users.map((u: any) => u.email).join(', '));
         }
       },
     };

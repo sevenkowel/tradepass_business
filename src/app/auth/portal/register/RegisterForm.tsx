@@ -14,19 +14,8 @@ export default function RegisterForm() {
   const searchParams = useSearchParams();
   const tenantId = searchParams.get("tenantId");
 
-  // 从当前 URL 推断 portal 子域名
-  // 当前在 {tenant}.localhost:3002 → http://portal.{tenant}.localhost:3002
-  const portalUrl = (() => {
-    if (typeof window !== "undefined") {
-      const host = window.location.host;
-      // host = "2026429-cmok2r.localhost:3002"
-      // 只要有 "." 就认为这是一个租户域名
-      if (host.includes(".")) {
-        return `http://portal.${host}`;
-      }
-    }
-    return "/portal";
-  })();
+  // 注册成功后跳转到 Portal（纯路径模式）
+  const portalUrl = "/portal";
 
   const [config, setConfig] = useState<AuthConfig | null>(null);
   const [configLoading, setConfigLoading] = useState(true);
@@ -201,10 +190,10 @@ export default function RegisterForm() {
 
       // 无论 autoLogin 是否为 true，都确保 token cookie 已设置
       if (data.token) {
-        document.cookie = `token=${data.token}; path=/; max-age=604800; domain=.localhost`;
+        document.cookie = `token=${data.token}; path=/; max-age=604800`;
       }
       if (data.tenantId) {
-        document.cookie = `portal_tenant=${data.tenantId}; path=/; max-age=604800; domain=.localhost`;
+        document.cookie = `portal_tenant=${data.tenantId}; path=/; max-age=604800`;
       }
 
       setStep("success");

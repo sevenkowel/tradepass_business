@@ -88,21 +88,18 @@ async function handleMockLogin(
                 user.role === 'tenant_admin' ? '/crm' : '/portal',
   });
 
-  // 设置 Cookies
+  // 设置 Cookies（纯路径模式：不需要 domain）
   setSecureCookie(res, "token", token, {
     httpOnly: true,
-    domain: ".localhost",
     maxAge: 24 * 60 * 60,
   });
 
   setSecureCookie(res, "onboarding_completed", "true", {
-    domain: ".localhost",
     maxAge: 24 * 60 * 60,
   });
 
   if (user.tenantId) {
     setSecureCookie(res, "portal_tenant", user.tenantId, {
-      domain: ".localhost",
       maxAge: 24 * 60 * 60,
     });
   }
@@ -211,11 +208,9 @@ async function handleRealLogin(
 
   setSecureCookie(res, "token", token, {
     httpOnly: true,
-    domain: ".localhost",
   });
 
   setSecureCookie(res, "onboarding_completed", onboardingCompleted ? "true" : "false", {
-    domain: ".localhost",
   });
 
   setCsrfCookie(res, csrfToken);

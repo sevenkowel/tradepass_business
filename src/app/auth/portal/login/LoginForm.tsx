@@ -14,17 +14,8 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const tenantId = searchParams.get("tenantId");
 
-  // 从当前 URL 推断 portal 子域名
-  // 当前在 {tenant}.localhost:3002 → http://portal.{tenant}.localhost:3002
-  const portalUrl = (() => {
-    if (typeof window !== "undefined") {
-      const host = window.location.host;
-      if (host.includes(".")) {
-        return `http://portal.${host}`;
-      }
-    }
-    return "/portal";
-  })();
+  // 登录成功后跳转到 Portal（纯路径模式）
+  const portalUrl = "/portal";
 
   const [config, setConfig] = useState<AuthConfig | null>(null);
   const [configLoading, setConfigLoading] = useState(true);
