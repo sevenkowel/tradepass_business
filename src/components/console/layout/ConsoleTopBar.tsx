@@ -71,12 +71,7 @@ export function ConsoleTopBar({ sidebarCollapsed, user, portalUrl, onMenuToggle 
   }, []);
 
   return (
-    <header
-      className={cn(
-        "h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30 transition-all duration-300",
-        sidebarCollapsed ? "lg:ml-[80px]" : "lg:ml-[260px]"
-      )}
-    >
+    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30 shrink-0">
       {/* Left Section */}
       <div className="flex items-center gap-4 flex-1">
         {/* Mobile Menu Toggle */}

@@ -4,6 +4,7 @@ import { hashPassword, signToken } from "@/lib/auth";
 import { checkBlacklist } from "@/lib/risk/engine";
 import { verifyOTPCode } from "@/lib/otp";
 import { parseAuthConfig } from "@/lib/auth-config";
+import { setSecureCookie } from "@/lib/security";
 import { z } from "zod";
 
 const registerSchema = z.object({
@@ -240,28 +241,10 @@ export async function POST(req: NextRequest) {
         },
         message: "Registration successful. Redirecting to portal...",
       });
-      res.cookies.set("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
-        path: "/",
-      });
-      res.cookies.set("onboarding_completed", "false", {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
-        path: "/",
-      });
+      setSecureCookie(res, "token", token, { httpOnly: true, domain: ".localhost" });
+      setSecureCookie(res, "onboarding_completed", "false", { domain: ".localhost" });
       // 设置 portal_tenant cookie，使 portal 页面可访问
-      res.cookies.set("portal_tenant", tenant.id, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
-        path: "/",
-      });
+      setSecureCookie(res, "portal_tenant", tenant.id, { domain: ".localhost" });
       return res;
     }
 

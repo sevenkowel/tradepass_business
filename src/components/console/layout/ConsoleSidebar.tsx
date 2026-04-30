@@ -259,7 +259,7 @@ export function ConsoleSidebar({ collapsed, onToggle }: ConsoleSidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full z-50 bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/80 transition-all duration-300 flex flex-col shadow-sm",
+          "h-screen sticky top-0 z-50 bg-gradient-to-b from-slate-50 to-white border-r border-slate-200/80 transition-all duration-300 flex flex-col shadow-sm shrink-0",
           collapsed ? "w-[80px]" : "w-[260px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}

@@ -57,20 +57,15 @@ export function ConsoleLayout({ children, portalUrl }: ConsoleLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar */}
       <ConsoleSidebar
         collapsed={sidebarCollapsed}
         onToggle={toggleSidebar}
       />
 
-      {/* Main Content */}
-      <div
-        className={cn(
-          "transition-all duration-300",
-          sidebarCollapsed ? "lg:ml-[80px]" : "lg:ml-[260px]"
-        )}
-      >
+      {/* Main Content Area */}
+      <div className="flex-1 min-w-0 flex flex-col">
         {/* TopBar */}
         <ConsoleTopBar
           sidebarCollapsed={sidebarCollapsed}
@@ -82,8 +77,8 @@ export function ConsoleLayout({ children, portalUrl }: ConsoleLayoutProps) {
         {/* Plan Status Bar */}
         <PlanStatusBar />
 
-        {/* Main Content Area */}
-        <main className="p-4 lg:p-6">
+        {/* Main Content */}
+        <main className="p-4 lg:p-6 flex-1">
           <div className="max-w-6xl mx-auto w-full">
             {children}
           </div>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, signToken } from "@/lib/auth";
 import { verify2FACode } from "@/lib/otp";
-import { generateCsrfToken, setCsrfCookie } from "@/lib/security";
+import { generateCsrfToken, setCsrfCookie, setSecureCookie } from "@/lib/security";
 import { z } from "zod";
 
 const loginSchema = z.object({
@@ -119,33 +119,20 @@ export async function POST(req: NextRequest) {
       redirectTo: onboardingCompleted ? "/portal" : "/console/onboarding",
     });
 
-    res.cookies.set("token", token, {
+    setSecureCookie(res, "token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
+      domain: ".localhost",
     });
 
-    res.cookies.set("onboarding_completed", onboardingCompleted ? "true" : "false", {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
+    setSecureCookie(res, "onboarding_completed", onboardingCompleted ? "true" : "false", {
+      domain: ".localhost",
     });
 
     setCsrfCookie(res, csrfToken);
 
     // 设置 portal_tenant cookie，使 portal 页面可访问
     if (tenant) {
-      res.cookies.set("portal_tenant", tenant.id, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
-        path: "/",
-      });
+      setSecureCookie(res, "portal_tenant", tenant.id, {});
     }
 
     return res;

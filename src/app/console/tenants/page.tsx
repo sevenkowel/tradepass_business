@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Building2, Plus, ArrowRight, Loader2 } from "lucide-react";
+import { Building2, Plus, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 interface Tenant {
@@ -17,8 +18,33 @@ interface Tenant {
 }
 
 export default function TenantsPage() {
+  const router = useRouter();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+
+  const handleCreateTenant = async () => {
+    setCreating(true);
+    try {
+      const res = await fetch("/api/console/tenants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `我的租户 ${new Date().toLocaleDateString()}`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "创建失败");
+        setCreating(false);
+        return;
+      }
+      router.push("/console/onboarding");
+    } catch {
+      alert("网络错误，请稍后重试");
+      setCreating(false);
+    }
+  };
 
   useEffect(() => {
     fetch("/api/console/tenants")
@@ -46,11 +72,20 @@ export default function TenantsPage() {
           <h1 className="text-2xl font-bold text-slate-900">租户管理</h1>
           <p className="text-sm text-slate-500 mt-1">管理您的租户和业务系统</p>
         </div>
-        <Link href="/console/tenants/new">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-            <Plus className="w-4 h-4 mr-2" /> 创建租户
+        <div className="flex items-center gap-3">
+          <Button
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={handleCreateTenant}
+            disabled={creating}
+          >
+            {creating ? (
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <Plus className="w-4 h-4 mr-1" />
+            )}
+            {creating ? "创建中..." : "创建租户"}
           </Button>
-        </Link>
+        </div>
       </div>
 
       {tenants.length === 0 ? (
@@ -60,11 +95,18 @@ export default function TenantsPage() {
             title="暂无租户"
             description="您还没有创建任何租户，创建后即可订阅产品和管理业务。"
             action={
-              <Link href="/console/tenants/new">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Plus className="w-4 h-4 mr-2" /> 创建第一个租户
-                </Button>
-              </Link>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={handleCreateTenant}
+                disabled={creating}
+              >
+                {creating ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4 mr-1" />
+                )}
+                {creating ? "创建中..." : "创建第一个租户"}
+              </Button>
             }
           />
         </Card>
